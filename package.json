@@ -46,6 +46,8 @@
 		"@biomejs/biome": "^2.4.15",
 		"@iconify-json/grommet-icons": "^1.2.4",
 		"@iconify-json/mdi": "^1.2.2",
+		"@iconify-json/svg-spinners": "^1.2.4",
+		"@iconify-json/uim": "^1.2.3",
 		"@pagefind/default-ui": "^1.5.2",
 		"@tailwindcss/typography": "^0.5.19",
 		"@types/hast": "^3.0.4",
