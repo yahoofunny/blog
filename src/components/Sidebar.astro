@@ -1,0 +1,102 @@
+---
+// src/components/Sidebar.astro
+---
+<aside class="sidebar">
+  <!-- 👈 1. 手机端：加个关闭按钮 -->
+  <button 
+    class="md:hidden fixed top-4 right-4 z-50 bg-gray-800 text-white p-2 rounded-md"
+    onclick="document.getElementById('sidebar').classList.add('hidden')"
+  >
+    ✕
+  </button>
+  
+  <div class="sidebar-section">
+    <h3>️ 标签 (Tags)</h3>
+    <ul class="tag-list">
+      <li><a href="/tags/games/">#游戏</a></li>
+      <li><a href="/tags/tech/">#技术</a></li>
+      <li><a href="/tags/life/">#生活</a></li>
+    </ul>
+  </div>
+
+  <div class="sidebar-section">
+    <h3>📑 文章索引 (Index)</h3>
+    <ul class="post-list">
+      <li><a href="/posts/webmentions/">Webmentions 教程</a></li>
+      <li><a href="/posts/first-post/">我的第一篇随笔</a></li>
+    </ul>
+  </div>
+</aside>
+
+<style>
+  .sidebar {
+    background: #1a1a1a;
+    padding: 1.5rem;
+    border-radius: 12px;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+    /* 👈 2. 手机端：侧边栏覆盖整个屏幕 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  
+  /* 👈 3. 背景遮罩：手机端展开侧边栏时，内容变暗 */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 40;
+  }
+  
+  .sidebar.active ~ .sidebar-overlay {
+    display: block;
+  }
+  
+  .sidebar-section {
+    margin-bottom: 2rem;
+  }
+  
+  .sidebar h3 {
+    font-size: 1.1rem;
+    color: #4ade80;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5rem;
+  }
+  
+  .tag-list, .post-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .tag-list li, .post-list li {
+    margin-bottom: 0.8rem;
+  }
+  
+  .tag-list a, .post-list a {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+  
+  .tag-list a:hover, .post-list a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+</style>

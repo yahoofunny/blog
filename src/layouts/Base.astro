@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer.astro";
 import Header from "@/components/layout/Header.astro";
 import SkipLink from "@/components/SkipLink.astro";
 import ThemeProvider from "@/components/ThemeProvider.astro";
+import Sidebar from "@/components/Sidebar.astro";
 import { siteConfig } from "@/site.config";
 import type { SiteMeta } from "@/types";
 
@@ -22,15 +23,46 @@ const {
 		<ThemeProvider />
 	</head>
 	<body
-		class="bg-global-bg text-global-text mx-auto flex min-h-screen max-w-3xl flex-col px-4 pt-16 font-mono text-sm font-normal antialiased sm:px-8"
+		class="bg-global-bg text-global-text min-h-screen font-mono text-sm font-normal antialiased"
 	>
 		<SkipLink />
 		<Header />
-		<main id="main">
-			<slot />
-		</main>
+		
+		<!-- 👇 核心改动：使用 flex 布局，适配所有设备 -->
+		<div class="mx-auto max-w-7xl px-4 sm:px-8 pt-16">
+			
+			<!-- 👈 1. 手机端：汉堡菜单按钮 -->
+			<button 
+				class="md:hidden fixed top-4 left-4 z-50 bg-gray-800 text-white p-2 rounded-md"
+				onclick="document.getElementById('sidebar').classList.toggle('hidden')"
+			>
+				☰
+			</button>
+			
+			<!-- 👈 2. 主布局容器：手机端为单栏，桌面端为双栏 -->
+			<div class="flex flex-col md:flex-row gap-8">
+				
+				<!-- 👈 3. 左侧侧边栏：手机端隐藏，桌面端显示 -->
+				<aside 
+					id="sidebar" 
+					class="hidden md:block md:w-64 shrink-0 z-40"
+				>
+					<div class="sticky top-24">
+						<Sidebar />
+					</div>
+				</aside>
+
+				<!-- 👉 4. 右侧主内容区：占据剩余空间 -->
+				<main id="main" class="flex-1 min-w-0 pb-16">
+					<slot />
+				</main>
+				
+			</div>
+		</div>
+
 		<Footer />
-		<script is:inline type="speculationrules">
+		
+		<script is:inline type="specificationrules">
 			{
 				"prefetch": [
 					{
@@ -50,5 +82,26 @@ const {
 				]
 			}
 		</script>
+		<script is:inline>
+  // 手机端侧边栏控制
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    overlay.onclick = () => {
+      sidebar.classList.add('hidden');
+      overlay.classList.remove('active');
+    };
+    document.body.appendChild(overlay);
+    
+    // 为汉堡菜单添加点击事件
+    document.querySelector('button[onclick*="sidebar"]').onclick = (e) => {
+      e.stopPropagation();
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('active');
+      overlay.classList.add('active');
+    };
+  });
+</script>
 	</body>
 </html>
