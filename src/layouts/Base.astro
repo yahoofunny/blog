@@ -62,27 +62,7 @@ const {
 
 		<Footer />
 		
-		<script is:inline type="specificationrules">
-			{
-				"prefetch": [
-					{
-						"where": {
-							"href_matches": "/*"
-						},
-						"eagerness": "immediate"
-					}
-				],
-				"prerender": [
-					{
-						"where": {
-							"href_matches": "/*"
-						},
-						"eagerness": "moderate"
-					}
-				]
-			}
-		</script>
-		<script is:inline>
+		
   // 手机端侧边栏控制
   document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
