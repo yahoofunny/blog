@@ -5,38 +5,39 @@ import { menuLinks } from "@/site.config";
 import { siteConfig } from "../../site.config";
 ---
 
-<header class="group relative mb-28 flex items-center justify-between sm:ps-18" id="main-header">
+<header class="group relative mb-28 flex flex-col items-start sm:ps-18" id="main-header">
+	<!-- 第一行：Logo -->
 	<div class="flex items-center">
 		<a
 			aria-current={Astro.url.pathname === "/" ? "page" : false}
 			class="inline-flex items-center sm:relative sm:inline-block sm:grayscale sm:hover:filter-none"
 			href="/"
 		>
-			<!-- 仙人掌已删除 -->
 			<span class="text-xl font-bold sm:text-2xl">{siteConfig.title}</span>
 		</a>
-		
-		<nav
-			aria-label="Main menu"
-			class="bg-global-bg absolute -inset-x-4 top-12 hidden flex-col divide-y px-2 py-4 group-[.menu-open]:z-50 group-[.menu-open]:flex sm:static sm:z-auto sm:-ms-4 sm:mt-1 sm:flex sm:flex-row sm:divide-x sm:divide-y-0 sm:bg-transparent sm:p-0"
-			id="navigation-menu"
-		>
-			{
-				menuLinks.map((link) => (
-					<a
-						aria-current={Astro.url.pathname === link.path ? "page" : false}
-						class="text-accent px-2 py-4 font-semibold sm:px-4 sm:py-0 sm:underline-offset-2 sm:hover:underline"
-						href={link.path}
-					>
-						{link.title}
-					</a>
-				))
-			}
-		</nav>
 	</div>
 	
-	<!-- 右侧按钮组：搜索、主题切换、手机菜单 -->
-	<div class="flex items-center gap-2">
+	<!-- 第二行：导航链接 -->
+	<nav
+		aria-label="Main menu"
+		class="flex flex-wrap gap-4 mt-2"
+		id="navigation-menu"
+	>
+		{
+			menuLinks.map((link) => (
+				<a
+					aria-current={Astro.url.pathname === link.path ? "page" : false}
+					class="text-accent font-semibold hover:underline underline-offset-2"
+					href={link.path}
+				>
+					{link.title}
+				</a>
+			))
+		}
+	</nav>
+	
+	<!-- 第三行：右侧按钮组（搜索、主题切换、手机菜单） -->
+	<div class="flex items-center gap-2 mt-4">
 		<Search />
 		<ThemeToggle />
 		<mobile-button>
