@@ -2,16 +2,8 @@
 // src/components/Sidebar.astro
 ---
 <aside class="sidebar">
-  <!-- 👈 1. 手机端：加个关闭按钮 -->
-  <button 
-    class="md:hidden fixed top-4 right-4 z-50 bg-gray-800 text-white p-2 rounded-md"
-    onclick="document.getElementById('sidebar').classList.add('hidden')"
-  >
-    ✕
-  </button>
-  
   <div class="sidebar-section">
-    <h3>️ 标签 (Tags)</h3>
+    <h3>🏷️ 标签 (Tags)</h3>
     <ul class="tag-list">
       <li><a href="/tags/games/">#游戏</a></li>
       <li><a href="/tags/tech/">#技术</a></li>
@@ -29,59 +21,36 @@
 </aside>
 
 <style>
+  /* 纯粹的侧边栏卡片样式，去掉了所有手机端抽屉的脏代码 */
   .sidebar {
-    background: #1a1a1a;
+    background: var(--theme-bg, #1a1a1a); /* 自动适配你的暗黑/白天模式 */
     padding: 1.5rem;
     border-radius: 12px;
-    height: fit-content;
-    position: sticky;
-    top: 2rem;
-    /* 👈 2. 手机端：侧边栏覆盖整个屏幕 */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 80%;
-    height: 100vh;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 50;
-  }
-  
-  .sidebar.active {
-    transform: translateX(0);
-  }
-  
-  /* 👈 3. 背景遮罩：手机端展开侧边栏时，内容变暗 */
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 40;
-  }
-  
-  .sidebar.active ~ .sidebar-overlay {
-    display: block;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   }
   
   .sidebar-section {
     margin-bottom: 2rem;
   }
   
+  .sidebar-section:last-child {
+    margin-bottom: 0; /* 最后一个区块不留底边距 */
+  }
+  
   .sidebar h3 {
     font-size: 1.1rem;
-    color: #4ade80;
+    color: #4ade80; /* 清新的绿色标题 */
     margin-bottom: 1rem;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 0.5rem;
+    font-weight: 600;
   }
   
   .tag-list, .post-list {
     list-style: none;
     padding: 0;
+    margin: 0;
   }
   
   .tag-list li, .post-list li {
@@ -89,14 +58,15 @@
   }
   
   .tag-list a, .post-list a {
-    color: #ccc;
+    color: var(--theme-text, #ccc);
     text-decoration: none;
     font-size: 0.95rem;
-    transition: color 0.2s;
+    transition: all 0.2s ease;
+    display: inline-block;
   }
   
   .tag-list a:hover, .post-list a:hover {
-    color: #fff;
-    text-decoration: underline;
+    color: #4ade80; /* 鼠标悬停时变成绿色 */
+    transform: translateX(4px); /* 鼠标放上去时，文字微微向右滑动，超级丝滑！ */
   }
 </style>
