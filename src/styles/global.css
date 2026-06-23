@@ -4,138 +4,136 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
-/* tailwind to ignore satori generated og-image */
 @source not "../pages/og-image";
-/* config for tailwindcss-typography plugin */
 @config "../../tailwind.config.ts";
 
-/* use a selector-based strategy for dark mode */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* register custom colour properties */
+/* === GitHub-Style Color Palette === */
 @property --color-global-bg {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(98.48% 0 0);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
 }
 @property --color-global-text {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(26.99% 0.0096 235.05);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1f2328;
 }
 @property --color-muted {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(44.6% 0.03 256.802);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #656d76;
 }
 @property --color-link {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(55.44% 0.0431 185.69);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0969da;
 }
 @property --color-accent {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(55.27% 0.195 19.06);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0969da;
 }
 @property --color-accent-2 {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(18.15% 0 0);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #24292f;
 }
 @property --color-quote {
-	syntax: "<color>";
-	inherits: true;
-	initial-value: oklch(55.27% 0.195 19.06);
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0969da;
+}
+@property --color-header-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #24292f;
+}
+@property --color-header-text {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+@property --color-border {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d0d7de;
+}
+@property --color-code-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f6f8fa;
 }
 
-/* you could refactor below to use light-dark(), depending on your target audience */
-@theme {
-	--color-global-bg: oklch(98.48% 0 0);
-	--color-global-text: oklch(26.99% 0.0096 235.05);
-	--color-muted: oklch(44.6% 0.03 256.802);
-	--color-link: oklch(55.44% 0.0431 185.69);
-	--color-accent: oklch(55.27% 0.195 19.06);
-	--color-accent-2: oklch(18.15% 0 0);
-	--color-quote: oklch(55.27% 0.195 19.06);
+/* Dark mode overrides */
+[data-theme="dark"] {
+  --color-global-bg: #0d1117;
+  --color-global-text: #e6edf3;
+  --color-muted: #8b949e;
+  --color-link: #58a6ff;
+  --color-accent: #58a6ff;
+  --color-accent-2: #30363d;
+  --color-header-bg: #161b22;
+  --color-header-text: #e6edf3;
+  --color-border: #30363d;
+  --color-code-bg: #161b22;
 }
 
-@layer base {
-	html {
-		color-scheme: light dark;
-		accent-color: var(--color-accent);
-		scrollbar-gutter: stable;
-
-		&[data-theme="light"] {
-			color-scheme: light;
-		}
-
-		&[data-theme="dark"] {
-			color-scheme: dark;
-			--color-global-bg: oklch(23.64% 0.0045 248);
-			--color-global-text: oklch(83.54% 0 264);
-			--color-muted: oklch(70.7% 0.022 261.325);
-			--color-link: oklch(70.44% 0.1133 349);
-			--color-accent: oklch(70.91% 0.1415 163.7);
-			--color-accent-2: oklch(94.66% 0 0);
-			--color-quote: oklch(94.8% 0.106 136.49);
-		}
-
-		--color-mode-transition-duration: 300ms;
-		--color-mode-transition-easing: ease-in-out;
-
-		transition:
-			--color-global-bg var(--color-mode-transition-duration) var(--color-mode-transition-easing),
-			--color-global-text var(--color-mode-transition-duration) var(--color-mode-transition-easing),
-			--color-muted var(--color-mode-transition-duration) var(--color-mode-transition-easing),
-			--color-link var(--color-mode-transition-duration) var(--color-mode-transition-easing),
-			--color-accent var(--color-mode-transition-duration) var(--color-mode-transition-easing),
-			--color-accent-2 var(--color-mode-transition-duration) var(--color-mode-transition-easing),
-			--color-quote var(--color-mode-transition-duration) var(--color-mode-transition-easing);
-	}
-
-	:target {
-		scroll-margin-block: 5ex;
-	}
-
-	@view-transition {
-		navigation: auto;
-	}
-
-	/* Astro image responsive styles, modified from -> https://docs.astro.build/en/guides/images/#responsive-image-styles */
-	:where([data-astro-image]) {
-		object-fit: var(--fit);
-		object-position: var(--pos);
-	}
-	[data-astro-image="full-width"] {
-		width: 100%;
-	}
-	[data-astro-image="constrained"] {
-		max-width: 100%;
-	}
+/* === Base === */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: var(--color-global-bg);
+  color: var(--color-global-text);
 }
 
-@layer components {
-	@import "./components/admonition.css";
-	@import "./components/github-card.css";
-
-	.cactus-link {
-		@apply hover:decoration-link underline underline-offset-2 hover:decoration-2;
-	}
-
-	.title {
-		@apply text-accent-2 text-2xl font-semibold;
-	}
+/* Markdown content typography */
+.prose {
+  max-width: 900px;
+  margin: 0 auto;
 }
+.prose h1 { font-size: 2em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-border); }
+.prose h2 { font-size: 1.5em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-border); }
+.prose h3 { font-size: 1.25em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; }
+.prose h4 { font-size: 1em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; }
+.prose p { margin-bottom: 16px; }
+.prose a { color: var(--color-link); text-decoration: none; }
+.prose a:hover { text-decoration: underline; }
+.prose blockquote { padding: 0 1em; color: var(--color-muted); border-left: 0.25em solid var(--color-border); margin: 0 0 16px 0; }
+.prose code { padding: 0.2em 0.4em; background-color: var(--color-code-bg); border-radius: 6px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 85%; }
+.prose pre { padding: 16px; background-color: var(--color-code-bg); border-radius: 6px; overflow-x: auto; margin-bottom: 16px; }
+.prose pre code { padding: 0; background: none; }
+.prose table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+.prose table th, .prose table td { padding: 6px 13px; border: 1px solid var(--color-border); }
+.prose table th { font-weight: 600; background: var(--color-code-bg); }
+.prose table tr:nth-child(2n) { background: var(--color-code-bg); }
+.prose ul, .prose ol { padding-left: 2em; margin-bottom: 16px; }
+.prose li { margin-bottom: 4px; }
+.prose hr { border: 0; border-top: 1px solid var(--color-border); margin: 24px 0; }
+.prose img { max-width: 100%; }
 
-@utility prose {
-	--tw-prose-body: var(--color-global-text);
-	--tw-prose-bold: var(--color-global-text);
-	--tw-prose-bullets: var(--color-global-text);
-	--tw-prose-code: var(--color-global-text);
-	--tw-prose-headings: var(--color-accent-2);
-	--tw-prose-hr: 0.5px dashed #666;
-	--tw-prose-links: var(--color-global-text);
-	--tw-prose-quotes: var(--color-quote);
-	--tw-prose-th-borders: #666;
+/* === GitHub-style header === */
+.gh-header {
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.gh-header a {
+  color: var(--color-header-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.gh-header a:hover { opacity: 0.8; }
+.gh-header .gh-logo { fill: var(--color-header-text); }
+
+/* === Page layout === */
+.gh-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 16px;
 }
