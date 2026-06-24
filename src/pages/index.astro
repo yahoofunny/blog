@@ -1,6 +1,5 @@
 ---
 import { type CollectionEntry } from "astro:content";
-import PostPreview from "@/components/blog/PostPreview.astro";
 import { getAllPosts } from "@/data/post";
 import PageLayout from "@/layouts/Base.astro";
 import { collectionDateSort } from "@/utils/date";
@@ -12,21 +11,30 @@ const latestPosts = allPosts
 ---
 
 <PageLayout meta={{ title: "Home" }}>
-  <section class="mb-12">
-    <h1 class="text-2xl font-semibold mb-2">bt's Blog</h1>
-    <p class="text-muted">数据结构、算法、考研笔记</p>
+  <!-- Hero -->
+  <section class="mb-16 text-center">
+    <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-4">
+      bt's Blog
+    </h1>
+    <p class="text-white/50 text-lg tracking-wide">
+      数据结构 · 算法 · 考研笔记
+    </p>
   </section>
 
+  <!-- Posts -->
   <section>
-    <h2 class="text-lg font-semibold mb-4 pb-2" style="border-bottom: 1px solid var(--color-border)">
-      Posts
-    </h2>
-    <ul class="space-y-1" role="list">
+    <div class="flex flex-col gap-4">
       {latestPosts.map((p) => (
-        <li>
-          <PostPreview post={p} />
-        </li>
+        <a href={`/posts/${p.id}/`} class="glass-card block">
+          <h2 class="text-xl font-semibold">{p.data.title}</h2>
+          <p class="post-meta mt-1">
+            {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+          {p.data.description && (
+            <p class="post-desc">{p.data.description}</p>
+          )}
+        </a>
       ))}
-    </ul>
+    </div>
   </section>
 </PageLayout>

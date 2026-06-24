@@ -7,133 +7,177 @@
 @source not "../pages/og-image";
 @config "../../tailwind.config.ts";
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* === SpaceX-Inspired Glassmorphism Design === */
 
-/* === GitHub-Style Color Palette === */
-@property --color-global-bg {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #ffffff;
+/* Video Background */
+.video-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  overflow: hidden;
 }
-@property --color-global-text {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #1f2328;
+.video-bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-@property --color-muted {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #656d76;
-}
-@property --color-link {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #0969da;
-}
-@property --color-accent {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #0969da;
-}
-@property --color-accent-2 {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #24292f;
-}
-@property --color-quote {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #0969da;
-}
-@property --color-header-bg {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #24292f;
-}
-@property --color-header-text {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #ffffff;
-}
-@property --color-border {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #d0d7de;
-}
-@property --color-code-bg {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #f6f8fa;
+.video-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
 }
 
-/* Dark mode overrides */
-[data-theme="dark"] {
-  --color-global-bg: #0d1117;
-  --color-global-text: #e6edf3;
-  --color-muted: #8b949e;
-  --color-link: #58a6ff;
-  --color-accent: #58a6ff;
-  --color-accent-2: #30363d;
-  --color-header-bg: #161b22;
-  --color-header-text: #e6edf3;
-  --color-border: #30363d;
-  --color-code-bg: #161b22;
+/* Glass Header */
+.glass-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-/* === Base === */
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background-color: var(--color-global-bg);
-  color: var(--color-global-text);
-}
-
-/* Markdown content typography */
-.prose {
-  max-width: 900px;
-  margin: 0 auto;
-}
-.prose h1 { font-size: 2em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-border); }
-.prose h2 { font-size: 1.5em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-border); }
-.prose h3 { font-size: 1.25em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; }
-.prose h4 { font-size: 1em; font-weight: 600; margin-top: 24px; margin-bottom: 16px; }
-.prose p { margin-bottom: 16px; }
-.prose a { color: var(--color-link); text-decoration: none; }
-.prose a:hover { text-decoration: underline; }
-.prose blockquote { padding: 0 1em; color: var(--color-muted); border-left: 0.25em solid var(--color-border); margin: 0 0 16px 0; }
-.prose code { padding: 0.2em 0.4em; background-color: var(--color-code-bg); border-radius: 6px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 85%; }
-.prose pre { padding: 16px; background-color: var(--color-code-bg); border-radius: 6px; overflow-x: auto; margin-bottom: 16px; }
-.prose pre code { padding: 0; background: none; }
-.prose table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
-.prose table th, .prose table td { padding: 6px 13px; border: 1px solid var(--color-border); }
-.prose table th { font-weight: 600; background: var(--color-code-bg); }
-.prose table tr:nth-child(2n) { background: var(--color-code-bg); }
-.prose ul, .prose ol { padding-left: 2em; margin-bottom: 16px; }
-.prose li { margin-bottom: 4px; }
-.prose hr { border: 0; border-top: 1px solid var(--color-border); margin: 24px 0; }
-.prose img { max-width: 100%; }
-
-/* === GitHub-style header === */
-.gh-header {
-  background: var(--color-header-bg);
-  color: var(--color-header-text);
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.gh-header a {
-  color: var(--color-header-text);
+.glass-header a {
+  color: #fff;
   text-decoration: none;
-  font-weight: 600;
+  transition: opacity 0.3s;
 }
-.gh-header a:hover { opacity: 0.8; }
-.gh-header .gh-logo { fill: var(--color-header-text); }
+.nav-link {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  transition: color 0.3s;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+.nav-link:hover { color: #fff; }
 
-/* === Page layout === */
-.gh-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 32px 16px;
+/* Glass Cards (for posts, sections) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.4s ease;
+}
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.glass-card a {
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.glass-card a:hover { color: #fff; }
+
+/* Glass input for search */
+.glass-input {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  outline: none;
+  transition: all 0.3s;
+}
+.glass-input:focus {
+  border-color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.12);
+}
+
+/* Typography */
+.spacex-body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.glass-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.glass-card .post-meta {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glass-card .post-desc {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+}
+
+/* Prose overrides for glass look */
+.prose {
+  color: rgba(255,255,255,0.85);
+}
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: #fff;
+}
+.prose a {
+  color: rgba(255,255,255,0.9);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose code {
+  background: rgba(255,255,255,0.1);
+  color: #e0e0e0;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.prose pre {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+}
+.prose blockquote {
+  border-left: 3px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.6);
+}
+.prose table th {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.prose table td {
+  border-color: rgba(255,255,255,0.1);
+}
+.prose hr {
+  border-color: rgba(255,255,255,0.1);
+}
+.prose strong {
+  color: #fff;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+/* Selection */
+::selection {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
 }

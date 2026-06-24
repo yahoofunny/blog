@@ -1,7 +1,5 @@
 ---
 import { type CollectionEntry, render } from "astro:content";
-import Masthead from "@/components/blog/Masthead.astro";
-import TOC from "@/components/blog/TOC.astro";
 import BaseLayout from "./Base.astro";
 
 interface Props {
@@ -12,25 +10,43 @@ const { post } = Astro.props;
 const { ogImage, title, description, updatedDate, publishDate } = post.data;
 const socialImage = ogImage ?? `/og-image/${post.id}.png`;
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
-const { headings, remarkPluginFrontmatter } = await render(post);
-const readingTime: string = remarkPluginFrontmatter.readingTime;
+const { headings } = await render(post);
 ---
 
-<BaseLayout
-  meta={{
-    articleDate,
-    description,
-    ogImage: socialImage,
-    title,
-  }}
->
-  <article data-pagefind-body>
-    <Masthead content={post} readingTime={readingTime} />
-    <div class="flex flex-col gap-10 lg:flex-row lg:items-start">
-      {!!headings.length && <TOC headings={headings} />}
-      <div class="prose flex-1 min-w-0">
-        <slot />
-      </div>
+<BaseLayout meta={{ articleDate, description, ogImage: socialImage, title }}>
+  <article class="glass-card !p-8 md:!p-12">
+    <!-- Post header -->
+    <header class="mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold mb-3">{title}</h1>
+      <p class="text-white/40 text-sm uppercase tracking-wider">
+        {publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
+      </p>
+    </header>
+
+    <!-- TOC if available -->
+    {headings.length > 0 && (
+      <nav class="mb-10 p-6 rounded-xl" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);">
+        <h2 class="text-sm uppercase tracking-widest text-white/40 mb-3">Table of Contents</h2>
+        <ul class="space-y-1.5">
+          {headings.map((h) => (
+            <li style={`padding-left: ${(h.depth - 1) * 1.2}rem;`}>
+              <a href={`#${h.slug}`} class="text-white/60 hover:text-white transition-colors text-sm">
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <!-- Content -->
+    <div class="prose max-w-none">
+      <slot />
     </div>
   </article>
+
+  <!-- Back to top -->
+  <div class="text-center mt-8">
+    <a href="/" class="text-white/40 hover:text-white/70 transition-colors text-sm">&larr; Back to Home</a>
+  </div>
 </BaseLayout>
