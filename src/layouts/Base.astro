@@ -1,15 +1,19 @@
 ---
 import BaseHead from "@/components/BaseHead.astro";
 import { siteConfig } from "@/site.config";
+import { getAllPosts } from "@/data/post";
+import { collectionDateSort } from "@/utils/date";
 import type { SiteMeta } from "@/types";
+import type { CollectionEntry } from "astro:content";
 
 interface Props {
   meta: SiteMeta;
 }
 
-const {
-  meta: { articleDate, description = siteConfig.description, ogImage, title },
-} = Astro.props;
+const { meta } = Astro.props;
+const { articleDate, description = siteConfig.description, ogImage, title } = meta;
+
+const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEntry<"post">[];
 ---
 
 <html class="scroll-smooth" lang={siteConfig.lang}>
@@ -17,45 +21,93 @@ const {
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
-    <!-- Full-screen video background -->
     <div class="video-bg">
       <video autoplay muted loop playsinline>
         <source src="/spacex.mp4" type="video/mp4" />
       </video>
     </div>
-    <!-- Dark overlay -->
     <div class="video-overlay"></div>
 
-    <!-- Glass header -->
     <header class="glass-header">
-      <div class="max-w-6xl mx-auto px-6 flex items-center h-16">
-        <a href="/" class="text-xl font-bold tracking-wider uppercase">{siteConfig.title}</a>
-        <nav class="flex gap-6 text-sm ml-auto items-center">
+      <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
+        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4" aria-label="Toggle sidebar">
+          <svg id="sb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <a href="/" class="text-lg font-bold tracking-wider uppercase">{siteConfig.title}</a>
+        <nav class="flex gap-4 text-sm ml-auto items-center">
           <a href="/" class="nav-link">Home</a>
-          <a href="/posts/" class="nav-link">Posts</a>
           <a href="/about/" class="nav-link">About</a>
           <a href="https://github.com/yahoofunny/blog" target="_blank" class="nav-link opacity-70 hover:opacity-100" title="GitHub">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
             </svg>
           </a>
-          <search-toggle>
-            <button class="nav-link" id="search-btn" aria-label="Search">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            </button>
-          </search-toggle>
         </nav>
       </div>
     </header>
 
-    <!-- Main content -->
-    <main id="main" class="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-16">
-      <slot />
-    </main>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16">
+      <div class="flex gap-8">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 shrink-0 hidden lg:block">
+          <div class="glass-card !p-4 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
+            <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Posts</h3>
+            <ul class="space-y-0.5">
+              {allPosts.map((p) => (
+                <li>
+                  <a href={`/posts/${p.id}/`} class="block text-xs text-white/60 hover:text-white py-1 transition-colors truncate">
+                    {p.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
 
-    <!-- Footer -->
+        <!-- Mobile sidebar overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden" aria-hidden="true"></div>
+        <aside id="sidebar-mobile" class="fixed top-0 left-0 h-full w-72 z-50 -translate-x-full transition-transform duration-300 glass-card !rounded-none !border-t-0 !border-l-0 !p-6 pt-20 overflow-y-auto lg:hidden">
+          <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">Posts</h3>
+          <ul class="space-y-1">
+            {allPosts.map((p) => (
+              <li>
+                <a href={`/posts/${p.id}/`} class="block text-sm text-white/70 hover:text-white py-1.5 transition-colors">
+                  {p.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <!-- Main content -->
+        <main id="main" class="flex-1 min-w-0 pb-16">
+          <slot />
+        </main>
+      </div>
+    </div>
+
     <footer class="relative z-10 text-center text-white/40 text-xs py-8">
       Contact me: <a href="mailto:bingtao2077@gmail.com" class="hover:text-white/60 transition-colors">bingtao2077@gmail.com</a> &mdash; {siteConfig.title} &copy; {new Date().getFullYear()}
     </footer>
+
+    <script>
+      const btn = document.getElementById('sidebar-btn');
+      const icon = document.getElementById('sb-icon');
+      const overlay = document.getElementById('sidebar-overlay');
+      const mobile = document.getElementById('sidebar-mobile');
+      let open = false;
+
+      function toggle() {
+        open = !open;
+        if (mobile) mobile.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
+        if (overlay) overlay.classList.toggle('hidden', !open);
+        if (icon) icon.innerHTML = open
+          ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
+          : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+      }
+
+      btn?.addEventListener('click', toggle);
+      overlay?.addEventListener('click', toggle);
+    </script>
   </body>
 </html>
