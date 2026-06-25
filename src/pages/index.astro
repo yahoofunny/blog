@@ -64,8 +64,9 @@ const latestPosts = allPosts
   const btn = document.getElementById('sidebar-toggle');
   const sidebar = document.getElementById('sidebar');
   const icon = document.getElementById('toggle-icon');
-  if (btn && sidebar) {
+  if (btn && sidebar && icon) {
     btn.addEventListener('click', () => {
+      if (!icon) return;
       sidebar.classList.toggle('hidden');
       icon.innerHTML = sidebar.classList.contains('hidden')
         ? '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>'
