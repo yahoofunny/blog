@@ -38,6 +38,7 @@
 		"satori": "0.26.0",
 		"satori-html": "^0.3.2",
 		"sharp": "^0.34.5",
+			"vite": "^7.0.0",
 		"tailwindcss": "^4.3.0",
 		"unified": "^11.0.5",
 		"unist-util-visit": "^5.1.0"
@@ -63,6 +64,7 @@
 		"typescript": "^6.0.3"
 	},
 	"overrides": {
-		"sharp": "^0.34.5"
+		"sharp": "^0.34.5",
+			"vite": "^7.0.0"
 	}
 }
