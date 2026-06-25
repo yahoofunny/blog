@@ -93,7 +93,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
     <script>
       let _sidebarOpen = false;
-      window._toggleSidebar = function() {
+      function toggleSidebar() {
         _sidebarOpen = !_sidebarOpen;
         const m = document.getElementById('sidebar-mobile');
         const o = document.getElementById('sidebar-overlay');
@@ -103,15 +103,16 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
         if (i) i.innerHTML = _sidebarOpen
           ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
           : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
-      };
+      }
+      // Expose globally for onclick
+      (window as any)._toggleSidebar = toggleSidebar;
       // Clone desktop sidebar to mobile on load
       document.addEventListener('DOMContentLoaded', function() {
         const s = document.getElementById('sidebar');
         const mc = document.getElementById('sidebar-content');
         if (s && mc) mc.innerHTML = s.innerHTML;
-        // Overlay click closes
         const o = document.getElementById('sidebar-overlay');
-        if (o) o.addEventListener('click', window._toggleSidebar);
+        if (o) o.addEventListener('click', toggleSidebar);
       });
     </script>
   </body>
