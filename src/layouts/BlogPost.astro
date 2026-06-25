@@ -1,5 +1,5 @@
 ---
-import { type CollectionEntry } from "astro:content";
+import { type CollectionEntry, render } from "astro:content";
 import BaseLayout from "./Base.astro";
 
 interface Props {
@@ -10,9 +10,21 @@ const { post } = Astro.props;
 const { ogImage, title, description, updatedDate, publishDate } = post.data;
 const socialImage = ogImage ?? `/og-image/${post.id}.png`;
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
+const { headings } = await render(post);
 ---
 
 <BaseLayout meta={{ articleDate, description, ogImage: socialImage, title }}>
+  <!-- Inject TOC via SSR - hidden, will be copied by BaseLayout script -->
+  <template id="toc-data">
+    {headings.length > 0 ? (
+      headings.map((h) => (
+        <a href={`#${h.slug}`} class="block text-white/50 hover:text-white py-0.5 transition-colors text-xs" style={`padding-left:${(h.depth - 1) * 0.8}rem`}>{h.text}</a>
+      ))
+    ) : (
+      <p class="text-white/30 italic text-xs">No sections</p>
+    )}
+  </template>
+
   <article class="glass-card !p-8 md:!p-12">
     <header class="mb-10">
       <h1 class="text-3xl md:text-4xl font-bold mb-3">{title}</h1>
@@ -21,7 +33,7 @@ const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
       </p>
     </header>
 
-    <div class="prose max-w-none" id="post-body">
+    <div class="prose max-w-none">
       <slot />
     </div>
   </article>
@@ -32,28 +44,15 @@ const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
 </BaseLayout>
 
 <script>
-  // Build TOC from post headings and place into sidebar
+  // Copy SSR-generated TOC to sidebar
   document.addEventListener('DOMContentLoaded', () => {
+    const template = document.getElementById('toc-data');
     const tocNav = document.getElementById('toc-nav');
-    const postBody = document.getElementById('post-body');
-    if (!tocNav || !postBody) return;
-
-    const headings = postBody.querySelectorAll('h2, h3');
-    if (headings.length === 0) {
-      tocNav.innerHTML = '<p class="text-white/30 italic text-xs">No sections</p>';
-      return;
+    if (template && tocNav) {
+      tocNav.innerHTML = template.innerHTML;
+      // Also update mobile sidebar
+      const mobileToc = document.querySelector('#sidebar-mobile #toc-nav');
+      if (mobileToc) mobileToc.innerHTML = template.innerHTML;
     }
-
-    let html = '';
-    headings.forEach((h) => {
-      const depth = parseInt(h.tagName.charAt(1));
-      if (!h.id) h.id = h.textContent?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
-      html += `<a href="#${h.id}" class="block text-white/50 hover:text-white py-0.5 transition-colors" style="padding-left:${(depth-2)*1}rem">${h.textContent}</a>`;
-    });
-    tocNav.innerHTML = html;
-
-    // Update mobile sidebar too
-    const mobileToc = document.querySelector('#sidebar-mobile #toc-nav');
-    if (mobileToc) mobileToc.innerHTML = html;
   });
 </script>
