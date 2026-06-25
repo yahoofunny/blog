@@ -15,7 +15,7 @@ const { headings } = await render(post);
 let tocHtml = '<p class="text-white/30 italic text-xs">No sections</p>';
 if (headings.length > 0) {
   tocHtml = headings.map((h: any) =>
-    `<a href="#${h.slug}" class="block text-white/50 hover:text-white py-0.5 transition-colors text-xs" style="padding-left:${(h.depth - 1) * 0.8}rem">${h.text}</a>`
+    `<a href="#${h.slug}" class="block text-white/50 hover:text-white py-0.5 transition-colors text-xs" style="padding-left:${(h.depth-1)*0.8}rem">${h.text}</a>`
   ).join('');
 }
 ---
@@ -37,14 +37,13 @@ if (headings.length > 0) {
   <div class="text-center mt-8">
     <a href="/" class="text-white/40 hover:text-white/70 transition-colors text-sm">&larr; Back to Home</a>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const html = `{tocHtml}`;
-      const tocNav = document.getElementById('toc-nav');
-      if (tocNav) tocNav.innerHTML = html;
-      const mobileToc = document.querySelector('#sidebar-mobile #toc-nav');
-      if (mobileToc) mobileToc.innerHTML = html;
-    });
-  </script>
 </BaseLayout>
+
+<script define:vars={{ tocHtml }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tocNav = document.getElementById('toc-nav');
+    if (tocNav) tocNav.innerHTML = tocHtml;
+    const mobileToc = document.querySelector('#sidebar-mobile #toc-nav');
+    if (mobileToc) mobileToc.innerHTML = tocHtml;
+  });
+</script>
