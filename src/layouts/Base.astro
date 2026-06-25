@@ -91,23 +91,25 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
     </footer>
 
     <script>
-      const btn = document.getElementById('sidebar-btn');
-      const icon = document.getElementById('sb-icon');
-      const overlay = document.getElementById('sidebar-overlay');
-      const mobile = document.getElementById('sidebar-mobile');
-      let open = false;
+      document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('sidebar-btn');
+        const icon = document.getElementById('sb-icon');
+        const overlay = document.getElementById('sidebar-overlay');
+        const mobile = document.getElementById('sidebar-mobile');
+        let open = false;
 
-      function toggle() {
-        open = !open;
-        if (mobile) mobile.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
-        if (overlay) overlay.classList.toggle('hidden', !open);
-        if (icon) icon.innerHTML = open
-          ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
-          : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
-      }
+        function toggle() {
+          open = !open;
+          if (mobile) mobile.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
+          if (overlay) overlay.classList.toggle('hidden', !open);
+          if (icon) icon.innerHTML = open
+            ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
+            : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+        }
 
-      btn?.addEventListener('click', toggle);
-      overlay?.addEventListener('click', toggle);
+        btn?.addEventListener('click', toggle);
+        overlay?.addEventListener('click', toggle);
+      });
     </script>
   </body>
 </html>
