@@ -10,12 +10,10 @@ const { post } = Astro.props;
 const { ogImage, title, description, updatedDate, publishDate } = post.data;
 const socialImage = ogImage ?? `/og-image/${post.id}.png`;
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
-const { headings } = await render(post);
 ---
 
 <BaseLayout meta={{ articleDate, description, ogImage: socialImage, title }}>
   <article class="glass-card !p-8 md:!p-12">
-    <!-- Post header -->
     <header class="mb-10">
       <h1 class="text-3xl md:text-4xl font-bold mb-3">{title}</h1>
       <p class="text-white/40 text-sm uppercase tracking-wider">
@@ -23,30 +21,49 @@ const { headings } = await render(post);
       </p>
     </header>
 
-    <!-- TOC if available -->
-    {headings.length > 0 && (
-      <nav class="mb-10 p-6 rounded-xl" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);">
-        <h2 class="text-sm uppercase tracking-widest text-white/40 mb-3">Table of Contents</h2>
-        <ul class="space-y-1.5">
-          {headings.map((h) => (
-            <li style={`padding-left: ${(h.depth - 1) * 1.2}rem;`}>
-              <a href={`#${h.slug}`} class="text-white/60 hover:text-white transition-colors text-sm">
-                {h.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    )}
-
-    <!-- Content -->
-    <div class="prose max-w-none">
+    <div class="prose max-w-none" id="post-body">
       <slot />
     </div>
   </article>
 
-  <!-- Back to top -->
   <div class="text-center mt-8">
     <a href="/" class="text-white/40 hover:text-white/70 transition-colors text-sm">&larr; Back to Home</a>
   </div>
 </BaseLayout>
+
+<script>
+  // Build TOC from post headings and place into sidebar
+  document.addEventListener('DOMContentLoaded', () => {
+    const tocNav = document.getElementById('toc-nav');
+    const postBody = document.getElementById('post-body');
+    if (!tocNav || !postBody) return;
+
+    const headings = postBody.querySelectorAll('h2, h3');
+    if (headings.length === 0) {
+      tocNav.innerHTML = '<p class="text-white/30 italic text-xs">No sections</p>';
+      return;
+    }
+
+    let html = '';
+    headings.forEach((h) => {
+      const depth = parseInt(h.tagName.charAt(1));
+      if (!h.id) h.id = h.textContent?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
+      html += `<a href="#${h.id}" class="block text-white/50 hover:text-white py-0.5 transition-colors" style="padding-left:${(depth-2)*1}rem">${h.textContent}</a>`;
+    });
+    tocNav.innerHTML = html;
+
+    // Also clone to mobile sidebar
+    const mobileContent = document.getElementById('sidebar-content');
+    if (mobileContent) {
+      const tocClone = document.getElementById('toc-container');
+      if (tocClone) {
+        const allPosts = mobileContent.querySelector('.glass-card:last-child');
+        if (allPosts) {
+          mobileContent.innerHTML = '';
+          mobileContent.appendChild(tocClone.cloneNode(true));
+          mobileContent.appendChild(allPosts);
+        }
+      }
+    }
+  });
+</script>
