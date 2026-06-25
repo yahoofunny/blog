@@ -30,7 +30,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
-        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4" aria-label="Toggle sidebar">
+        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4" aria-label="Toggle sidebar" onclick="window._toggleSidebar()">
           <svg id="sb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <a href="/" class="text-lg font-bold tracking-wider uppercase">{siteConfig.title}</a>
@@ -92,30 +92,26 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
     </footer>
 
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        // Clone sidebar to mobile drawer
-        const sidebar = document.getElementById('sidebar');
-        const mobile = document.getElementById('sidebar-mobile');
-        const mobileContent = document.getElementById('sidebar-content');
-        if (sidebar && mobileContent) {
-          mobileContent.innerHTML = sidebar.innerHTML;
-        }
-
-        // Toggle
-        const btn = document.getElementById('sidebar-btn');
-        const icon = document.getElementById('sb-icon');
-        const overlay = document.getElementById('sidebar-overlay');
-        let open = false;
-        function toggle() {
-          open = !open;
-          if (mobile) mobile.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
-          if (overlay) overlay.classList.toggle('hidden', !open);
-          if (icon) icon.innerHTML = open
-            ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
-            : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
-        }
-        btn?.addEventListener('click', toggle);
-        overlay?.addEventListener('click', toggle);
+      let _sidebarOpen = false;
+      window._toggleSidebar = function() {
+        _sidebarOpen = !_sidebarOpen;
+        const m = document.getElementById('sidebar-mobile');
+        const o = document.getElementById('sidebar-overlay');
+        const i = document.getElementById('sb-icon');
+        if (m) m.style.transform = _sidebarOpen ? 'translateX(0)' : 'translateX(-100%)';
+        if (o) o.classList.toggle('hidden', !_sidebarOpen);
+        if (i) i.innerHTML = _sidebarOpen
+          ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
+          : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+      };
+      // Clone desktop sidebar to mobile on load
+      document.addEventListener('DOMContentLoaded', function() {
+        const s = document.getElementById('sidebar');
+        const mc = document.getElementById('sidebar-content');
+        if (s && mc) mc.innerHTML = s.innerHTML;
+        // Overlay click closes
+        const o = document.getElementById('sidebar-overlay');
+        if (o) o.addEventListener('click', window._toggleSidebar);
       });
     </script>
   </body>
