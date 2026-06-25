@@ -52,18 +52,8 @@ const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
     });
     tocNav.innerHTML = html;
 
-    // Also clone to mobile sidebar
-    const mobileContent = document.getElementById('sidebar-content');
-    if (mobileContent) {
-      const tocClone = document.getElementById('toc-container');
-      if (tocClone) {
-        const allPosts = mobileContent.querySelector('.glass-card:last-child');
-        if (allPosts) {
-          mobileContent.innerHTML = '';
-          mobileContent.appendChild(tocClone.cloneNode(true));
-          mobileContent.appendChild(allPosts);
-        }
-      }
-    }
+    // Update mobile sidebar too
+    const mobileToc = document.querySelector('#sidebar-mobile #toc-nav');
+    if (mobileToc) mobileToc.innerHTML = html;
   });
 </script>
