@@ -91,7 +91,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
       Contact me: <a href="mailto:bingtao2077@gmail.com" class="hover:text-white/60 transition-colors">bingtao2077@gmail.com</a> &mdash; {siteConfig.title} &copy; {new Date().getFullYear()}
     </footer>
 
-    <script>
+    <script is:inline>
       window._toggleSidebar = function() {
         var s = document.getElementById('sidebar-mobile');
         var o = document.getElementById('sidebar-overlay');
