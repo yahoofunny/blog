@@ -39,7 +39,7 @@ if (headings.length > 0) {
   </div>
 </BaseLayout>
 
-<script is:inline define:vars={{ tocHtml }}>
+<script define:vars={{ tocHtml }}>
   document.addEventListener('DOMContentLoaded', () => {
     const tocNav = document.getElementById('toc-nav');
     if (tocNav) tocNav.innerHTML = tocHtml;
