@@ -1,6 +1,6 @@
 # bt's Blog
 
-冰涛的技术博客。基于 [Astro](https://astro.build) + [Astro Cactus](https://github.com/chrismwilliams/astro-theme-cactus) 主题魔改。
+bt的技术博客。基于 [Astro](https://astro.build) + [Astro Cactus](https://github.com/chrismwilliams/astro-theme-cactus) 主题魔改。
 
 ## 设计
 
