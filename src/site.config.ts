@@ -4,7 +4,7 @@ import type { SiteConfig } from "@/types";
 export const siteConfig: SiteConfig = {
   url: "https://blog-6rb.pages.dev/",
   title: "bt's Blog",
-  author: "bingtao",
+  author: "bt",
   description: "数据结构、算法笔记 :)",
   lang: "zh-CN",
   ogLocale: "zh_CN",
