@@ -24,13 +24,24 @@
   height: 100%;
   object-fit: cover;
 }
-.video-overlay {
+.image-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   z-index: 1;
+  background: url('/overlay-bg.jpg') center/cover no-repeat;
+  mix-blend-mode: screen;
+  opacity: 0.4;
+}
+.video-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
   background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(1px);
 }
