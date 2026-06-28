@@ -18,6 +18,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
 <html class="scroll-smooth" lang={siteConfig.lang}>
   <head>
+    <script src="/clawd-pet.js"></script>
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
@@ -122,26 +123,6 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
       });
 
 
-    <div id="clawd-pet" class="clawd-pet" title="拖我！双击戳我">
-      <svg id="clawd-svg" width="52" height="52" viewBox="0 0 100 100" fill="none">
-        <ellipse cx="50" cy="55" rx="22" ry="18" fill="#D9743B" stroke="#B85A2A" stroke-width="2"/>
-        <circle cx="42" cy="48" r="4" fill="#1a1a1a"/>
-        <circle cx="58" cy="48" r="4" fill="#1a1a1a"/>
-        <circle cx="43" cy="47" r="1.5" fill="#fff"/>
-        <circle cx="59" cy="47" r="1.5" fill="#fff"/>
-        <path d="M44 58 Q50 64 56 58" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M10 50 Q5 40 15 30 Q25 20 35 25" stroke="#D9743B" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M90 50 Q95 40 85 30 Q75 20 65 25" stroke="#D9743B" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <line x1="15" y1="48" x2="8" y2="42" stroke="#D9743B" stroke-width="2" stroke-linecap="round"/>
-        <line x1="85" y1="48" x2="92" y2="42" stroke="#D9743B" stroke-width="2" stroke-linecap="round"/>
-        <line x1="25" y1="72" x2="18" y2="82" stroke="#D9743B" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="35" y1="72" x2="28" y2="84" stroke="#D9743B" stroke-width="2" stroke-linecap="round"/>
-        <line x1="75" y1="72" x2="82" y2="82" stroke="#D9743B" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="65" y1="72" x2="72" y2="84" stroke="#D9743B" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div id="clawd-speech" class="clawd-speech"></div>
-    <script is:inline src="/clawd-pet.js"></script>
   </body>
 
 </html>
