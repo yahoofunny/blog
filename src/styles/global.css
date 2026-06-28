@@ -181,3 +181,40 @@ h1, h2, h3 {
   background: rgba(255,255,255,0.2);
   color: #fff;
 }
+
+/* Lobster Desktop Pet */
+.lobster-pet {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 200;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.3s;
+  animation: lobster-float 3s ease-in-out infinite;
+}
+.lobster-pet:active {
+  cursor: grabbing;
+}
+.lobster-pet:hover {
+  transform: scale(1.2);
+}
+@keyframes lobster-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.lobster-speech {
+  position: fixed;
+  z-index: 201;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #fff;
+  max-width: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
