@@ -164,7 +164,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
         // Sweeping occasional
         setInterval(function(){if(s==="idle"&&Math.random()<0.08){ss("sweeping");setTimeout(function(){ss("idle")},2000)}},90000);
         // Page-specific: radio=sticky headphones
-        if(isRadio)ss("headphones");
+        if(isRadio){ss("headphones");return;}
         // Quips
         function gq(){
           if(s==="sleeping")return["zzzZZZ","💤"][Math.floor(Math.random()*2)];
@@ -186,7 +186,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
         function sh(){ss("happy");sp(gq());setTimeout(function(){ss("idle");ua()},3000)}
         p.addEventListener("dblclick",sh);var lt=0;p.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!dr)sh();lt=n});
         setInterval(function(){if(document.hidden||s==="sleeping")return;if(Math.random()<0.2){sp(gq());ss("notification");setTimeout(function(){ss("idle");ua()},2500)}},150000);
-        ss("building");setTimeout(function(){ss("idle");ua()},2500);
+        ua();
         if(pv===1)setTimeout(function(){sp("bt的Blog！我是Clawd");ss("notification");setTimeout(function(){ua()},2500)},4000);
         if(!p||!b||!img)return;
         function setGif(name){img.src="/clawd/clawd-"+name+".gif"}
