@@ -124,6 +124,62 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
     </script>
   
+    <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false"/></div>
+    <div id="clawd-speech" class="clawd-speech"></div>
+    <script is:inline>
+(function(){
+var p=document.getElementById("clawd-pet"),b=document.getElementById("clawd-speech"),i=document.getElementById("clawd-img");
+if(!p||!b||!i)return;
+var gifs=["idle","idle","idle-reading","idle-reading","thinking","idle","conducting","idle-reading","typing","thinking","sweeping","idle","headphones-groove","juggling","sleeping","happy","error","building","carrying","notification","bubble"];
+function rnd(){i.src="/clawd/clawd-"+gifs[Math.floor(Math.random()*gifs.length)]+".gif"}
+setInterval(rnd,10000);rnd();
+
+var qs=["Hello!","今天过得咋样","写代码了吗","早点睡别熬夜","bt最棒","🦞","金鳞岂是池中物"];
+function spk(){var t=qs[Math.floor(Math.random()*qs.length)];b.textContent=t;b.style.opacity="1";var r=p.getBoundingClientRect();b.style.left=Math.max(10,r.left-50)+"px";b.style.top=Math.max(10,r.top-40)+"px";clearTimeout(b._t);b._t=setTimeout(function(){b.style.opacity="0"},3000)}
+setInterval(function(){if(!document.hidden&&Math.random()<0.3)spk()},120000);
+
+// DRAG - simple global mousemove/touchmove approach
+var dr=false,ox=0,oy=0;
+p.onmousedown=function(e){dr=true;ox=e.clientX-p.offsetLeft;oy=e.clientY-p.offsetTop;p.style.animation="none";e.preventDefault()};
+p.ontouchstart=function(e){dr=true;var t=e.touches[0];ox=t.clientX-p.offsetLeft;oy=t.clientY-p.offsetTop;p.style.animation="none";e.preventDefault()};
+window.onmousemove=function(e){if(!dr)return;p.style.left=(e.clientX-ox)+"px";p.style.top=(e.clientY-oy)+"px";p.style.bottom="auto";p.style.right="auto"};
+window.ontouchmove=function(e){if(!dr)return;var t=e.touches[0];p.style.left=(t.clientX-ox)+"px";p.style.top=(t.clientY-oy)+"px";p.style.bottom="auto";p.style.right="auto"};
+window.onmouseup=function(){if(dr){dr=false;setTimeout(function(){p.style.animation="clawd-float 3s ease-in-out infinite"},300)}};
+window.ontouchend=function(){if(dr){dr=false;setTimeout(function(){p.style.animation="clawd-float 3s ease-in-out infinite"},300)}};
+
+p.ondblclick=spk;var lt=0;p.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<400&&!dr)spk();lt=n});
+var pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);
+if(pv===1)setTimeout(spk,4000);
+})();
+    </script>
+
+    <script is:inline>
+      window._toggleSidebar = function() {
+        var s = document.getElementById('sidebar-mobile');
+        var o = document.getElementById('sidebar-overlay');
+        var i = document.getElementById('sb-icon');
+        var open = s && s.style.transform === 'translateX(0px)';
+        if (open) {
+          if (s) s.style.transform = 'translateX(-100%)';
+          if (o) o.classList.add('hidden');
+          if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+        } else {
+          if (s) s.style.transform = 'translateX(0)';
+          if (o) o.classList.remove('hidden');
+          if (i) i.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+        }
+      };
+      document.addEventListener('DOMContentLoaded', function() {
+        var s = document.getElementById('sidebar');
+        var mc = document.getElementById('sidebar-content');
+        if (s && mc) mc.innerHTML = s.innerHTML;
+        var o = document.getElementById('sidebar-overlay');
+        if (o) o.addEventListener('click', window._toggleSidebar);
+      });
+
+
+    </script>
+  
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:80px;height:80px" draggable="false"/></div>
     <div id="clawd-speech" class="clawd-speech"></div>
     <script is:inline>
