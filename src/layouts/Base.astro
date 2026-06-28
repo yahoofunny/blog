@@ -18,7 +18,6 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
 <html class="scroll-smooth" lang={siteConfig.lang}>
   <head>
-    <script is:inline src="/clawd-pet.js"></script>
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
@@ -124,6 +123,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
 
     </script>
+    <script is:inline src="/clawd-pet.js"></script>
   </body>
 
 </html>
