@@ -1,14 +1,14 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
-const meta = { description: "Radio - 在线收音机", title: "Radio" };
+const meta = { description: "Claude FM - Lo-fi 24/7 Radio", title: "Claude FM" };
 ---
 
 <PageLayout meta={meta}>
   <div class="glass-card !p-8 text-center">
-    <h1 class="text-2xl font-bold mb-2">Radio</h1>
-    <p class="text-white/50 text-sm mb-6">在线收音机</p>
-    <audio controls class="w-full max-w-md mx-auto">
-      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg" />
-    </audio>
+    <h1 class="text-2xl font-bold mb-2">Claude FM</h1>
+    <p class="text-white/50 text-sm mb-6">24/7 Lo-fi & Ambient — Made by musicians, curated for thinkers</p>
+    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;">
+      <iframe src="https://www.youtube-nocookie.com/embed/YmQ7jRg4gf0?autoplay=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="autoplay" allowfullscreen title="Claude FM"></iframe>
+    </div>
   </div>
 </PageLayout>
