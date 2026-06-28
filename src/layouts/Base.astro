@@ -127,6 +127,106 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:80px;height:80px" draggable="false"/></div>
     <div id="clawd-speech" class="clawd-speech"></div>
     <script is:inline>
+(function(){
+var p=document.getElementById("clawd-pet"),b=document.getElementById("clawd-speech"),i=document.getElementById("clawd-img");
+if(!p||!b||!i)return;
+function g(n){i.src="/clawd/clawd-"+n+".gif"}
+var cu=location.pathname,isR=cu.indexOf("radio")>=0,isP=cu.indexOf("posts")>=0;
+var s="idle",la=Date.now(),al=0,pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);
+
+function setState(n){
+  if(s===n)return;s=n;
+  var m={idle:"idle",reading:"idle-reading",thinking:"thinking",typing:"typing",juggling:"juggling",sleeping:"sleeping",happy:"happy",headphones:"headphones-groove",sweeping:"sweeping",conducting:"conducting",notification:"notification",bubble:"bubble"}[n]||"idle";
+  g(m);
+  if(n==="sleeping"){p.style.opacity="0.4";p.style.filter="grayscale(0.6)"}else{p.style.opacity="1";p.style.filter="none"}
+}
+
+function updateState(){
+  if(s==="sleeping"||s==="happy")return;
+  if(isR){setState("headphones");return}
+  if(isP&&al<4){setState("reading");return}
+  if(al>10)setState("juggling");
+  else if(al>7)setState("typing");
+  else if(al>3)setState("thinking");
+  else if(al>0)setState("reading");
+  else if(Math.random()<0.03)setState("conducting");
+  else setState("idle");
+}
+
+function wake(){if(s==="sleeping"){setState("idle");al=3;updateState()}}
+
+document.addEventListener("mousemove",function(){al=Math.min(15,al+1);la=Date.now();wake();updateState()});
+document.addEventListener("scroll",function(){al=Math.min(15,al+2);la=Date.now();wake();updateState()});
+document.addEventListener("keydown",function(){al=Math.min(15,al+5);la=Date.now();wake();updateState()});
+document.addEventListener("click",function(){al=Math.min(15,al+2);la=Date.now();wake();updateState()});
+
+setInterval(function(){if(s!=="sleeping"){al=Math.max(0,al-3);updateState()}},3000);
+setInterval(function(){if((Date.now()-la)/1000>300&&s!=="sleeping")setState("sleeping")},30000);
+
+function qq(){
+  if(s==="sleeping")return["zzzZZZ","💤"][Math.floor(Math.random()*2)];
+  if(isR)return["Lo-fi好心情","Claude FM 24/7"][Math.floor(Math.random()*2)];
+  if(isP)return["文章不错","记得评论","真帅"][Math.floor(Math.random()*3)];
+  if(cu==="/")return["首页又来看我了","金鳞岂是池中物","今天想学点啥","博客越来越漂亮了"][Math.floor(Math.random()*4)];
+  if(pv%10===0)return["第"+pv+"次访问！","忠实读者"][Math.floor(Math.random()*2)];
+  return["Hello!","今天过得咋样","写代码了吗","bt最棒"][Math.floor(Math.random()*4)];
+}
+function sp(t){
+  b.textContent=t;b.style.opacity="1";
+  var r=p.getBoundingClientRect();
+  b.style.left=Math.max(10,r.left-50)+"px";b.style.top=Math.max(10,r.top-36)+"px";
+  clearTimeout(b._tt);b._tt=setTimeout(function(){b.style.opacity="0"},3000);
+}
+setInterval(function(){if(!document.hidden&&s!=="sleeping"&&Math.random()<0.2){var t=qq();sp(t);setState("notification");setTimeout(function(){updateState()},2500)}},150000);
+
+// DRAG
+var dr=false,sx=0,sy=0,ox=0,oy=0;
+p.addEventListener("mousedown",function(e){e.preventDefault();dr=true;var t=e;sx=t.clientX;sy=t.clientY;var r=p.getBoundingClientRect();ox=r.left;oy=r.top;p.style.animation="none"});
+p.addEventListener("touchstart",function(e){e.preventDefault();dr=true;var t=e.touches[0];sx=t.clientX;sy=t.clientY;var r=p.getBoundingClientRect();ox=r.left;oy=r.top;p.style.animation="none"},{passive:false});
+document.addEventListener("mousemove",function(e){if(!dr)return;e.preventDefault();p.style.left=(ox+e.clientX-sx)+"px";p.style.top=(oy+e.clientY-sy)+"px";p.style.bottom="auto";p.style.right="auto"});
+document.addEventListener("touchmove",function(e){if(!dr)return;e.preventDefault();var t=e.touches[0];p.style.left=(ox+t.clientX-sx)+"px";p.style.top=(oy+t.clientY-sy)+"px";p.style.bottom="auto";p.style.right="auto"},{passive:false});
+document.addEventListener("mouseup",function(){if(dr){dr=false;setTimeout(function(){p.style.animation="clawd-float 3s ease-in-out infinite"},300)}});
+document.addEventListener("touchend",function(){if(dr){dr=false;setTimeout(function(){p.style.animation="clawd-float 3s ease-in-out infinite"},300)}});
+
+// HAPPY
+p.addEventListener("dblclick",function(){setState("happy");sp(qq());setTimeout(function(){updateState()},3000)});
+var lt=0;p.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!dr){setState("happy");sp(qq());setTimeout(function(){updateState()},3000)}lt=n});
+
+updateState();
+if(pv===1)setTimeout(function(){sp("bt的Blog！我是Clawd");setState("notification");setTimeout(function(){updateState()},2500)},4000);
+})();
+    </script>
+
+    <script is:inline>
+      window._toggleSidebar = function() {
+        var s = document.getElementById('sidebar-mobile');
+        var o = document.getElementById('sidebar-overlay');
+        var i = document.getElementById('sb-icon');
+        var open = s && s.style.transform === 'translateX(0px)';
+        if (open) {
+          if (s) s.style.transform = 'translateX(-100%)';
+          if (o) o.classList.add('hidden');
+          if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+        } else {
+          if (s) s.style.transform = 'translateX(0)';
+          if (o) o.classList.remove('hidden');
+          if (i) i.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+        }
+      };
+      document.addEventListener('DOMContentLoaded', function() {
+        var s = document.getElementById('sidebar');
+        var mc = document.getElementById('sidebar-content');
+        if (s && mc) mc.innerHTML = s.innerHTML;
+        var o = document.getElementById('sidebar-overlay');
+        if (o) o.addEventListener('click', window._toggleSidebar);
+      });
+
+
+    </script>
+  
+    <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:80px;height:80px" draggable="false"/></div>
+    <div id="clawd-speech" class="clawd-speech"></div>
+    <script is:inline>
       (function(){
         var p=document.getElementById("clawd-pet"),b=document.getElementById("clawd-speech"),img=document.getElementById("clawd-img");
         if(!p||!b||!img)return;
