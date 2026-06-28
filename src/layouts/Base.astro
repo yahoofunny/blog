@@ -130,6 +130,61 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 (function(){
 var p=document.getElementById("clawd-pet"),b=document.getElementById("clawd-speech"),i=document.getElementById("clawd-img");
 if(!p||!b||!i)return;
+var gifs=["idle","idle","idle-reading","idle-reading","thinking","idle","idle","conducting","idle-reading","typing","thinking","sweeping","idle"];
+function rnd(){i.src="/clawd/clawd-"+gifs[Math.floor(Math.random()*gifs.length)]+".gif"}
+setInterval(rnd,8000);rnd();
+var qs=["Hello!","今天过得咋样","写代码了吗","早点睡别熬夜","bt最棒","🦞","金鳞岂是池中物","博客越来越漂亮了","首页又来看我了"];
+function spk(){var t=qs[Math.floor(Math.random()*qs.length)];b.textContent=t;b.style.opacity="1";var r=p.getBoundingClientRect();b.style.left=Math.max(10,r.left-50)+"px";b.style.top=Math.max(10,r.top-36)+"px";clearTimeout(b._t);b._t=setTimeout(function(){b.style.opacity="0"},3000)}
+setInterval(function(){if(!document.hidden&&Math.random()<0.3)spk()},90000);
+
+// Drag via pointer events
+var dr=false,ox=0,oy=0,px=0,py=0;
+p.onpointerdown=function(e){dr=true;p.setPointerCapture(e.pointerId);var r=p.getBoundingClientRect();ox=r.left;oy=r.top;px=e.clientX;py=e.clientY;p.style.animation="none";e.preventDefault()};
+p.onpointermove=function(e){if(!dr)return;e.preventDefault();p.style.left=(ox+e.clientX-px)+"px";p.style.top=(oy+e.clientY-py)+"px";p.style.bottom="auto";p.style.right="auto"};
+p.onpointerup=function(){dr=false;setTimeout(function(){p.style.animation="clawd-float 3s ease-in-out infinite"},300)};
+// Double click
+p.ondblclick=function(){spk()};
+// Touch tap fallback
+var lt=0;p.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<400&&!dr)spk();lt=n});
+// Welcome
+var pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);
+if(pv===1)setTimeout(spk,4000);
+})();
+    </script>
+
+    <script is:inline>
+      window._toggleSidebar = function() {
+        var s = document.getElementById('sidebar-mobile');
+        var o = document.getElementById('sidebar-overlay');
+        var i = document.getElementById('sb-icon');
+        var open = s && s.style.transform === 'translateX(0px)';
+        if (open) {
+          if (s) s.style.transform = 'translateX(-100%)';
+          if (o) o.classList.add('hidden');
+          if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+        } else {
+          if (s) s.style.transform = 'translateX(0)';
+          if (o) o.classList.remove('hidden');
+          if (i) i.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+        }
+      };
+      document.addEventListener('DOMContentLoaded', function() {
+        var s = document.getElementById('sidebar');
+        var mc = document.getElementById('sidebar-content');
+        if (s && mc) mc.innerHTML = s.innerHTML;
+        var o = document.getElementById('sidebar-overlay');
+        if (o) o.addEventListener('click', window._toggleSidebar);
+      });
+
+
+    </script>
+  
+    <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:80px;height:80px" draggable="false"/></div>
+    <div id="clawd-speech" class="clawd-speech"></div>
+    <script is:inline>
+(function(){
+var p=document.getElementById("clawd-pet"),b=document.getElementById("clawd-speech"),i=document.getElementById("clawd-img");
+if(!p||!b||!i)return;
 function g(n){i.src="/clawd/clawd-"+n+".gif"}
 var cu=location.pathname,isR=cu.indexOf("radio")>=0,isP=cu.indexOf("posts")>=0;
 var s="idle",la=Date.now(),al=0,pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);
