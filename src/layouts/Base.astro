@@ -131,47 +131,63 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
         var p=document.getElementById("clawd-pet"),b=document.getElementById("clawd-speech"),img=document.getElementById("clawd-img");
         if(!p||!b||!img)return;
         function setGif(n){img.src="/clawd/clawd-"+n+".gif"}
-        var s="idle",la=Date.now(),al=0,ac=0,pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);var cu=location.pathname;
+        var s="idle",la=Date.now(),al=0,pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);var cu=location.pathname;
+        var isRadio=cu.indexOf("radio")>=0,isPost=cu.indexOf("posts")>=0;
         function ss(n){if(s===n)return;s=n;
           var m={idle:"idle",reading:"idle-reading",thinking:"thinking",typing:"typing",juggling:"juggling",sleeping:"sleeping",happy:"happy",error:"error",building:"building",sweeping:"sweeping",conducting:"conducting",headphones:"headphones-groove"}[n]||"idle";
-          setGif(m);
-          if(n==="sleeping"){p.style.opacity="0.4";p.style.filter="grayscale(0.6)"}else{p.style.opacity="1";p.style.filter="none"}
+          setGif(m);if(n==="sleeping"){p.style.opacity="0.4";p.style.filter="grayscale(0.6)"}else{p.style.opacity="1";p.style.filter="none"}
         }
         function ua(){
           if(s==="sleeping"||s==="happy"||s==="building")return;
-          if(al>8)ss("juggling");else if(al>6)ss("typing");else if(al>4)ss("thinking");else if(al>2)ss("reading");else if(Math.random()<0.02)ss("conducting");else ss("idle");
+          if(isRadio){ss("headphones");return}  // Radio: always headphones
+          if(isPost&&al<6){ss("reading");return} // Posts: reading by default
+          if(al>10)ss("juggling");               // Only extreme activity → juggling
+          else if(al>7)ss("typing");             // Keyboard + heavy scroll → typing
+          else if(al>4)ss("thinking");            // Moderate → thinking
+          else if(al>1)ss("reading");             // Light → reading
+          else if(Math.random()<0.03)ss("conducting");
+          else ss("idle");
         }
-        function bo(){ac++;al=Math.min(12,al+4);la=Date.now();if(s==="sleeping"){ss("idle");al=6;ac=0}ua()}
-        setInterval(function(){if(s!=="sleeping"){al=Math.max(0,al-1);ua()}},4000);
+        // Different boost per event type
+        function onMouse(){al=Math.min(15,al+1);la=Date.now()}  // gentle
+        function onScroll(){al=Math.min(15,al+2);la=Date.now()} // moderate
+        function onKey(){al=Math.min(15,al+5);la=Date.now()}    // heavy: real typing
+        function onClick(){al=Math.min(15,al+3);la=Date.now()}  // medium
+        function wake(){if(s==="sleeping"){ss("idle");al=4;ua()}}
+        document.addEventListener("mousemove",function(){onMouse();wake();ua()});
+        document.addEventListener("scroll",function(){onScroll();wake();ua()});
+        document.addEventListener("keydown",function(){onKey();wake();ua()});
+        document.addEventListener("click",function(){onClick();wake();ua()});
+        // Fast decay: 3 per 3s
+        setInterval(function(){if(s!=="sleeping"){al=Math.max(0,al-3);ua()}},3000);
         setInterval(function(){if((Date.now()-la)/1000>300&&s!=="sleeping")ss("sleeping")},30000);
-        ["mousemove","keydown","scroll","click"].forEach(function(e){document.addEventListener(e,bo)});
-        // Sweeping on periodic cleanup
-        setInterval(function(){if(s==="idle"&&Math.random()<0.1){ss("sweeping");setTimeout(function(){ss("idle")},2000)}},60000);
-        // Headphones on radio page
-        if(cu.indexOf("radio")>=0)setTimeout(function(){ss("headphones")},2000);
-        // Notification on quips
+        // Sweeping occasional
+        setInterval(function(){if(s==="idle"&&Math.random()<0.08){ss("sweeping");setTimeout(function(){ss("idle")},2000)}},90000);
+        // Page-specific: radio=sticky headphones
+        if(isRadio)ss("headphones");
+        // Quips
         function gq(){
           if(s==="sleeping")return["zzzZZZ","💤"][Math.floor(Math.random()*2)];
+          if(isRadio)return["Lo-fi好心情","Claude FM 24/7","🎵"][Math.floor(Math.random()*3)];
+          if(isPost)return["文章不错","记得评论","真帅"][Math.floor(Math.random()*3)];
           if(cu==="/")return["首页又来看我了","金鳞岂是池中物","今天想学点啥","博客越来越漂亮了"][Math.floor(Math.random()*4)];
-          if(cu.indexOf("posts")>=0)return["文章不错","记得评论","真帅"][Math.floor(Math.random()*3)];
-          if(cu.indexOf("radio")>=0)return["Lo-fi好心情","Claude FM 24/7"][Math.floor(Math.random()*2)];
           if(pv%10===0)return["第"+pv+"次访问！","忠实读者"][Math.floor(Math.random()*2)];
           return["Hello!","今天过得咋样","写代码了吗","bt最棒"][Math.floor(Math.random()*4)];
         }
         var qp=false;
         function sp(t){b.textContent=t;b.style.opacity="1";var r=p.getBoundingClientRect();b.style.left=Math.max(10,r.left-50)+"px";b.style.top=Math.max(10,r.top-36)+"px";clearTimeout(b._t);b._t=setTimeout(function(){b.style.opacity="0";qp=false},3000);
           if(!qp){ss("bubble");qp=true;setTimeout(function(){if(qp&&s==="bubble"){ss("idle");ua();qp=false}},3000)}}
+        // Drag
         var dr=false,sx=0,sy=0,ox=0,oy=0;
-        function os(e){e.preventDefault();dr=true;var t=e.touches?e.touches[0]:e;sx=t.clientX;sy=t.clientY;var r=p.getBoundingClientRect();ox=r.left;oy=r.top;p.style.animation="none"}
+        function os(e){e.preventDefault();dr=true;var t=e.touches?e.touches[0]:e;sx=t.clientX;sy=t.clientY;ox=p.getBoundingClientRect().left;oy=p.getBoundingClientRect().top;p.style.animation="none"}
         function om(e){if(!dr)return;e.preventDefault();var t=e.touches?e.touches[0]:e;p.style.left=(ox+t.clientX-sx)+"px";p.style.top=(oy+t.clientY-sy)+"px";p.style.bottom="auto";p.style.right="auto"}
         function oe(){if(dr){dr=false;setTimeout(function(){p.style.animation="clawd-float 3s ease-in-out infinite"},300)}}
         p.addEventListener("mousedown",os);p.addEventListener("touchstart",os,{passive:false});document.addEventListener("mousemove",om);document.addEventListener("touchmove",om,{passive:false});document.addEventListener("mouseup",oe);document.addEventListener("touchend",oe);
         function sh(){ss("happy");sp(gq());setTimeout(function(){ss("idle");ua()},3000)}
         p.addEventListener("dblclick",sh);var lt=0;p.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<300&&!dr)sh();lt=n});
-        setInterval(function(){if(document.hidden||s==="sleeping")return;if(Math.random()<0.25){sp(gq());ss("notification");setTimeout(function(){ss("idle");ua()},2500)}},120000);
-        // Building on page load
+        setInterval(function(){if(document.hidden||s==="sleeping")return;if(Math.random()<0.2){sp(gq());ss("notification");setTimeout(function(){ss("idle");ua()},2500)}},150000);
         ss("building");setTimeout(function(){ss("idle");ua()},2500);
-        if(pv===1)setTimeout(function(){sp("bt的Blog！我是Clawd");ss("notification");setTimeout(function(){ss("idle");ua()},2500)},4000);
+        if(pv===1)setTimeout(function(){sp("bt的Blog！我是Clawd");ss("notification");setTimeout(function(){ua()},2500)},4000);
         if(!p||!b||!img)return;
         function setGif(name){img.src="/clawd/clawd-"+name+".gif"}
         var s="idle",la=Date.now(),al=0,pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);var cu=location.pathname;
