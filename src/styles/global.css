@@ -182,39 +182,37 @@ h1, h2, h3 {
   color: #fff;
 }
 
-/* Lobster Desktop Pet */
-.lobster-pet {
+/* Clawd Browser Pet */
+.clawd-pet {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 200;
   cursor: grab;
   user-select: none;
-  transition: transform 0.3s;
-  animation: lobster-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  animation: clawd-float 3s ease-in-out infinite;
 }
-.lobster-pet:active {
-  cursor: grabbing;
+.clawd-pet:active { cursor: grabbing; }
+.clawd-pet:hover { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5)) brightness(1.1); }
+@keyframes clawd-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-6px) rotate(0.5deg); }
+  75% { transform: translateY(-3px) rotate(-0.5deg); }
 }
-.lobster-pet:hover {
-  transform: scale(1.2);
-}
-@keyframes lobster-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-.lobster-speech {
+.clawd-speech {
   position: fixed;
   z-index: 201;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 12px;
   padding: 8px 14px;
   font-size: 12px;
   color: #fff;
-  max-width: 200px;
+  max-width: 220px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
+  white-space: nowrap;
 }
