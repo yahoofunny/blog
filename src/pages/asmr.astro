@@ -1,0 +1,15 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+const meta = { description: "ASMR - Rainy Night in Shibuya, Tokyo", title: "ASMR" };
+---
+
+<PageLayout meta={meta}>
+  <div class="glass-card !p-8 text-center">
+    <h1 class="text-2xl font-bold mb-2">ASMR</h1>
+    <p class="text-white/50 text-sm mb-6">Rainy Night Walk in Shibuya, Tokyo — 8K 60fps</p>
+    <video controls autoplay loop class="w-full max-w-4xl mx-auto rounded-xl" style="max-height:70vh;">
+      <source src="/asmr-rain.mp4" type="video/mp4" />
+    </video>
+    <p class="text-white/30 text-xs mt-4">Calm Piano • Rain Ambience</p>
+  </div>
+</PageLayout>
