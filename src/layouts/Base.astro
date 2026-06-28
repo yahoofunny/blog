@@ -30,6 +30,32 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
+    <div id="clawd-pet" class="clawd-pet" title="Clawd"><img src="/clawd-hero.gif" style="width:80px;height:80px" draggable="false"/></div>
+    <div id="clawd-speech" class="clawd-speech"></div>
+    <script is:inline>
+      (function(){
+        var p=document.getElementById('clawd-pet'),b=document.getElementById('clawd-speech');
+        if(!p||!b)return;
+        var s='idle',la=Date.now(),al=0,pv=parseInt(localStorage.getItem('cv')||0)+1;localStorage.setItem('cv',pv);var cu=location.pathname;
+        function ss(n){if(s===n)return;s=n;if(n==='s'){p.style.opacity='0.4';p.style.filter='grayscale(0.6) drop-shadow(0 4px 8px rgba(0,0,0,0.4))'}else{p.style.opacity='1';p.style.filter='drop-shadow(0 4px 8px rgba(0,0,0,0.4))'}}
+        function ua(){if(s==='s'||s==='h')return;if(al>5)ss('a');else if(al>2)ss('r');else ss('i')}
+        function bo(){al=Math.min(10,al+3);la=Date.now();if(s==='s'){ss('i');al=5}ua()}
+        setInterval(function(){if(s!=='s'){al=Math.max(0,al-1);ua()}},5000);
+        setInterval(function(){if((Date.now()-la)/1000>300&&s!=='s')ss('s')},30000);
+        ['mousemove','keydown','scroll','click'].forEach(function(e){document.addEventListener(e,bo)});
+        function gq(){if(s==='s')return['zzzZZZ','💤'][Math.floor(Math.random()*2)];if(cu==='/')return['首页又来看我了','金鳞岂是池中物','今天想学点啥','博客越来越漂亮了'][Math.floor(Math.random()*4)];if(cu.indexOf('posts')>=0)return['文章不错','看完了记得评论','你认真的样子真帅'][Math.floor(Math.random()*3)];if(cu.indexOf('radio')>=0)return['Lo-fi好心情','Claude FM 24/7'][Math.floor(Math.random()*2)];if(pv%10===0)return['第'+pv+'次访问！','忠实读者'][Math.floor(Math.random()*2)];return['Hello!','今天过得咋样','写代码了吗','bt最棒'][Math.floor(Math.random()*4)]}
+        function sp(t){b.textContent=t;b.style.opacity='1';var r=p.getBoundingClientRect();b.style.left=Math.max(10,r.left-50)+'px';b.style.top=Math.max(10,r.top-36)+'px';clearTimeout(b._t);b._t=setTimeout(function(){b.style.opacity='0'},3000)}
+        var dr=false,sx=0,sy=0,ox=0,oy=0;
+        function os(e){e.preventDefault();dr=true;var t=e.touches?e.touches[0]:e;sx=t.clientX;sy=t.clientY;var r=p.getBoundingClientRect();ox=r.left;oy=r.top;p.style.animation='none'}
+        function om(e){if(!dr)return;e.preventDefault();var t=e.touches?e.touches[0]:e;p.style.left=(ox+t.clientX-sx)+'px';p.style.top=(oy+t.clientY-sy)+'px';p.style.bottom='auto';p.style.right='auto'}
+        function oe(){if(dr){dr=false;setTimeout(function(){p.style.animation='clawd-float 3s ease-in-out infinite'},300)}}
+        p.addEventListener('mousedown',os);p.addEventListener('touchstart',os,{passive:false});document.addEventListener('mousemove',om);document.addEventListener('touchmove',om,{passive:false});document.addEventListener('mouseup',oe);document.addEventListener('touchend',oe);
+        function sh(){ss('h');sp(gq());setTimeout(function(){ss('i');ua()},3000)}
+        p.addEventListener('dblclick',sh);var lt=0;p.addEventListener('touchend',function(e){var n=Date.now();if(n-lt<300&&!dr)sh();lt=n});
+        setInterval(function(){if(document.hidden||s==='s')return;if(Math.random()<0.3)sp(gq())},150000);
+        if(pv===1)setTimeout(function(){sp('bt的Blog！我是Clawd')},3000);
+      })();
+    </script>
         <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4" aria-label="Toggle sidebar" onclick="window._toggleSidebar()">
           <svg id="sb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
@@ -123,7 +149,6 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
 
 
     </script>
-    <script is:inline src="/clawd-pet.js"></script>
   </body>
 
 </html>
