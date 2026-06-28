@@ -122,7 +122,6 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
       });
 
 
-    <!-- Clawd Browser Pet -->
     <div id="clawd-pet" class="clawd-pet" title="拖我！双击戳我">
       <svg id="clawd-svg" width="52" height="52" viewBox="0 0 100 100" fill="none">
         <ellipse cx="50" cy="55" rx="22" ry="18" fill="#D9743B" stroke="#B85A2A" stroke-width="2"/>
@@ -142,7 +141,7 @@ const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEnt
       </svg>
     </div>
     <div id="clawd-speech" class="clawd-speech"></div>
-    <script src="/clawd-pet.js"></script>
+    <script is:inline src="/clawd-pet.js"></script>
   </body>
 
 </html>
