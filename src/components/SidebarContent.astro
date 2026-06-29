@@ -1,11 +1,8 @@
 ---
 import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
-import { collectionDateSort } from "@/utils/date";
-import type { CollectionEntry } from "astro:content";
 
-const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEntry<"post">[];
+const allPosts = await getAllPosts();
 const tagsWithCount = getUniqueTagsWithCount(allPosts);
-const currentPath = Astro.url.pathname;
 ---
 
 <!-- TOC slot (filled by blog post pages) -->
