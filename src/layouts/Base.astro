@@ -17,6 +17,17 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
+    <!-- Hidden checkbox drives the mobile sidebar (CSS-only toggle) -->
+    <input type="checkbox" id="sidebar-toggle" class="peer sr-only" />
+
+    <!-- Overlay: closes sidebar when clicked (label wraps the whole overlay) -->
+    <label for="sidebar-toggle" class="fixed inset-0 bg-black/60 z-40 hidden peer-checked:block lg:peer-checked:hidden" aria-hidden="true"></label>
+
+    <!-- Mobile sidebar drawer (fixed, direct sibling of checkbox for peer to work) -->
+    <aside id="sidebar-mobile" class="fixed top-0 left-0 h-full w-72 z-50 -translate-x-full peer-checked:translate-x-0 transition-transform duration-300 bg-black/90 backdrop-blur-xl border-r border-white/10 !p-6 pt-20 overflow-y-auto lg:hidden">
+      <SidebarContent />
+    </aside>
+
     <div class="video-bg">
       <video autoplay muted loop playsinline>
         <source src="/spacex.mp4" type="video/mp4" />
@@ -26,9 +37,12 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
-        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4 lg:hidden" aria-label="Toggle sidebar" onclick="window._toggleSidebar()">
-          <svg id="sb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
+        <!-- Hamburger: label for the checkbox → click toggles sidebar -->
+        <label for="sidebar-toggle" id="sidebar-btn" class="text-white/70 hover:text-white mr-4 lg:hidden cursor-pointer" aria-label="Toggle sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </label>
         <a href="/" class="text-lg font-bold tracking-wider uppercase">{siteConfig.title}</a>
         <nav class="flex gap-4 text-sm ml-auto items-center">
           <a href="/" class="nav-link">Home</a>
@@ -47,13 +61,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
     <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16">
       <div class="flex gap-8">
-        <!-- Mobile overlay + drawer -->
-        <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden" aria-hidden="true"></div>
-        <aside id="sidebar-mobile" class="fixed top-0 left-0 h-full w-72 z-50 -translate-x-full transition-transform duration-300 bg-black/90 backdrop-blur-xl border-r border-white/10 !p-6 pt-20 overflow-y-auto lg:hidden">
-          <SidebarContent />
-        </aside>
-
-        <!-- Desktop sidebar -->
+        <!-- Desktop sidebar (always visible md+) -->
         <aside id="sidebar" class="w-64 shrink-0 hidden md:block">
           <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-6">
             <SidebarContent />
@@ -75,27 +83,6 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       <a href="https://www.zhihu.com/people/liu-run-run-28" target="_blank" class="hover:text-white/60 transition-colors">知乎</a>
       <span>&mdash; {siteConfig.title} &copy; {new Date().getFullYear()}</span>
     </footer>
-
-    <script is:inline>
-      var _sidebarOpen = false;
-      window._toggleSidebar = function() {
-        var s = document.getElementById('sidebar-mobile');
-        var o = document.getElementById('sidebar-overlay');
-        var i = document.getElementById('sb-icon');
-        _sidebarOpen = !_sidebarOpen;
-        if (_sidebarOpen) {
-          if (s) s.style.transform = 'translateX(0)';
-          if (o) o.classList.remove('hidden');
-          if (i) i.innerHTML = '<line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/>';
-        } else {
-          if (s) s.style.transform = 'translateX(-100%)';
-          if (o) o.classList.add('hidden');
-          if (i) i.innerHTML = '<line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"21\" y2=\"18\"/>';
-        }
-      };
-      var overlay = document.getElementById('sidebar-overlay');
-      if (overlay) overlay.addEventListener('click', window._toggleSidebar);
-    </script>
 
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false"/></div>
     <div id="clawd-speech" class="clawd-speech"></div>
