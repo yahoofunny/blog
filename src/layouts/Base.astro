@@ -17,13 +17,6 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
-    <!-- Mobile overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden" aria-hidden="true"></div>
-    <!-- Mobile sidebar drawer -->
-    <aside id="sidebar-mobile" class="fixed top-0 left-0 h-full w-72 z-50 -translate-x-full transition-transform duration-300 bg-black/90 backdrop-blur-xl border-r border-white/10 !p-6 pt-20 overflow-y-auto lg:hidden">
-      <SidebarContent />
-    </aside>
-
     <div class="video-bg">
       <video autoplay muted loop playsinline>
         <source src="/spacex.mp4" type="video/mp4" />
@@ -34,10 +27,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
         <!-- Hamburger: label for the checkbox → click toggles sidebar -->
-        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4 lg:hidden" aria-label="Toggle sidebar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <a href="/" class="text-lg font-bold tracking-wider uppercase">{siteConfig.title}</a>
+        <a href="/" class="text-lg font-bold tracking-wider uppercase hidden sm:inline">{siteConfig.title}</a>
         <nav class="flex gap-4 text-sm ml-auto items-center">
           <a href="/" class="nav-link">Home</a>
           <a href="/tags/" class="nav-link">Tags</a>
@@ -77,27 +67,6 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       <a href="https://www.zhihu.com/people/liu-run-run-28" target="_blank" class="hover:text-white/60 transition-colors">知乎</a>
       <span>&mdash; {siteConfig.title} &copy; {new Date().getFullYear()}</span>
     </footer>
-
-    <script is:inline>
-      document.getElementById('sidebar-btn').onclick = function() {
-        var s = document.getElementById('sidebar-mobile');
-        var o = document.getElementById('sidebar-overlay');
-        if (s.classList.contains('open')) {
-          s.classList.remove('open');
-          o.classList.add('hidden');
-        } else {
-          s.classList.add('open');
-          o.classList.remove('hidden');
-        }
-      };
-      document.getElementById('sidebar-overlay').onclick = function() {
-        document.getElementById('sidebar-mobile').classList.remove('open');
-        this.classList.add('hidden');
-      };
-    </script>
-    <style is:inline>
-      #sidebar-mobile.open { transform: translateX(0) !important; }
-    </style>
 
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false"/></div>
     <div id="clawd-speech" class="clawd-speech"></div>
