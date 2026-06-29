@@ -90,7 +90,6 @@ function dragStart(x,y,t){
   p.style.bottom="auto";p.style.right="auto";
   p.style.left=cx+"px";p.style.top=cy+"px";
   p.style.transform="translate(0,0)";
-  if(t)t.preventDefault();
 }
 function dragMove(x,y){
   if(!dr)return;moved=true;
@@ -111,7 +110,11 @@ p.ontouchstart=function(e){var t=e.touches[0];dragStart(t.clientX,t.clientY,e)};
 window.onmousemove=function(e){dragMove(e.clientX,e.clientY)};
 window.ontouchmove=function(e){var t=e.touches[0];dragMove(t.clientX,t.clientY);if(dr)t.preventDefault()};
 window.onmouseup=function(e){dragEnd(e.clientX,e.clientY)};
-window.ontouchend=function(e){dragEnd(0,0)};
+window.ontouchend=function(e){if(!dr)return;dr=false;
+  if(!moved){p.style.left=cx+"px";p.style.top=cy+"px";rnd();spk()}
+  p.style.transform="";
+  p.style.transition="";
+  p.style.animation="clawd-float 3s ease-in-out infinite";};
 p.ondblclick=spk;var lt=0;
 var pv=parseInt(localStorage.getItem("cv")||0)+1;localStorage.setItem("cv",pv);
 if(pv===1)setTimeout(spk,4000);
