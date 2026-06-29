@@ -26,7 +26,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
-        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4" aria-label="Toggle sidebar" onclick="window._toggleSidebar()">
+        <button id="sidebar-btn" class="text-white/70 hover:text-white mr-4 lg:hidden" aria-label="Toggle sidebar" onclick="window._toggleSidebar()">
           <svg id="sb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <a href="/" class="text-lg font-bold tracking-wider uppercase">{siteConfig.title}</a>
@@ -84,16 +84,17 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         var i = document.getElementById('sb-icon');
         _sidebarOpen = !_sidebarOpen;
         if (_sidebarOpen) {
-          s && (s.style.transform = 'translateX(0)');
-          o && o.classList.remove('hidden');
-          if (i) i.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+          if (s) s.style.transform = 'translateX(0)';
+          if (o) o.classList.remove('hidden');
+          if (i) i.innerHTML = '<line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/>';
         } else {
-          s && (s.style.transform = 'translateX(-100%)');
-          o && o.classList.add('hidden');
-          if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
+          if (s) s.style.transform = 'translateX(-100%)';
+          if (o) o.classList.add('hidden');
+          if (i) i.innerHTML = '<line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"21\" y2=\"18\"/>';
         }
       };
-      document.getElementById('sidebar-overlay')?.addEventListener('click', window._toggleSidebar);
+      var overlay = document.getElementById('sidebar-overlay');
+      if (overlay) overlay.addEventListener('click', window._toggleSidebar);
     </script>
 
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false"/></div>
