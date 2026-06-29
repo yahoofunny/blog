@@ -192,6 +192,8 @@ h1, h2, h3 {
   z-index: 200;
   cursor: grab;
   user-select: none;
+  touch-action: none;
+  will-change: transform;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
   animation: clawd-float 3s ease-in-out infinite;
 }
