@@ -120,6 +120,13 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
     </footer>
 
     <script is:inline>
+      // Copy desktop sidebar into mobile drawer — runs immediately (DOM already parsed)
+      (function initSidebar() {
+        var src = document.getElementById('sidebar');
+        var dst = document.getElementById('sidebar-content');
+        if (src && dst) dst.innerHTML = src.innerHTML;
+      })();
+
       var _sidebarOpen = false;
       window._toggleSidebar = function() {
         var s = document.getElementById('sidebar-mobile');
@@ -127,24 +134,18 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
         var i = document.getElementById('sb-icon');
         _sidebarOpen = !_sidebarOpen;
         if (_sidebarOpen) {
-          if (s) s.style.transform = 'translateX(0)';
-          if (o) o.classList.remove('hidden');
+          s && (s.style.transform = 'translateX(0)');
+          o && o.classList.remove('hidden');
           if (i) i.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
         } else {
-          if (s) s.style.transform = 'translateX(-100%)';
-          if (o) o.classList.add('hidden');
+          s && (s.style.transform = 'translateX(-100%)');
+          o && o.classList.add('hidden');
           if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
         }
       };
-      document.addEventListener('DOMContentLoaded', function() {
-        var s = document.getElementById('sidebar');
-        var mc = document.getElementById('sidebar-content');
-        if (s && mc) mc.innerHTML = s.innerHTML;
-        var o = document.getElementById('sidebar-overlay');
-        if (o) o.addEventListener('click', window._toggleSidebar);
-      });
 
-
+      // Overlay click = close
+      document.getElementById('sidebar-overlay')?.addEventListener('click', window._toggleSidebar);
     </script>
   
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false"/></div>
