@@ -75,16 +75,6 @@ if (headings.length > 0) {
     </div>
   </article>
 
-  <!-- Floating TOC (desktop) -->
-  <div id="floating-toc" class="hidden xl:block fixed bottom-24 right-24 z-50 max-w-[220px]">
-    <div class="glass-card !p-3 !rounded-xl">
-      <h3 class="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2">On This Page</h3>
-      <nav id="floating-toc-nav" class="text-[11px] space-y-0.5 max-h-[40vh] overflow-y-auto">
-        {tocHtml !== '<p class="text-white/30 italic text-xs">No sections</p>' ? tocHtml : '<p class="text-white/30 italic text-[11px]">No sections</p>'}
-      </nav>
-    </div>
-  </div>
-
   <!-- Giscus Comments -->
   <div class="glass-card !p-6 mt-8">
     <script src="https://giscus.app/client.js"
@@ -113,15 +103,3 @@ if (headings.length > 0) {
   // Fill all TOC navs (desktop + mobile sidebar both render SidebarContent)
   document.querySelectorAll('#toc-nav').forEach(function(el) { el.innerHTML = tocHtml; });
 </script>
-
-<style>
-  /* Move Clawd pet up when floating TOC is present */
-  @media (min-width: 1280px) {
-    #floating-toc {
-      display: block !important;
-    }
-    #clawd-pet {
-      bottom: 180px !important;
-    }
-  }
-</style>
