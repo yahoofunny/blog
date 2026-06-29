@@ -120,19 +120,20 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
     </footer>
 
     <script is:inline>
+      var _sidebarOpen = false;
       window._toggleSidebar = function() {
         var s = document.getElementById('sidebar-mobile');
         var o = document.getElementById('sidebar-overlay');
         var i = document.getElementById('sb-icon');
-        var open = s && s.style.transform === 'translateX(0px)';
-        if (open) {
-          if (s) s.style.transform = 'translateX(-100%)';
-          if (o) o.classList.add('hidden');
-          if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
-        } else {
+        _sidebarOpen = !_sidebarOpen;
+        if (_sidebarOpen) {
           if (s) s.style.transform = 'translateX(0)';
           if (o) o.classList.remove('hidden');
           if (i) i.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+        } else {
+          if (s) s.style.transform = 'translateX(-100%)';
+          if (o) o.classList.add('hidden');
+          if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
         }
       };
       document.addEventListener('DOMContentLoaded', function() {
