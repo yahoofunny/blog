@@ -1,0 +1,49 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getAllPosts, groupPostsByYear } from "@/data/post";
+import PageLayout from "@/layouts/Base.astro";
+import { collectionDateSort, getFormattedDate } from "@/utils/date";
+
+const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEntry<"post">[];
+const grouped = groupPostsByYear(allPosts);
+const years = Object.keys(grouped).sort((a, b) => +b - +a);
+
+const meta = {
+  description: "All posts archived by year",
+  title: "Archives",
+};
+---
+
+<PageLayout meta={meta}>
+  <div class="glass-card !p-8 md:!p-12">
+    <h1 class="text-2xl md:text-3xl font-bold mb-2">Archives</h1>
+    <p class="text-white/40 text-sm mb-8">{allPosts.length} posts in total</p>
+
+    <div class="space-y-10">
+      {years.map((year) => (
+        <section>
+          <h2 class="text-xl font-bold text-white/80 mb-4 border-b border-white/10 pb-2">{year}</h2>
+          <ul class="space-y-3">
+            {grouped[year]?.map((post) => (
+              <li class="flex items-baseline gap-4">
+                <time class="text-xs text-white/30 whitespace-nowrap font-mono shrink-0 w-24">
+                  {getFormattedDate(post.data.publishDate, { month: "short", day: "numeric" })}
+                </time>
+                <a href={`/posts/${post.id}/`} class="text-sm text-white/70 hover:text-white transition-colors truncate">
+                  {post.data.title}
+                </a>
+                <div class="hidden sm:flex flex-wrap gap-1 ml-auto shrink-0">
+                  {post.data.tags.slice(0, 3).map((tag) => (
+                    <a href={`/tags/${tag}/`} class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 hover:bg-white/20 hover:text-white/60 transition-colors">
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</PageLayout>

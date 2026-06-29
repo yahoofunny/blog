@@ -1,0 +1,56 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import { getAllPosts, getUniqueTags } from "@/data/post";
+import PageLayout from "@/layouts/Base.astro";
+import { collectionDateSort, getFormattedDate } from "@/utils/date";
+
+export const getStaticPaths = (async () => {
+  const allPosts = await getAllPosts();
+  const uniqueTags = getUniqueTags(allPosts);
+  return uniqueTags.map((tag) => ({ params: { slug: tag } }));
+}) satisfies GetStaticPaths;
+
+const { slug } = Astro.params;
+const allPosts = await getAllPosts();
+const tagPosts = allPosts
+  .filter((p) => p.data.tags.includes(slug!))
+  .sort(collectionDateSort) as CollectionEntry<"post">[];
+
+const meta = {
+  description: `Posts tagged with "${slug}"`,
+  title: `#${slug}`,
+};
+---
+
+<PageLayout meta={meta}>
+  <div class="mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold mb-1">#{slug}</h1>
+    <p class="text-white/40 text-sm">{tagPosts.length} post{tagPosts.length !== 1 ? 's' : ''}</p>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    {tagPosts.map((p) => (
+      <a href={`/posts/${p.id}/`} class="glass-card block">
+        <h2 class="text-lg font-semibold">{p.data.title}</h2>
+        <p class="post-meta mt-1">
+          {getFormattedDate(p.data.publishDate, { year: "numeric", month: "long", day: "numeric" })}
+        </p>
+        {p.data.description && (
+          <p class="post-desc mt-2">{p.data.description}</p>
+        )}
+        <div class="flex flex-wrap gap-1 mt-2">
+          {p.data.tags.map((tag) => (
+            <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/40">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <div class="mt-8 text-center">
+    <a href="/tags/" class="text-white/40 hover:text-white/70 transition-colors text-sm">&larr; All Tags</a>
+  </div>
+</PageLayout>
