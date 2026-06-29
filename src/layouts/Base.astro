@@ -26,13 +26,11 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
-        <!-- Hamburger: label for the checkbox → click toggles sidebar -->
         <a href="/" class="text-lg font-bold tracking-wider uppercase hidden sm:inline">{siteConfig.title}</a>
         <nav class="flex gap-4 text-sm ml-auto items-center">
-          <a href="/" class="nav-link">Home</a>
           <a href="/tags/" class="nav-link">Tags</a>
           <a href="/archives/" class="nav-link">Archives</a>
-          <a href="/about/" class="nav-link">About</a>
+          <a href="/about/" class="nav-link hidden sm:inline">About</a>
           <a href="/radio/" class="nav-link">Gadgets</a>
           <a href="https://github.com/yahoofunny/liquid-glasses-template-for-blog" target="_blank" class="nav-link opacity-70 hover:opacity-100" title="GitHub">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
