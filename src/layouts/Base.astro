@@ -1,10 +1,8 @@
 ---
 import BaseHead from "@/components/BaseHead.astro";
+import SidebarContent from "@/components/SidebarContent.astro";
 import { siteConfig } from "@/site.config";
-import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
-import { collectionDateSort } from "@/utils/date";
 import type { SiteMeta } from "@/types";
-import type { CollectionEntry } from "astro:content";
 
 interface Props {
   meta: SiteMeta;
@@ -12,9 +10,6 @@ interface Props {
 
 const { meta } = Astro.props;
 const { articleDate, description = siteConfig.description, ogImage, title } = meta;
-
-const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEntry<"post">[];
-const tagsWithCount = getUniqueTagsWithCount(allPosts);
 ---
 
 <html class="scroll-smooth" lang={siteConfig.lang}>
@@ -55,51 +50,13 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
         <!-- Mobile overlay + drawer -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden" aria-hidden="true"></div>
         <aside id="sidebar-mobile" class="fixed top-0 left-0 h-full w-72 z-50 -translate-x-full transition-transform duration-300 bg-black/90 backdrop-blur-xl border-r border-white/10 !p-6 pt-20 overflow-y-auto lg:hidden">
-          <div id="sidebar-content"></div>
+          <SidebarContent />
         </aside>
 
         <!-- Desktop sidebar -->
         <aside id="sidebar" class="w-64 shrink-0 hidden md:block">
           <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-6">
-            <!-- TOC slot (filled by blog post pages) -->
-            <div id="toc-container" class="glass-card !p-4">
-              <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">On This Page</h3>
-              <nav id="toc-nav" class="text-xs space-y-1">
-                <p class="text-white/30 italic">Scroll to see headings</p>
-              </nav>
-            </div>
-            <!-- Tags -->
-            <div class="glass-card !p-4">
-              <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">
-                <a href="/tags/" class="hover:text-white/80 transition-colors">Tags</a>
-              </h3>
-              <div class="flex flex-wrap gap-1.5">
-                {tagsWithCount.map(([tag, count]) => (
-                  <a href={`/tags/${tag}/`} class="inline-block text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-colors">
-                    {tag}<span class="text-white/30 ml-0.5">{count}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <!-- Archive -->
-            <div class="glass-card !p-4">
-              <a href="/archives/" class="text-xs font-semibold text-white/50 uppercase tracking-widest hover:text-white/80 transition-colors">
-                Archive
-              </a>
-            </div>
-            <!-- Posts index -->
-            <div class="glass-card !p-4">
-              <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">All Posts</h3>
-              <ul class="space-y-0.5">
-                {allPosts.map((p) => (
-                  <li>
-                    <a href={`/posts/${p.id}/`} class={`block text-xs py-1 transition-colors truncate ${Astro.url.pathname === `/posts/${p.id}/` ? 'text-white font-semibold' : 'text-white/60 hover:text-white'}`}>
-                      {p.data.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <SidebarContent />
           </div>
         </aside>
 
@@ -120,13 +77,6 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
     </footer>
 
     <script is:inline>
-      // Copy desktop sidebar into mobile drawer — runs immediately (DOM already parsed)
-      (function initSidebar() {
-        var src = document.getElementById('sidebar');
-        var dst = document.getElementById('sidebar-content');
-        if (src && dst) dst.innerHTML = src.innerHTML;
-      })();
-
       var _sidebarOpen = false;
       window._toggleSidebar = function() {
         var s = document.getElementById('sidebar-mobile');
@@ -143,11 +93,9 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
           if (i) i.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
         }
       };
-
-      // Overlay click = close
       document.getElementById('sidebar-overlay')?.addEventListener('click', window._toggleSidebar);
     </script>
-  
+
     <div id="clawd-pet" class="clawd-pet" title="Clawd"><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false"/></div>
     <div id="clawd-speech" class="clawd-speech"></div>
     <script is:inline>

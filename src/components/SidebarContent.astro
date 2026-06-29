@@ -1,0 +1,49 @@
+---
+import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
+import { collectionDateSort } from "@/utils/date";
+import type { CollectionEntry } from "astro:content";
+
+const allPosts = (await getAllPosts()).sort(collectionDateSort) as CollectionEntry<"post">[];
+const tagsWithCount = getUniqueTagsWithCount(allPosts);
+const currentPath = Astro.url.pathname;
+---
+
+<!-- TOC slot (filled by blog post pages) -->
+<div id="toc-container" class="glass-card !p-4">
+  <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">On This Page</h3>
+  <nav id="toc-nav" class="text-xs space-y-1">
+    <p class="text-white/30 italic">Scroll to see headings</p>
+  </nav>
+</div>
+<!-- Tags -->
+<div class="glass-card !p-4">
+  <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">
+    <a href="/tags/" class="hover:text-white/80 transition-colors">Tags</a>
+  </h3>
+  <div class="flex flex-wrap gap-1.5">
+    {tagsWithCount.map(([tag, count]) => (
+      <a href={`/tags/${tag}/`} class="inline-block text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-colors">
+        {tag}<span class="text-white/30 ml-0.5">{count}</span>
+      </a>
+    ))}
+  </div>
+</div>
+<!-- Archive -->
+<div class="glass-card !p-4">
+  <a href="/archives/" class="text-xs font-semibold text-white/50 uppercase tracking-widest hover:text-white/80 transition-colors">
+    Archive
+  </a>
+</div>
+<!-- Posts index -->
+<div class="glass-card !p-4">
+  <h3 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">All Posts</h3>
+  <ul class="space-y-0.5">
+    {allPosts.map((p) => (
+      <li>
+        <a href={`/posts/${p.id}/`} class={`block text-xs py-1 transition-colors truncate ${currentPath === `/posts/${p.id}/` ? 'text-white font-semibold' : 'text-white/60 hover:text-white'}`}>
+          {p.data.title}
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>

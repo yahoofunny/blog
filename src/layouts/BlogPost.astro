@@ -110,13 +110,8 @@ if (headings.length > 0) {
 </BaseLayout>
 
 <script define:vars={{ tocHtml }}>
-  // Fill sidebar TOC
-  document.addEventListener('DOMContentLoaded', () => {
-    const tocNav = document.getElementById('toc-nav');
-    if (tocNav) tocNav.innerHTML = tocHtml;
-    const mobileToc = document.querySelector('#sidebar-mobile #toc-nav');
-    if (mobileToc) mobileToc.innerHTML = tocHtml;
-  });
+  // Fill all TOC navs (desktop + mobile sidebar both render SidebarContent)
+  document.querySelectorAll('#toc-nav').forEach(function(el) { el.innerHTML = tocHtml; });
 </script>
 
 <style>
