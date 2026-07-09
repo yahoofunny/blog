@@ -75,8 +75,28 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           <a href="/radio/" class="nav-link">Gadgets</a>
         </nav>
 
-        <!-- Desktop upcoming -->
-        <span class="hidden md:inline text-[10px] text-white/20 uppercase tracking-[0.2em] ml-auto mr-4">UPCOMING: Godot 小游戏 · MiniMind 模型调用</span>
+        <!-- Desktop UPCOMING dropdown -->
+        <div class="hidden md:flex items-center ml-auto mr-4 upcoming-dropdown">
+          <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">UPCOMING</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30"><polyline points="6 9 12 15 18 9"/></svg>
+          <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 mt-2 min-w-[220px] space-y-3 z-[110]">
+            <div>
+              <p class="text-xs text-white/30 uppercase tracking-wider mb-1">GAMES</p>
+              <p class="text-sm text-white/70">🎮 Godot 小游戏</p>
+              <p class="text-[10px] text-white/30 mt-0.5">浏览器可直接玩的小游戏</p>
+            </div>
+            <div class="border-t border-white/10 pt-3">
+              <p class="text-xs text-white/30 uppercase tracking-wider mb-1">AI</p>
+              <p class="text-sm text-white/70">🤖 MiniMind 模型调用</p>
+              <p class="text-[10px] text-white/30 mt-0.5">自训练轻量 LLM 对话</p>
+            </div>
+            <div class="border-t border-white/10 pt-3">
+              <p class="text-xs text-white/30 uppercase tracking-wider mb-1">MORE</p>
+              <p class="text-sm text-white/70">📡 RSS Reader</p>
+              <p class="text-[10px] text-white/30 mt-0.5">订阅管理与阅读</p>
+            </div>
+          </div>
+        </div>
 
         <!-- Theme toggle -->
         <button id="theme-toggle" class="md:ml-0 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">

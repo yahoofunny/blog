@@ -221,6 +221,20 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
+/* SpaceX-style UPCOMING dropdown */
+.upcoming-dropdown { position: relative; }
+.upcoming-menu {
+  display: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.upcoming-dropdown:hover .upcoming-menu {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* SpaceX-style animated hamburger */
 .spacex-hamburger {
   background: transparent;
