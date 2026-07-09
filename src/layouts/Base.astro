@@ -31,9 +31,8 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       function _translateText(text, cb){
         if(!text.trim()||text.length<2){cb(text);return}
         if(_transCache[text]){cb(_transCache[text]);return}
-        // Skip if already English (mostly ASCII)
-        if(text.replace(/\s/g,'').length<2||/^[a-zA-Z0-9\s\d.,!?;:()\-_"'\/@#$%^&*+=<>\[\]{}|~`]+$/.test(text)){cb(text);return}
-        var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=zh-CN|en';
+        if(!/[一-鿿]/.test(text)){cb(text);return}
+        var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=zh|en&de=btao@blog';
         fetch(url).then(function(r){return r.json()}).then(function(d){
           var t=(d.responseData&&d.responseData.translatedText)||text;
           _transCache[text]=t;
@@ -119,15 +118,14 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           if(/[一-鿿]/.test(t)){
             _translateText(t,function(tr){
               n.textContent=tr;
-              setTimeout(next,200); // rate limit
+              setTimeout(next,80);
             });
           }else{
             n.textContent=t;
             next();
           }
         }
-        // Process in batches
-        for(var i=0;i<3;i++)next();
+        for(var i=0;i<8;i++)next();
       };
     </script>
 
