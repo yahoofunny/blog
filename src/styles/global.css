@@ -264,33 +264,3 @@ h1, h2, h3 {
   transform: rotate(-45deg);
 }
 
-/* SpaceX-style X logo */
-.spacex-x {
-  position: relative;
-  display: inline-block;
-}
-/* Right diagonal \ */
-.spacex-x::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 42%;
-  width: 16%;
-  height: 100%;
-  background-color: #fff;
-  transform: rotate(-30deg);
-  border-radius: 2px;
-}
-/* Left rocket arc / */
-.spacex-x::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 22%;
-  width: 55%;
-  height: 100%;
-  border-left: 13px solid #fff;
-  border-bottom: 0px solid transparent;
-  border-top-left-radius: 90% 100%;
-  transform: rotate(-30deg);
-}

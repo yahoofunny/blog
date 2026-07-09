@@ -17,8 +17,8 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
-    <!-- Hidden checkbox for mobile menu (must be before header for CSS ~ sibling) -->
-    <input type="checkbox" id="menu-toggle" class="peer hidden" />
+    <!-- Hidden checkbox for mobile menu hamburger animation -->
+    <input type="checkbox" id="menu-toggle" class="hidden" onchange="if(this.checked){document.getElementById('mobile-menu').classList.remove('hidden')}else{document.getElementById('mobile-menu').classList.add('hidden')}" />
 
     <div class="video-bg">
       <video autoplay muted loop playsinline>
@@ -31,7 +31,10 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
         <a href="/" class="text-lg font-bold tracking-wider uppercase flex items-center">
           <span>bt</span>
-          <span class="spacex-x ml-1" style="width:22px;height:22px"></span>
+          <svg width="24" height="24" viewBox="0 0 60 60" fill="none" class="ml-0.5">
+            <line x1="42" y1="8" x2="20" y2="52" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+            <path d="M20 8 Q30 28 42 52" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+          </svg>
         </a>
 
         <!-- Desktop nav -->
@@ -55,16 +58,11 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     </header>
 
     <!-- Mobile menu overlay -->
-    <div class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden peer-checked:flex flex-col items-center justify-center gap-8 lg:peer-checked:hidden">
-      <label for="menu-toggle" class="absolute top-6 right-6 text-white/50 hover:text-white cursor-pointer">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </label>
-      <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">Tags</a>
-      <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">Archives</a>
-      <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">About</a>
-      <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">Gadgets</a>
+    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden flex-col items-center justify-center gap-8">
+      <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Tags</a>
+      <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Archives</a>
+      <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">About</a>
+      <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Gadgets</a>
     </div>
 
     <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16">
