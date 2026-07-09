@@ -32,9 +32,11 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         if(!text.trim()||text.length<2){cb(text);return}
         if(_transCache[text]){cb(_transCache[text]);return}
         if(!/[一-鿿]/.test(text)){cb(text);return}
-        var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=zh|en&de=btao@blog';
+        var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=zh|en';
         fetch(url).then(function(r){return r.json()}).then(function(d){
-          var t=(d.responseData&&d.responseData.translatedText)||text;
+          var t=(d.responseData&&d.responseData.translatedText)||'';
+          // Skip error responses from API
+          if(!t||t.indexOf('INVALID')>=0||t.indexOf('MYMEMORY')>=0||t.length>text.length*5){cb(text);return}
           _transCache[text]=t;
           cb(t);
         }).catch(function(){cb(text)});
