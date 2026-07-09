@@ -1,45 +1,46 @@
 # bt's Blog
 
-基于 [Astro](https://astro.build) 构建的个人技术博客，灵感来自 Jekyll Chirpy 主题的信息架构，融合 SpaceX 液态玻璃视觉风格。
+基于 [Astro](https://astro.build) 构建的个人技术博客，SpaceX 风格设计 + Chirpy 信息架构。
 
 ## ✨ 特性
 
-### 内容
+### 设计
+- **SpaceX 风格** — 全屏火箭发射视频背景 + 液态玻璃卡片（Glassmorphism），`backdrop-filter: blur()` 磨砂质感
+- **🔄 暗/亮主题切换** — header 太阳/月亮按钮一键切换，localStorage 持久化，刷新不丢失
+- **😉 蓝色笑脸 Logo** — 左上角 StreamlineFreehandSmileyWink 图标，点击回到首页
+- **SpaceX 风格汉堡菜单** — 移动端三根极细线条 → X 动画过渡，cubic-bezier 丝滑曲线
+- **响应式布局** — 桌面端左侧固定侧边栏 + 顶部导航，移动端全屏 overlay 菜单
 
-- **MDX 支持** — 不仅支持标准 Markdown，还支持 MDX，可在文章中嵌入 JSX 组件，实现交互式内容
-- **LaTeX 数学公式** — 通过 KaTeX 引擎渲染，支持行内 `$...$` 和块级 `$$...$$` 公式，适合技术笔记
-- **代码高亮** — 使用 Astro Expressive Code，支持暗/亮双主题（`github-dark` / `github-light`），自动随系统切换
+### 内容
+- **MDX 支持** — 文章可嵌入 JSX 组件，支持 Markdown 全部语法
+- **LaTeX 数学公式** — KaTeX 渲染，行内 `$...$` 和块级 `$$...$$`
+- **代码高亮** — Expressive Code，`github-dark` / `github-light` 双主题
 
 ### 交互
-
-- **🦞 Clawd 桌宠** — 右下角悬浮的像素风螃蟹宠物，自动切换表情动画。**点击切换姿态**，拖拽移动位置，双击说话，会定时主动问候
-- **Giscus 评论区** — 基于 GitHub Discussions 的评论系统，无需第三方服务，数据归你自己
+- **🦞 Clawd 桌宠** — 右下角像素螃蟹，点击切换姿态+说话，拖拽移动，双击问候，定时主动搭话。25+ 句 bt 主题对话，GPU 加速拖动
+- **Giscus 评论区** — GitHub Discussions 驱动，无需第三方服务
 
 ### 导航
+- **标签系统** — 侧边栏标签云带计数，点击筛选，独立标签页
+- **归档页** — 按年份分组，日期 + 标签一览
+- **侧边栏** — Chirpy 风格（TOC / Tags / Archive）
+- **Pagefind 全文搜索** — 构建时生成索引，静态搜索
 
-- **标签系统** — 每篇文章可打多个标签，侧边栏标签云带计数，点击筛选该标签下的所有文章
-- **归档页** — 按年份分组展示全部文章，一目了然
-- **侧边栏** — Chirpy 风格导航（TOC / 标签 / 归档），桌面端始终可见
-- **搜索** — 基于 Pagefind 的全文搜索（构建时生成索引）
+### Gadgets 页面
+- **Claude FM** — 24/7 Lo-fi 电台
+- **Drone Zone** — SomaFM Dark Ambient 空间音乐
+- **Telegraph 图床** — 自建图片托管入口（telegraph-image-download.pages.dev）
 
-### SEO & 分享
-
-- **自动生成 OG 图片** — 每篇文章构建时生成 1200×630 PNG 社交分享卡片
-- **RSS 订阅** — 标准 RSS 2.0 (`/rss.xml`)
-- **Sitemap** — 自动生成，方便搜索引擎收录
-
-### 设计
-
-- **液态玻璃风格（Glassmorphism）** — 半透明毛玻璃卡片，`backdrop-filter: blur()` 磨砂质感
-- **SpaceX 视频背景** — 全屏火箭发射视频循环播放，深色遮罩确保文字可读
-- **响应式布局** — 桌面端左侧固定侧边栏，移动端自适应
-- **暗色主题** — 深色背景 + 高对比度文字，护眼舒适
+### SEO
+- **OG 图片自动生成** — 每篇文章 1200×630 PNG 社交卡片
+- **RSS 2.0** — `/rss.xml`
+- **Sitemap** — 自动生成
 
 ## 🚀 技术栈
 
 | 类别 | 技术 |
 |------|------|
-| 框架 | [Astro](https://astro.build) |
+| 框架 | [Astro](https://astro.build) 6.x |
 | 样式 | [Tailwind CSS](https://tailwindcss.com) v4 |
 | 内容 | MDX + Markdown |
 | 数学 | [KaTeX](https://katex.org) |
@@ -53,30 +54,36 @@
 
 ```bash
 pnpm install
-pnpm dev        # 启动开发服务器 http://localhost:4321
+pnpm dev        # http://localhost:4321
 pnpm build      # 构建到 dist/
 pnpm preview    # 预览构建结果
 ```
 
 ## 🚢 部署
 
-推送 `main` 分支 → GitHub Actions 运行 `astro check` + `pnpm build` → Cloudflare Pages 自动部署。
+推送 `main` → GitHub Actions (`astro check` + `pnpm build`) → Cloudflare Pages 自动部署。
 
 ## 📁 项目结构
 
 ```
 src/
-├── components/     # 组件（BaseHead, SidebarContent, PostPreview 等）
-├── content/
-│   └── post/       # 博客文章 (.md / .mdx)
-├── data/           # 数据查询（获取文章、标签、归档分组）
-├── layouts/        # 布局（Base.astro, BlogPost.astro）
-├── pages/          # 页面路由
-│   ├── tags/       # 标签页
-│   └── archives.astro  # 归档页
-├── plugins/        # Remark 插件（提示框、GitHub 卡片、阅读时间）
-├── styles/         # 全局样式
+├── components/     # BaseHead, SidebarContent, PostPreview 等
+├── content/post/   # 博客文章 (.md / .mdx)
+├── data/           # 文章/标签/归档查询
+├── layouts/        # Base.astro（全局布局）, BlogPost.astro
+├── pages/
+│   ├── tags/       # 标签聚合 + 单标签筛选
+│   ├── archives.astro  # 按年归档
+│   ├── radio.astro     # Gadgets 页面
+│   └── about.astro
+├── plugins/        # Remark 插件
+├── styles/         # 全局 CSS（含 Light 主题覆盖）
 └── utils/          # 工具函数
+public/
+├── smiley.svg      # 左上角 Logo
+├── on.svg / off.svg # 主题切换图标
+├── clawd/          # Clawd 桌宠 GIF
+└── spacex.mp4      # 视频背景
 ```
 
 ## 📝 文章 Frontmatter
@@ -89,7 +96,7 @@ publishDate: "2026-01-01"
 tags: ["标签1", "标签2"]
 pinned: true        # 置顶（可选）
 updatedDate: "2026-02-01"  # 更新日期（可选）
-draft: true         # 草稿（可选，生产环境不显示）
+draft: true         # 草稿（可选，生产不显示）
 ---
 ```
 
