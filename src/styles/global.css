@@ -229,6 +229,14 @@ h1, h2, h3 {
   transform: translateY(8px);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
+.upcoming-menu::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+}
 .upcoming-dropdown:hover .upcoming-menu {
   display: block;
   opacity: 1;

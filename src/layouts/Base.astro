@@ -29,21 +29,29 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       var marsMap={"的":"の","我":"莪","你":"伱","是":"素","了":"嘞","吗":"嘛","吧":"叭","不":"卜","很":"狠","好":"恏","他":"祂","她":"咜","们":"扪","这":"适","那":"辣","什么":"什庅","怎么":"肿庅","喜欢":"稀饭","知道":"鸡道","开心":"嗨皮","谢谢":"蟹蟹","大家":"达家","朋友":"盆友","今天":"今兲","明天":"明兲","晚上":"晚丄","早上":"早丄","学习":"学槢","吃饭":"吃粄","睡觉":"睡嗟","厉害":"厉嗐","可以":"苛以","没有":"木冇","工作":"工昨"};
       var emojiAfter={"开心":"😄","加油":"💪","谢谢":"🙏","喜欢":"❤️","厉害":"🔥","睡觉":"😴","吃饭":"🍚","朋友":"👫","音乐":"🎵","博客":"📝","代码":"💻","学习":"📚","游戏":"🎮","好":"👍","棒":"🌟","开心":"😄","难过":"😢","Hello":"👋","Hi":"👋","数据结构":"📊","算法":"🧮","电路":"⚡","笔记":"📝"};
       var kaomoji=["(´・ω・`)","(◕‿◕)","(｡･ω･｡)","(≧∇≦)","(๑•̀ㅂ•́)و✧","(◍•ᴗ•◍)","(´∩｀)","(╯°□°）╯︵┻━┻","┐(´д`)┌","(￣▽￣)ノ","(・∀・)","(゜∀゜)","(✿◠‿◠)","(─‿‿─)","(´▽`)ﾉ","(；一_一)","(⊙_⊙)","(°ロ°)","(╥﹏╥)","(ᗒᗨᗕ)"];
-      function applyLang(lang){
-        document.querySelectorAll('[data-lang-text]').forEach(function(el){el.remove()});
-        if(lang!=='mars'&&lang!=='emoji'&&lang!=='kaomoji')return;
-        var isMars=lang==='mars',isKaomoji=lang==='kaomoji';
-        document.querySelectorAll('.glass-card h1,.glass-card h2,.glass-card h3,.post-meta,.post-desc,header a,nav a,p,h1,h2,h3').forEach(function(el){
-          if(el.closest('#mobile-menu')||el.closest('script')||el.closest('style'))return;
+      // Save original texts on first run
+      if(!window._origTexts){
+        window._origTexts=[];
+        document.querySelectorAll('h1,h2,h3,p,a,span,time,li').forEach(function(el,i){
+          if(el.closest('script')||el.closest('style')||el.closest('#mobile-menu')||el.closest('#clawd-pet')||el.closest('#clawd-speech'))return;
           el.childNodes.forEach(function(n){
             if(n.nodeType===3&&n.textContent.trim()){
-              var t=n.textContent;
-              if(isMars){for(var k in marsMap){t=t.split(k).join(marsMap[k])}}
-              else if(isKaomoji){var kk=kaomoji[Math.floor(Math.random()*kaomoji.length)];t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
-              else{for(var k in emojiAfter){if(t.indexOf(k)>=0&&t.indexOf(emojiAfter[k])<0)t+=' '+emojiAfter[k]}}
-              n.textContent=t;
+              window._origTexts.push({node:n,text:n.textContent});
             }
           });
+        });
+      }
+      function applyLang(lang){
+        // Restore originals first
+        if(window._origTexts)window._origTexts.forEach(function(item){item.node.textContent=item.text});
+        if(lang!=='mars'&&lang!=='emoji'&&lang!=='kaomoji')return;
+        var isMars=lang==='mars',isKaomoji=lang==='kaomoji';
+        if(window._origTexts)window._origTexts.forEach(function(item){
+          var t=item.text;
+          if(isMars){for(var k in marsMap){t=t.split(k).join(marsMap[k])}}
+          else if(isKaomoji){var kk=kaomoji[Math.floor(Math.random()*kaomoji.length)];t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
+          else{for(var k in emojiAfter){if(t.indexOf(k)>=0&&t.indexOf(emojiAfter[k])<0)t+=' '+emojiAfter[k]}}
+          item.node.textContent=t;
         });
       }
       function setLang(lang){
@@ -81,27 +89,23 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         <div class="hidden md:flex items-center ml-auto mr-4 upcoming-dropdown">
           <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">UPCOMING</span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30"><polyline points="6 9 12 15 18 9"/></svg>
-          <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 mt-2 min-w-[220px] space-y-3 z-[110]">
-            <div>
+          <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 pt-0 min-w-[220px] space-y-3 z-[110]">
+            <div class="upcoming-bridge"></div>
+            <a href="https://itch.io/games/made-with-godot/platform-web" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors">
               <p class="text-xs text-white/30 uppercase tracking-wider mb-1">GAMES</p>
               <p class="text-sm text-white/70">🎮 Godot 小游戏</p>
               <p class="text-[10px] text-white/30 mt-0.5">浏览器可直接玩的小游戏</p>
-            </div>
-            <div class="border-t border-white/10 pt-3">
+            </a>
+            <a href="https://github.com/jingyaogong/minimind" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors border-t border-white/10 pt-3">
               <p class="text-xs text-white/30 uppercase tracking-wider mb-1">AI</p>
               <p class="text-sm text-white/70">🤖 MiniMind 模型调用</p>
               <p class="text-[10px] text-white/30 mt-0.5">自训练轻量 LLM 对话</p>
-            </div>
-            <div class="border-t border-white/10 pt-3">
-              <p class="text-xs text-white/30 uppercase tracking-wider mb-1">MORE</p>
-              <p class="text-sm text-white/70">📡 RSS Reader</p>
-              <p class="text-[10px] text-white/30 mt-0.5">订阅管理与阅读</p>
-            </div>
+            </a>
           </div>
         </div>
 
         <!-- Theme toggle -->
-        <button id="theme-toggle" class="md:ml-0 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
+        <button id="theme-toggle" class="ml-auto md:ml-0 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
           <img id="theme-icon" src="/off.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
         </button>
         <script is:inline>
