@@ -46,8 +46,13 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           </a>
         </nav>
 
-        <!-- Mobile hamburger (SpaceX-style animated) -->
-        <label for="menu-toggle" class="spacex-hamburger md:hidden ml-auto">
+        <!-- Theme toggle -->
+        <button id="theme-toggle" class="ml-auto md:ml-4 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme" onclick="document.body.classList.toggle('light');var t=document.getElementById('theme-toggle');t.textContent=document.body.classList.contains('light')?'☀️':'🌙';var img=document.querySelector('header img');img.style.filter=document.body.classList.contains('light')?'invert(0) brightness(0.3) saturate(100%) hue-rotate(190deg)':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)'">
+          🌙
+        </button>
+
+        <!-- Mobile hamburger -->
+        <label for="menu-toggle" class="spacex-hamburger md:hidden">
           <span></span><span></span><span></span>
         </label>
       </div>

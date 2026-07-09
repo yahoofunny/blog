@@ -264,3 +264,79 @@ h1, h2, h3 {
   transform: rotate(-45deg);
 }
 
+/* ===== Light Theme ===== */
+body.light {
+  background: #f0f2f5;
+  color: #1a1a2e;
+}
+body.light .video-bg,
+body.light .video-overlay {
+  display: none;
+}
+body.light .glass-header {
+  background: rgba(255,255,255,0.85);
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+body.light .glass-header a,
+body.light .nav-link {
+  color: #333;
+}
+body.light .glass-card {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+body.light .glass-card:hover {
+  background: rgba(255,255,255,1);
+  border-color: rgba(0,0,0,0.15);
+}
+body.light h1, body.light h2, body.light h3 {
+  color: #1a1a2e;
+}
+body.light .prose {
+  color: #333;
+}
+body.light .prose h1,
+body.light .prose h2,
+body.light .prose h3,
+body.light .prose h4 {
+  color: #1a1a2e;
+}
+body.light .prose a {
+  color: #2563eb;
+}
+body.light .prose code {
+  background: rgba(0,0,0,0.06);
+  color: #d63384;
+}
+body.light .prose pre {
+  background: #f8f9fa;
+  border-color: rgba(0,0,0,0.1);
+}
+body.light .post-meta {
+  color: #666;
+}
+body.light .post-desc {
+  color: #555;
+}
+body.light .text-white\/40,
+body.light .text-white\/50,
+body.light .text-white\/60,
+body.light .text-white\/70,
+body.light .text-white\/80 {
+  color: #555;
+}
+body.light .text-white\/25,
+body.light .text-white\/30 {
+  color: #888;
+}
+body.light footer {
+  color: #888;
+}
+body.light footer a {
+  color: #666;
+}
+body.light .spacex-hamburger span {
+  background: #333;
+}
+
