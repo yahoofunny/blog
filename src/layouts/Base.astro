@@ -25,8 +25,16 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <!-- Hidden checkbox for mobile menu hamburger animation -->
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
     <script is:inline>
-      // Chinese → English phrase dictionary (longest-first matching)
-      var _zh2en={
+      // Full Chinese→English dictionary (loaded async for size)
+      var _dict=null,_dictLoaded=false;
+      function _loadDict(cb){
+        if(_dictLoaded){cb();return}
+        fetch('/lang/en.json').then(function(r){return r.json()}).then(function(d){
+          _dict=d;_dictLoaded=true;cb();
+        }).catch(function(){_dictLoaded=true;cb()});
+      }
+      // Phrase-level translations (applied before word dict)
+      var _phrases={
         // Homepage
         "数据结构、算法笔记 :)":"Data Structures & Algorithms Notes :)","技术博客":"Tech Blog",
         "金鳞岂是池中物，一遇风云便化龙":"\"A golden carp is no pond creature...\"",
@@ -89,16 +97,25 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         var nodes=_walkNodes();
         nodes.forEach(function(n){n.textContent=n._orig});
         if(lang==='zh')return;
-        var keys=Object.keys(_zh2en).sort(function(a,b){return b.length-a.length});
-        nodes.forEach(function(n){
-          var t=n.textContent;
-          if(lang==='en'){
-            for(var i=0;i<keys.length;i++){var k=keys[i];if(t.indexOf(k)>=0)t=t.split(k).join(_zh2en[k])}
-          }else if(lang==='kaomoji'){
+        if(lang==='kaomoji'){
+          nodes.forEach(function(n){
             var kk=_kao[Math.floor(Math.random()*_kao.length)];
-            t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ');
-          }
-          n.textContent=t;
+            n.textContent=n.textContent.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ');
+          });
+          return;
+        }
+        // EN: load dict and translate
+        _loadDict(function(){
+          var allKeys=Object.keys(_phrases).concat(Object.keys(_dict||{}));
+          allKeys.sort(function(a,b){return b.length-a.length});
+          nodes.forEach(function(n){
+            var t=n._orig;
+            for(var i=0;i<allKeys.length;i++){
+              var k=allKeys[i],v=_phrases[k]||(_dict||{})[k];
+              if(v&&t.indexOf(k)>=0)t=t.split(k).join(v);
+            }
+            n.textContent=t;
+          });
         });
       };
     </script>
@@ -124,9 +141,8 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           <a href="/radio/" class="nav-link">Gadgets</a>
         </nav>
 
-        <!-- Right side group -->
+        <!-- Desktop only: LANGUAGE + UPCOMING -->
         <div class="hidden md:flex items-center gap-4 ml-auto">
-          <!-- LANGUAGE dropdown -->
           <div class="lang-dropdown">
             <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">LANGUAGE</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30 inline"><polyline points="6 9 12 15 18 9"/></svg>
@@ -137,32 +153,27 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
               <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('kaomoji')">(´・ω・`) 颜文字</a>
             </div>
           </div>
-
-          <!-- UPCOMING dropdown -->
           <div class="upcoming-dropdown">
             <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">UPCOMING</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30 inline"><polyline points="6 9 12 15 18 9"/></svg>
             <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 pt-0 min-w-[220px] space-y-3 z-[110]">
               <div class="upcoming-bridge"></div>
-          <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">UPCOMING</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30"><polyline points="6 9 12 15 18 9"/></svg>
-          <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 pt-0 min-w-[220px] space-y-3 z-[110]">
-            <div class="upcoming-bridge"></div>
-            <a href="https://itch.io/games/made-with-godot/platform-web" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors">
-              <p class="text-xs text-white/30 uppercase tracking-wider mb-1">GAMES</p>
-              <p class="text-sm text-white/70">🎮 Godot 小游戏</p>
-              <p class="text-[10px] text-white/30 mt-0.5">浏览器可直接玩的小游戏</p>
-            </a>
-            <a href="https://github.com/jingyaogong/minimind" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors border-t border-white/10 pt-3">
-              <p class="text-xs text-white/30 uppercase tracking-wider mb-1">AI</p>
-              <p class="text-sm text-white/70">🤖 MiniMind 模型调用</p>
-              <p class="text-[10px] text-white/30 mt-0.5">自训练轻量 LLM 对话</p>
-            </a>
+              <a href="https://itch.io/games/made-with-godot/platform-web" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors">
+                <p class="text-xs text-white/30 uppercase tracking-wider mb-1">GAMES</p>
+                <p class="text-sm text-white/70">🎮 Godot 小游戏</p>
+                <p class="text-[10px] text-white/30 mt-0.5">浏览器可直接玩的小游戏</p>
+              </a>
+              <a href="https://github.com/jingyaogong/minimind" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors border-t border-white/10 pt-3">
+                <p class="text-xs text-white/30 uppercase tracking-wider mb-1">AI</p>
+                <p class="text-sm text-white/70">🤖 MiniMind 模型调用</p>
+                <p class="text-[10px] text-white/30 mt-0.5">自训练轻量 LLM 对话</p>
+              </a>
+            </div>
           </div>
         </div>
 
-        <!-- Theme toggle -->
-        <button id="theme-toggle" class="ml-auto md:ml-0 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
+        <!-- Theme toggle (always visible, outside desktop-only group) -->
+        <button id="theme-toggle" class="ml-auto md:ml-2 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
           <img id="theme-icon" src="/off.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
         </button>
         <script is:inline>
