@@ -25,30 +25,36 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <!-- Hidden checkbox for mobile menu hamburger animation -->
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
     <script is:inline>
-      var _mars={"的":"の","我":"莪","你":"伱","是":"素","了":"嘞","吗":"嘛","不":"卜","很":"狠","好":"恏","他":"祂","她":"咜","们":"扪","这":"适","那":"辣","喜欢":"稀饭","知道":"鸡道","开心":"嗨皮","谢谢":"蟹蟹","朋友":"盆友","今天":"今兲","明天":"明兲","学习":"学槢","吃饭":"吃粄","睡觉":"睡嗟","厉害":"厉嗐","可以":"苛以","没有":"木冇"};
-      var _emoji={"开心":"😄","加油":"💪","谢谢":"🙏","喜欢":"❤️","厉害":"🔥","睡觉":"😴","吃饭":"🍚","朋友":"👫","音乐":"🎵","博客":"📝","代码":"💻","学习":"📚","游戏":"🎮","好":"👍","数据结构":"📊","算法":"🧮","电路":"⚡","笔记":"📝"};
-      var _kao=["(´・ω・`)","(◕‿◕)","(｡･ω･｡)","(≧∇≦)","(๑•̀ㅂ•́)و✧","(◍•ᴗ•◍)","(╯°□°）╯︵┻━┻","┐(´д`)┌","(￣▽￣)ノ","(✿◠‿◠)","(´▽`)ﾉ","(・∀・)"];
+      var _zh2en={"Tags":"Tags","Archives":"Archives","About":"About","Gadgets":"Gadgets","知乎":"Zhihu","UPCOMING":"UPCOMING","LANGUAGE":"LANGUAGE","最新":"Newest","最早":"Oldest","A → Z":"A → Z","Z → A":"Z → A","Home":"Home","click it":"click it","On This Page":"On This Page","Scroll to see headings":"Scroll to see headings","Archive":"Archive","No sections":"No sections","All Posts":"All Posts","← Back to Home":"← Back to Home","技术博客":"Tech Blog","Claude FM":"Claude FM","24/7 Lo-fi & Ambient":"24/7 Lo-fi & Ambient","Powered by laut.fm":"Powered by laut.fm","Drone Zone":"Drone Zone","Dark Ambient — 伤感空间音乐":"Dark Ambient — Melancholic Space Music","SomaFM Drone Zone":"SomaFM Drone Zone","GAMES":"GAMES","AI":"AI","🎮 Godot 小游戏":"🎮 Godot Games","浏览器可直接玩的小游戏":"Playable browser games","🤖 MiniMind 模型调用":"🤖 MiniMind LLM","自训练轻量 LLM 对话":"Self-trained lightweight LLM","Godot 小游戏 · MiniMind 模型调用":"Godot Games · MiniMind LLM","数据结构、算法笔记 :)":"Data Structures & Algorithms Notes :)","金鳞岂是池中物，一遇风云便化龙":"\"A golden carp is no pond creature\"","bt's Blog :)\n":"bt's Blog :)\n","Hello!":"Hello!","今天过得咋样":"How's your day?","写代码了吗":"Coded anything?","早点睡别熬夜":"Sleep early!","bt最棒":"bt is the best!","🦞":"🦞","你是bt的朋友吗":"Are you bt's friend?","欢迎来到bt的网站":"Welcome to bt's website!","你是bt要等的人吗":"Are you the one?","一起加油呀":"Let's go!","有什么需要帮忙的吗":"Need any help?","这个博客真不错":"This blog is awesome!","我喜欢这里的音乐":"I love the music here!","好久不见呀":"Long time no see!","bt今天又更新博客了吗":"Did bt update the blog?","bt是个有趣的灵魂":"bt is an interesting soul!","跟着bt学数据结构":"Learn DSA with bt!","bt写代码的样子很帅":"bt looks cool coding!","这里永远是bt的精神自留地":"bt's sanctuary!","bt等你很久了":"bt waited for you!","bt的朋友就是我的朋友":"bt's friends = my friends!","有问题尽管问bt":"Ask bt anything!","bt的电路笔记超详细":"bt's circuit notes rock!","bt说早点睡别熬夜":"bt says sleep early!","给我发图片，点击下方按钮上传":"Send me images — click below!","打开图床 →":"Open Image Host →"};
+      var _emoji={"开心":"😄","加油":"💪","谢谢":"🙏","喜欢":"❤️","厉害":"🔥","睡觉":"😴","吃饭":"🍚","朋友":"👫","音乐":"🎵","博客":"📝","代码":"💻","学习":"📚","游戏":"🎮","好":"👍","数据结构":"📊","算法":"🧮","电路":"⚡","笔记":"📝","Hello":"👋","Hi":"👋","Godot":"🕹️","MiniMind":"🧠","LLM":"🤖","Games":"🎲","Tech":"💻","Blog":"✍️","Music":"🎶","SpaceX":"🚀","RSS":"📡","Email":"📧","GitHub":"🐙","radio":"📻","FM":"🎙️","Dark":"🌑","Ambient":"🌌","Drone":"🛸","image":"📸","upload":"⬆️","click":"👆","friend":"🤝","code":"⌨️","data":"📊","algorithm":"🧮","circuit":"⚡","note":"📝","game":"🎲","love":"💕","happy":"😊","fun":"🎉","cool":"😎","star":"⭐","fire":"🔥","cat":"🐱","dog":"🐶","sun":"☀️","moon":"🌙","lofi":"🎧","24/7":"🕐"};
+      var _kao=["(´・ω・`)","(◕‿◕)","(｡･ω･｡)","(≧∇≦)","(๑•̀ㅂ•́)و✧","(◍•ᴗ•◍)","(╯°□°）╯︵┻━┻","┐(´д`)┌","(￣▽￣)ノ","(✿◠‿◠)","(´▽`)ﾉ","(・∀・)","(◕ᴗ◕✿)","(｡•̀ᴗ-)✧","(◔‿◔)","(◠‿◠)","(─‿‿─)","(人◕ω◕)","(づ｡◕‿‿◕｡)づ","(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"];
+      function _walkNodes(){
+        var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false);
+        var nodes=[],n;
+        while(n=w.nextNode()){
+          if(n.parentElement.closest('script,style,#mobile-menu,#clawd-pet,#clawd-speech,noscript'))continue;
+          if(n.textContent.trim()){if(!n._orig)n._orig=n.textContent;nodes.push(n)}
+        }
+        return nodes;
+      }
       window._setLang=function(lang){
         localStorage.setItem('lang',lang);
-        document.documentElement.setAttribute('data-lang',lang);
-        // Walk ALL text nodes each time
-        var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false);
-        var nodes=[],node;
-        while(node=walker.nextNode()){
-          if(node.parentElement.closest('script,style,#mobile-menu,#clawd-pet,#clawd-speech'))continue;
-          if(node.textContent.trim())nodes.push(node);
-        }
-        // Restore from custom data attr or save originals
-        nodes.forEach(function(n){
-          if(!n._orig)n._orig=n.textContent;
-          n.textContent=n._orig;
-        });
-        if(lang==='zh'||lang==='en')return;
+        var nodes=_walkNodes();
+        // Restore
+        nodes.forEach(function(n){n.textContent=n._orig});
+        if(lang==='zh')return;
         nodes.forEach(function(n){
           var t=n.textContent;
-          if(lang==='mars'){for(var k in _mars)t=t.split(k).join(_mars[k])}
-          else if(lang==='emoji'){for(var k in _emoji){if(t.indexOf(k)>=0&&t.indexOf(_emoji[k])<0)t+=' '+_emoji[k]}}
-          else if(lang==='kaomoji'){var kk=_kao[Math.floor(Math.random()*_kao.length)];t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
+          if(lang==='en'){
+            for(var k in _zh2en){
+              if(t.indexOf(k)>=0)t=t.replace(k,_zh2en[k]);
+            }
+          }else if(lang==='emoji'){
+            for(var k in _emoji){if(t.indexOf(k)>=0&&t.indexOf(_emoji[k])<0)t+=' '+_emoji[k]}
+          }else if(lang==='kaomoji'){
+            var kk=_kao[Math.floor(Math.random()*_kao.length)];
+            t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ');
+          }
           n.textContent=t;
         });
       };
@@ -83,7 +89,6 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
             <div class="lang-bridge"></div>
             <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('zh');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">中 文</a>
             <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('en');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">EN</a>
-            <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('mars');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">🔥 火星文</a>
             <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('emoji');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">😀 Emoji</a>
             <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('kaomoji');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">(´・ω・`) 颜文字</a>
           </div>
@@ -147,7 +152,6 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       <div class="flex gap-3 mt-4">
         <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors active" onclick="window._setLang('zh')">中</button>
         <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('en')">EN</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('mars')">🔥</button>
         <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('emoji')">😀</button>
         <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('kaomoji')">(´・ω・`)</button>
       </div>
