@@ -71,7 +71,7 @@ const meta = {
       btn.addEventListener('click', function(){
         btns.forEach(function(b){ b.classList.remove('active'); b.style.color=''; b.style.fontWeight='' });
         btn.classList.add('active');
-        btn.style.color = '#fff';
+        btn.style.color = document.documentElement.classList.contains('light') ? '#1a1a2e' : '#fff';
         btn.style.fontWeight = '600';
 
         var sort = btn.dataset.sort;
