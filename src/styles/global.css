@@ -331,33 +331,45 @@ html.light {
   --c-sort-inactive: #555;
 }
 
-/* Apply light theme via CSS variables */
-html.light .video-bg,
-html.light .video-overlay { display: none; }
-html.light body { background: var(--c-bg); color: var(--c-text); }
-html.light h1,html.light h2,html.light h3,html.light h4,
-html.light strong,html.light b,
-html.light .prose h1,html.light .prose h2,html.light .prose h3,html.light .prose h4,
-html.light .prose strong,html.light .prose b { color: var(--c-heading); }
-html.light .prose,html.light .prose p,html.light .prose li,html.light .prose td,html.light .prose th,
-html.light main,html.light main p,html.light main span,html.light main li { color: var(--c-text); }
-html.light .prose a,html.light main a,html.light .glass-card a { color: var(--c-link); }
-html.light .prose code { color: var(--c-code-text); background: var(--c-code-bg); }
-html.light .prose pre { background: var(--c-pre-bg); border-color: var(--c-card-border); }
+/* === Light mode === */
+html.light .video-bg, html.light .video-overlay { display: none; }
+html.light body { background: var(--c-bg); }
+
+/* Override ALL Tailwind color utilities with CSS variables.
+   Unlayered CSS always beats Tailwind's layered utilities. */
+html.light .text-white { color: var(--c-heading); }
+html.light .text-white\/90 { color: var(--c-heading); }
+html.light .text-white\/80 { color: var(--c-heading); }
+html.light .text-white\/70 { color: var(--c-text); }
+html.light .text-white\/60 { color: var(--c-text); }
+html.light .text-white\/50 { color: var(--c-text-dim); }
+html.light .text-white\/40 { color: var(--c-text-dim); }
+html.light .text-white\/30 { color: var(--c-text-faint); }
+html.light .text-white\/25 { color: var(--c-text-faint); }
+html.light .text-white\/20 { color: var(--c-text-faint); }
+html.light .text-white\/10 { color: rgba(0,0,0,0.06); }
+
+/* Structure */
 html.light .glass-header { background: var(--c-header); border-bottom-color: var(--c-header-border); }
-html.light .glass-header a,html.light .nav-link { color: var(--c-text); }
 html.light .glass-card { background: var(--c-card); border-color: var(--c-card-border); }
 html.light .glass-card:hover { background: var(--c-card-hover); }
-html.light footer,html.light .post-meta { color: var(--c-text-dim); }
-html.light .post-desc { color: var(--c-text); }
-html.light .spacex-hamburger span { background: var(--c-hamburger); }
-html.light ::selection { background: var(--c-selection); color: var(--c-text); }
 html.light .glass-input { background: var(--c-glass-input); }
+html.light .spacex-hamburger span { background: var(--c-hamburger); }
+html.light ::selection { background: var(--c-selection); color: var(--c-heading); }
+html.light #mobile-menu { background: var(--c-menu-bg); }
+html.light #mobile-menu .text-white\/70 { color: var(--c-heading); }
+
+/* Links */
+html.light .prose a { color: var(--c-link); }
+html.light .glass-card a { color: var(--c-link); }
+html.light .nav-link { color: var(--c-text); }
+html.light .nav-link:hover { color: var(--c-heading); }
+
+/* Code / pre */
+html.light .prose code { color: var(--c-code-text); background: var(--c-code-bg); }
+html.light .prose pre { background: var(--c-pre-bg); border-color: var(--c-card-border); }
+
+/* Sort buttons (JS-inline overrides need theme-aware colors) */
 html.light .sort-btn { color: var(--c-sort-inactive); }
 html.light .sort-btn.active { color: var(--c-sort-active); }
-html.light #mobile-menu { background: var(--c-menu-bg); }
-html.light #mobile-menu a { color: var(--c-heading); }
-html.light aside a,html.light aside span,html.light aside p { color: var(--c-text); }
-html.light .upcoming-menu p,html.light .lang-menu a { color: var(--c-text); }
-html.light footer a { color: var(--c-text-dim); }
 
