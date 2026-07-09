@@ -283,95 +283,34 @@ h1, h2, h3 {
   transform: rotate(-45deg);
 }
 
-/* ===== Light Theme (CSS variables approach) ===== */
-:root {
-  --c-text: rgba(255,255,255,0.85);
-  --c-text-dim: rgba(255,255,255,0.5);
-  --c-text-faint: rgba(255,255,255,0.3);
-  --c-heading: #fff;
-  --c-bg: #000;
-  --c-card: rgba(255,255,255,0.06);
-  --c-card-hover: rgba(255,255,255,0.1);
-  --c-card-border: rgba(255,255,255,0.1);
-  --c-header: rgba(0,0,0,0.4);
-  --c-header-border: rgba(255,255,255,0.08);
-  --c-link: rgba(255,255,255,0.9);
-  --c-footer: rgba(255,255,255,0.4);
-  --c-code-bg: rgba(255,255,255,0.1);
-  --c-code-text: #e0e0e0;
-  --c-pre-bg: rgba(0,0,0,0.4);
-  --c-menu-bg: rgba(0,0,0,0.85);
-  --c-hamburger: #fff;
-  --c-selection: rgba(255,255,255,0.2);
-  --c-glass-input: rgba(255,255,255,0.08);
-  --c-sort-active: #fff;
-  --c-sort-inactive: rgba(255,255,255,0.5);
-}
-html.light {
-  --c-text: #1a1a2e;
-  --c-text-dim: #555;
-  --c-text-faint: #888;
-  --c-heading: #1a1a2e;
-  --c-bg: #f0f2f5;
-  --c-card: rgba(255,255,255,0.9);
-  --c-card-hover: #fff;
-  --c-card-border: rgba(0,0,0,0.08);
-  --c-header: rgba(255,255,255,0.85);
-  --c-header-border: rgba(0,0,0,0.08);
-  --c-link: #2563eb;
-  --c-footer: #888;
-  --c-code-bg: rgba(0,0,0,0.06);
-  --c-code-text: #d63384;
-  --c-pre-bg: #f8f9fa;
-  --c-menu-bg: rgba(255,255,255,0.95);
-  --c-hamburger: #333;
-  --c-selection: rgba(0,0,0,0.1);
-  --c-glass-input: rgba(0,0,0,0.04);
-  --c-sort-active: #1a1a2e;
-  --c-sort-inactive: #555;
-}
-
-/* === Light mode === */
-html.light .video-bg, html.light .video-overlay { display: none; }
-html.light body { background: var(--c-bg); }
-
-/* Override ALL Tailwind color utilities with CSS variables.
-   Unlayered CSS always beats Tailwind's layered utilities. */
-html.light .text-white { color: var(--c-heading); }
-html.light .text-white\/90 { color: var(--c-heading); }
-html.light .text-white\/80 { color: var(--c-heading); }
-html.light .text-white\/70 { color: var(--c-text); }
-html.light .text-white\/60 { color: var(--c-text); }
-html.light .text-white\/50 { color: var(--c-text-dim); }
-html.light .text-white\/40 { color: var(--c-text-dim); }
-html.light .text-white\/30 { color: var(--c-text-faint); }
-html.light .text-white\/25 { color: var(--c-text-faint); }
-html.light .text-white\/20 { color: var(--c-text-faint); }
-html.light .text-white\/10 { color: rgba(0,0,0,0.06); }
-
-/* Structure */
-html.light .glass-header { background: var(--c-header); border-bottom-color: var(--c-header-border); }
-html.light .glass-card { background: var(--c-card); border-color: var(--c-card-border); }
-html.light .glass-card:hover { background: var(--c-card-hover); }
-html.light .glass-input { background: var(--c-glass-input); }
-html.light .spacex-hamburger span { background: var(--c-hamburger); }
-html.light ::selection { background: var(--c-selection); color: var(--c-heading); }
-html.light #mobile-menu { background: var(--c-menu-bg); }
-html.light #mobile-menu .text-white\/70 { color: var(--c-heading); }
-
-/* Links */
-html.light .prose a { color: var(--c-link); }
-html.light .glass-card a { color: var(--c-link); }
-html.light .nav-link { color: var(--c-text); }
-html.light .nav-link:hover { color: var(--c-heading); }
-
-/* Code / pre */
-html.light .prose code { color: var(--c-code-text); background: var(--c-code-bg); }
-html.light .prose pre { background: var(--c-pre-bg); border-color: var(--c-card-border); }
-
-/* Sort buttons (JS-inline overrides need theme-aware colors) */
-.sort-btn { color: rgba(255,255,255,0.5); transition: color 0.2s; }
+/* ===== Light Theme ===== */
+html.light .video-bg,
+html.light .video-overlay { display: none; }
+html.light body { background: #f0f2f5; }
+html.light h1, html.light h2, html.light h3, html.light h4,
+html.light strong, html.light b { color: #1a1a2e; }
+html.light p, html.light li, html.light span, html.light a, html.light time { color: #333; }
+html.light .prose, html.light .prose * { color: #1a1a2e; }
+html.light .prose a { color: #2563eb; }
+html.light .prose code { color: #d63384; background: rgba(0,0,0,0.06); }
+html.light .prose pre { background: #f8f9fa; border-color: rgba(0,0,0,0.1); }
+html.light .glass-header { background: rgba(255,255,255,0.85); border-bottom-color: rgba(0,0,0,0.08); }
+html.light .glass-card { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
+html.light .glass-card:hover { background: #fff; }
+html.light .glass-header a, html.light .nav-link { color: #333; }
+html.light .nav-link:hover { color: #000; }
+html.light .post-meta { color: #666; }
+html.light .post-desc { color: #444; }
+html.light footer { color: #888; }
+html.light footer a { color: #666; }
+html.light .spacex-hamburger span { background: #333; }
+html.light ::selection { background: rgba(0,0,0,0.1); color: #1a1a2e; }
+html.light #mobile-menu { background: rgba(255,255,255,0.95); }
+html.light #mobile-menu a { color: #1a1a2e; }
+html.light .sort-btn { color: #888; }
+html.light .sort-btn.active { color: #1a1a2e; }
+html.light aside a, html.light aside span, html.light aside p { color: #333; }
+html.light .upcoming-menu p, html.light .lang-menu a { color: #333; }
+.sort-btn { color: rgba(255,255,255,0.5); }
 .sort-btn.active { color: #fff; font-weight: 600; }
-html.light .sort-btn { color: var(--c-sort-inactive); }
-html.light .sort-btn.active { color: var(--c-sort-active); }
 
