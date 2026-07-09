@@ -25,15 +25,22 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <!-- Hidden checkbox for mobile menu hamburger animation -->
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
     <script is:inline>
-      // Full Chinese→English dictionary (loaded async for size)
-      var _dict=null,_dictLoaded=false;
-      function _loadDict(cb){
-        if(_dictLoaded){cb();return}
-        fetch('/lang/en.json').then(function(r){return r.json()}).then(function(d){
-          _dict=d;_dictLoaded=true;cb();
-        }).catch(function(){_dictLoaded=true;cb()});
+      // Free translation via MyMemory API (no key needed)
+      var _transCache={};
+      var _translating=false;
+      function _translateText(text, cb){
+        if(!text.trim()||text.length<2){cb(text);return}
+        if(_transCache[text]){cb(_transCache[text]);return}
+        // Skip if already English (mostly ASCII)
+        if(text.replace(/\s/g,'').length<2||/^[a-zA-Z0-9\s\d.,!?;:()\-_"'\/@#$%^&*+=<>\[\]{}|~`]+$/.test(text)){cb(text);return}
+        var url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=zh-CN|en';
+        fetch(url).then(function(r){return r.json()}).then(function(d){
+          var t=(d.responseData&&d.responseData.translatedText)||text;
+          _transCache[text]=t;
+          cb(t);
+        }).catch(function(){cb(text)});
       }
-      // Phrase-level translations (applied before word dict)
+      // Phrase-level translations (applied before API call)
       var _phrases={
         // Homepage
         "数据结构、算法笔记 :)":"Data Structures & Algorithms Notes :)","技术博客":"Tech Blog",
@@ -92,31 +99,35 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         }
         return nodes;
       }
+      function _punct(t){var kk=_kao[Math.floor(Math.random()*_kao.length)];return t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
       window._setLang=function(lang){
         localStorage.setItem('lang',lang);
         var nodes=_walkNodes();
         nodes.forEach(function(n){n.textContent=n._orig});
         if(lang==='zh')return;
-        if(lang==='kaomoji'){
-          nodes.forEach(function(n){
-            var kk=_kao[Math.floor(Math.random()*_kao.length)];
-            n.textContent=n.textContent.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ');
-          });
-          return;
-        }
-        // EN: load dict and translate
-        _loadDict(function(){
-          var allKeys=Object.keys(_phrases).concat(Object.keys(_dict||{}));
-          allKeys.sort(function(a,b){return b.length-a.length});
-          nodes.forEach(function(n){
-            var t=n._orig;
-            for(var i=0;i<allKeys.length;i++){
-              var k=allKeys[i],v=_phrases[k]||(_dict||{})[k];
-              if(v&&t.indexOf(k)>=0)t=t.split(k).join(v);
-            }
+        if(lang==='kaomoji'){nodes.forEach(function(n){n.textContent=_punct(n._orig)});return}
+        // EN: use MyMemory API + phrase dict
+        var queue=nodes.slice();
+        function next(){
+          if(!queue.length)return;
+          var n=queue.shift();
+          var t=n._orig;
+          // Apply phrase dict first (faster)
+          var keys=Object.keys(_phrases).sort(function(a,b){return b.length-a.length});
+          for(var i=0;i<keys.length;i++){var k=keys[i];if(t.indexOf(k)>=0)t=t.split(k).join(_phrases[k])}
+          // If still has Chinese, call API
+          if(/[一-鿿]/.test(t)){
+            _translateText(t,function(tr){
+              n.textContent=tr;
+              setTimeout(next,200); // rate limit
+            });
+          }else{
             n.textContent=t;
-          });
-        });
+            next();
+          }
+        }
+        // Process in batches
+        for(var i=0;i<3;i++)next();
       };
     </script>
 
