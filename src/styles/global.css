@@ -221,6 +221,49 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
+/* SpaceX-style animated hamburger */
+.spacex-hamburger {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  z-index: 100;
+}
+.spacex-hamburger span {
+  display: block;
+  position: absolute;
+  height: 1.5px;
+  width: 30px;
+  background: #ffffff;
+  opacity: 1;
+  left: 5px;
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.spacex-hamburger span:nth-child(1) { top: 10px; }
+.spacex-hamburger span:nth-child(2) { top: 19px; }
+.spacex-hamburger span:nth-child(3) { top: 28px; }
+
+/* Transition to X when menu is open (checkbox comes before header) */
+#menu-toggle:checked ~ header .spacex-hamburger span:nth-child(1) {
+  top: 19px;
+  transform: rotate(45deg);
+}
+#menu-toggle:checked ~ header .spacex-hamburger span:nth-child(2) {
+  opacity: 0;
+  transform: translateX(20px);
+}
+#menu-toggle:checked ~ header .spacex-hamburger span:nth-child(3) {
+  top: 19px;
+  transform: rotate(-45deg);
+}
+
 /* SpaceX-style X logo */
 .spacex-x {
   position: relative;

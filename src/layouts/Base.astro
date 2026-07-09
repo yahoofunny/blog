@@ -17,6 +17,9 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
   </head>
   <body class="spacex-body min-h-screen text-white">
+    <!-- Hidden checkbox for mobile menu (must be before header for CSS ~ sibling) -->
+    <input type="checkbox" id="menu-toggle" class="peer hidden" />
+
     <div class="video-bg">
       <video autoplay muted loop playsinline>
         <source src="/spacex.mp4" type="video/mp4" />
@@ -44,18 +47,15 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           </a>
         </nav>
 
-        <!-- Mobile hamburger -->
-        <label for="menu-toggle" class="lg:hidden ml-auto text-white/70 hover:text-white cursor-pointer">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
+        <!-- Mobile hamburger (SpaceX-style animated) -->
+        <label for="menu-toggle" class="spacex-hamburger lg:hidden ml-auto">
+          <span></span><span></span><span></span>
         </label>
       </div>
     </header>
 
-    <!-- Mobile menu toggle -->
-    <input type="checkbox" id="menu-toggle" class="peer hidden" />
-    <div class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden peer-checked:flex flex-col items-center justify-center gap-8 lg:hidden">
+    <!-- Mobile menu overlay -->
+    <div class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden peer-checked:flex flex-col items-center justify-center gap-8 lg:peer-checked:hidden">
       <label for="menu-toggle" class="absolute top-6 right-6 text-white/50 hover:text-white cursor-pointer">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
