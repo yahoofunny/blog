@@ -25,45 +25,33 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <!-- Hidden checkbox for mobile menu hamburger animation -->
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
     <script is:inline>
-      // Language / text transform
-      var marsMap={"的":"の","我":"莪","你":"伱","是":"素","了":"嘞","吗":"嘛","吧":"叭","不":"卜","很":"狠","好":"恏","他":"祂","她":"咜","们":"扪","这":"适","那":"辣","什么":"什庅","怎么":"肿庅","喜欢":"稀饭","知道":"鸡道","开心":"嗨皮","谢谢":"蟹蟹","大家":"达家","朋友":"盆友","今天":"今兲","明天":"明兲","晚上":"晚丄","早上":"早丄","学习":"学槢","吃饭":"吃粄","睡觉":"睡嗟","厉害":"厉嗐","可以":"苛以","没有":"木冇","工作":"工昨"};
-      var emojiAfter={"开心":"😄","加油":"💪","谢谢":"🙏","喜欢":"❤️","厉害":"🔥","睡觉":"😴","吃饭":"🍚","朋友":"👫","音乐":"🎵","博客":"📝","代码":"💻","学习":"📚","游戏":"🎮","好":"👍","棒":"🌟","开心":"😄","难过":"😢","Hello":"👋","Hi":"👋","数据结构":"📊","算法":"🧮","电路":"⚡","笔记":"📝"};
-      var kaomoji=["(´・ω・`)","(◕‿◕)","(｡･ω･｡)","(≧∇≦)","(๑•̀ㅂ•́)و✧","(◍•ᴗ•◍)","(´∩｀)","(╯°□°）╯︵┻━┻","┐(´д`)┌","(￣▽￣)ノ","(・∀・)","(゜∀゜)","(✿◠‿◠)","(─‿‿─)","(´▽`)ﾉ","(；一_一)","(⊙_⊙)","(°ロ°)","(╥﹏╥)","(ᗒᗨᗕ)"];
-      function collectTexts(){
-        if(window._origTexts)return;
-        window._origTexts=[];
-        document.querySelectorAll('h1,h2,h3,p,a,span,time,li,td,th,figcaption,blockquote,code').forEach(function(el,i){
-          if(el.closest('script')||el.closest('style')||el.closest('#mobile-menu')||el.closest('#clawd-pet')||el.closest('#clawd-speech'))return;
-          el.childNodes.forEach(function(n){
-            if(n.nodeType===3&&n.textContent.trim()){
-              window._origTexts.push({node:n,text:n.textContent});
-            }
-          });
-        });
-      }
-      function applyLang(lang){
-        if(window._origTexts)window._origTexts.forEach(function(item){item.node.textContent=item.text});
-        if(lang!=='mars'&&lang!=='emoji'&&lang!=='kaomoji')return;
-        var isMars=lang==='mars',isKaomoji=lang==='kaomoji';
-        if(window._origTexts)window._origTexts.forEach(function(item){
-          var t=item.text;
-          if(isMars){for(var k in marsMap){t=t.split(k).join(marsMap[k])}}
-          else if(isKaomoji){var kk=kaomoji[Math.floor(Math.random()*kaomoji.length)];t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
-          else{for(var k in emojiAfter){if(t.indexOf(k)>=0&&t.indexOf(emojiAfter[k])<0)t+=' '+emojiAfter[k]}}
-          item.node.textContent=t;
-        });
-      }
-      function setLang(lang){
+      var _mars={"的":"の","我":"莪","你":"伱","是":"素","了":"嘞","吗":"嘛","不":"卜","很":"狠","好":"恏","他":"祂","她":"咜","们":"扪","这":"适","那":"辣","喜欢":"稀饭","知道":"鸡道","开心":"嗨皮","谢谢":"蟹蟹","朋友":"盆友","今天":"今兲","明天":"明兲","学习":"学槢","吃饭":"吃粄","睡觉":"睡嗟","厉害":"厉嗐","可以":"苛以","没有":"木冇"};
+      var _emoji={"开心":"😄","加油":"💪","谢谢":"🙏","喜欢":"❤️","厉害":"🔥","睡觉":"😴","吃饭":"🍚","朋友":"👫","音乐":"🎵","博客":"📝","代码":"💻","学习":"📚","游戏":"🎮","好":"👍","数据结构":"📊","算法":"🧮","电路":"⚡","笔记":"📝"};
+      var _kao=["(´・ω・`)","(◕‿◕)","(｡･ω･｡)","(≧∇≦)","(๑•̀ㅂ•́)و✧","(◍•ᴗ•◍)","(╯°□°）╯︵┻━┻","┐(´д`)┌","(￣▽￣)ノ","(✿◠‿◠)","(´▽`)ﾉ","(・∀・)"];
+      window._setLang=function(lang){
         localStorage.setItem('lang',lang);
-        document.querySelectorAll('.lang-btn').forEach(function(b){b.style.color=lang===b.dataset.lang?'#fff':'rgba(255,255,255,0.3)';b.style.fontWeight=lang===b.dataset.lang?'700':'400'});
         document.documentElement.setAttribute('data-lang',lang);
-        collectTexts();
-        applyLang(lang);
-      }
-      var savedLang=localStorage.getItem('lang')||'zh';
-      document.addEventListener('DOMContentLoaded',function(){
-        setLang(savedLang);
-      });
+        // Walk ALL text nodes each time
+        var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false);
+        var nodes=[],node;
+        while(node=walker.nextNode()){
+          if(node.parentElement.closest('script,style,#mobile-menu,#clawd-pet,#clawd-speech'))continue;
+          if(node.textContent.trim())nodes.push(node);
+        }
+        // Restore from custom data attr or save originals
+        nodes.forEach(function(n){
+          if(!n._orig)n._orig=n.textContent;
+          n.textContent=n._orig;
+        });
+        if(lang==='zh'||lang==='en')return;
+        nodes.forEach(function(n){
+          var t=n.textContent;
+          if(lang==='mars'){for(var k in _mars)t=t.split(k).join(_mars[k])}
+          else if(lang==='emoji'){for(var k in _emoji){if(t.indexOf(k)>=0&&t.indexOf(_emoji[k])<0)t+=' '+_emoji[k]}}
+          else if(lang==='kaomoji'){var kk=_kao[Math.floor(Math.random()*_kao.length)];t=t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
+          n.textContent=t;
+        });
+      };
     </script>
 
     <div class="video-bg">
@@ -87,8 +75,22 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           <a href="/radio/" class="nav-link">Gadgets</a>
         </nav>
 
+        <!-- Desktop LANGUAGE dropdown -->
+        <div class="hidden md:flex items-center mr-4 lang-dropdown">
+          <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">LANGUAGE</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30"><polyline points="6 9 12 15 18 9"/></svg>
+          <div class="lang-menu glass-card !p-3 !rounded-xl absolute top-full right-0 pt-0 min-w-[140px] z-[110]">
+            <div class="lang-bridge"></div>
+            <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('zh');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">中 文</a>
+            <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('en');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">EN</a>
+            <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('mars');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">🔥 火星文</a>
+            <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('emoji');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">😀 Emoji</a>
+            <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('kaomoji');document.querySelectorAll('.lang-menu a').forEach(function(a){a.style.fontWeight='400'});this.style.fontWeight='700'">(´・ω・`) 颜文字</a>
+          </div>
+        </div>
+
         <!-- Desktop UPCOMING dropdown -->
-        <div class="hidden md:flex items-center ml-auto mr-4 upcoming-dropdown">
+        <div class="hidden md:flex items-center mr-4 upcoming-dropdown">
           <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">UPCOMING</span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30"><polyline points="6 9 12 15 18 9"/></svg>
           <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 pt-0 min-w-[220px] space-y-3 z-[110]">
@@ -143,11 +145,11 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
       <!-- Language -->
       <div class="flex gap-3 mt-4">
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors active" data-lang="zh" onclick="setLang('zh')">中</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="mars" onclick="setLang('mars')">🔥</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="emoji" onclick="setLang('emoji')">😀</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="kaomoji" onclick="setLang('kaomoji')">(´・ω・`)</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors active" onclick="window._setLang('zh')">中</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('en')">EN</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('mars')">🔥</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('emoji')">😀</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('kaomoji')">(´・ω・`)</button>
       </div>
 
       <!-- Upcoming -->

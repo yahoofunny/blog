@@ -221,23 +221,24 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
-/* SpaceX-style UPCOMING dropdown */
-.upcoming-dropdown { position: relative; }
-.upcoming-menu {
+/* SpaceX-style dropdown menus */
+.upcoming-dropdown, .lang-dropdown { position: relative; }
+.upcoming-menu, .lang-menu {
   display: none;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.upcoming-menu::before {
+.upcoming-menu::before, .lang-menu::before {
   content: '';
   position: absolute;
-  top: -20px;
+  top: -24px;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 24px;
 }
-.upcoming-dropdown:hover .upcoming-menu {
+.upcoming-dropdown:hover .upcoming-menu,
+.lang-dropdown:hover .lang-menu {
   display: block;
   opacity: 1;
   transform: translateY(0);
