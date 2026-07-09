@@ -27,16 +27,18 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
         <a href="/" class="text-lg font-bold tracking-wider uppercase flex items-center">
-  <span>bt</span>
-  <svg width="22" height="22" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" class="ml-1">
-    <line x1="15" y1="25" x2="85" y2="75"/>
-    <path d="M 85 25 Q 75 50 15 75"/>
-  </svg>
-</a>
-        <nav class="flex gap-4 text-sm ml-auto items-center">
+          <span>bt</span>
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" class="ml-1">
+            <line x1="15" y1="25" x2="85" y2="75"/>
+            <path d="M 85 25 Q 75 50 15 75"/>
+          </svg>
+        </a>
+
+        <!-- Desktop nav -->
+        <nav class="hidden lg:flex gap-4 text-sm ml-auto items-center">
           <a href="/tags/" class="nav-link">Tags</a>
           <a href="/archives/" class="nav-link">Archives</a>
-          <a href="/about/" class="nav-link hidden sm:inline">About</a>
+          <a href="/about/" class="nav-link">About</a>
           <a href="/radio/" class="nav-link">Gadgets</a>
           <a href="https://github.com/yahoofunny/liquid-glasses-template-for-blog" target="_blank" class="nav-link opacity-70 hover:opacity-100" title="GitHub">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -44,8 +46,29 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
             </svg>
           </a>
         </nav>
+
+        <!-- Mobile hamburger -->
+        <label for="menu-toggle" class="lg:hidden ml-auto text-white/70 hover:text-white cursor-pointer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </label>
       </div>
     </header>
+
+    <!-- Mobile menu toggle -->
+    <input type="checkbox" id="menu-toggle" class="peer hidden" />
+    <div class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden peer-checked:flex flex-col items-center justify-center gap-8 lg:hidden">
+      <label for="menu-toggle" class="absolute top-6 right-6 text-white/50 hover:text-white cursor-pointer">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </label>
+      <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">Tags</a>
+      <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">Archives</a>
+      <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">About</a>
+      <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('menu-toggle').checked=false">Gadgets</a>
+    </div>
 
     <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16">
       <div class="flex gap-8">
