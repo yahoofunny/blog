@@ -46,8 +46,10 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         nodes.forEach(function(n){
           var t=n.textContent;
           if(lang==='en'){
-            for(var k in _zh2en){
-              if(t.indexOf(k)>=0)t=t.replace(k,_zh2en[k]);
+            var keys=Object.keys(_zh2en).sort(function(a,b){return b.length-a.length});
+            for(var i=0;i<keys.length;i++){
+              var k=keys[i];
+              if(t.indexOf(k)>=0)t=t.split(k).join(_zh2en[k]);
             }
           }else if(lang==='emoji'){
             for(var k in _emoji){if(t.indexOf(k)>=0&&t.indexOf(_emoji[k])<0)t+=' '+_emoji[k]}
