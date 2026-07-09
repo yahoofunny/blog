@@ -47,19 +47,33 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         </nav>
 
         <!-- Theme toggle -->
-        <button id="theme-toggle" class="ml-auto md:ml-4 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme" onclick="document.body.classList.toggle('light');var t=document.getElementById('theme-toggle');t.textContent=document.body.classList.contains('light')?'☀️':'🌙';var img=document.querySelector('header img');img.style.filter=document.body.classList.contains('light')?'invert(0) brightness(0.3) saturate(100%) hue-rotate(190deg)':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)'">
-          🌙
+        <button id="theme-toggle" class="ml-auto md:ml-4 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
+          <img id="theme-icon" src="/sun.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
         </button>
+        <script is:inline>
+          (function(){
+            var btn=document.getElementById('theme-toggle');
+            var icon=document.getElementById('theme-icon');
+            var smiley=document.querySelector('header img[src*=\"smiley\"]');
+            function setTheme(light){
+              document.body.classList.toggle('light',light);
+              icon.src=light?'/moon.svg':'/sun.svg';
+              icon.style.filter=light?'invert(0)':'invert(1)';
+              if(smiley)smiley.style.filter=light?'none':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)';
+            }
+            btn.onclick=function(){setTheme(!document.body.classList.contains('light'))};
+          })();
+        </script>
 
         <!-- Mobile hamburger -->
-        <label for="menu-toggle" class="spacex-hamburger md:hidden">
+        <label for="menu-toggle" class="spacex-hamburger sm:hidden">
           <span></span><span></span><span></span>
         </label>
       </div>
     </header>
 
     <!-- Mobile menu overlay -->
-    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md md:hidden hidden flex flex-col items-center justify-center gap-8">
+    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md sm:hidden hidden flex flex-col items-center justify-center gap-8">
       <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Tags</a>
       <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Archives</a>
       <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">About</a>
