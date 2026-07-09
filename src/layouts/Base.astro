@@ -103,6 +103,13 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       function _punct(t){var kk=_kao[Math.floor(Math.random()*_kao.length)];return t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
       window._setLang=function(lang){
         localStorage.setItem('lang',lang);
+        // Highlight active button with glow
+        document.querySelectorAll('.lang-btn').forEach(function(b){
+          var t=b.textContent.trim();
+          var match=(lang==='zh'&&t==='中')||(lang==='en'&&t.indexOf('EN')===0)||(lang==='kaomoji'&&t.indexOf('(')==0);
+          b.style.color=match?'#fff':'rgba(255,255,255,0.3)';
+          if(match){b.style.textShadow='0 0 8px rgba(255,255,255,0.6)';setTimeout(function(){b.style.textShadow=''},600)}
+        });
         var nodes=_walkNodes();
         nodes.forEach(function(n){n.textContent=n._orig});
         if(lang==='zh')return;
