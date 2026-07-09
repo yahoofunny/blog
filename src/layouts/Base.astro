@@ -280,7 +280,7 @@ var gifs=["idle","idle","idle-reading","idle-reading","thinking","idle","conduct
 function rnd(){i.src="/clawd/clawd-"+gifs[Math.floor(Math.random()*gifs.length)]+".gif"}
 setInterval(rnd,10000);rnd();
 var qs=["Hello!","今天过得咋样","写代码了吗","早点睡别熬夜","bt最棒","🦞","金鳞岂是池中物","你是bt的朋友吗","欢迎来到bt的网站","你是bt要等的人吗","一起加油呀","有什么需要帮忙的吗","这个博客真不错","我喜欢这里的音乐","好久不见呀","bt今天又更新博客了吗","bt是个有趣的灵魂","跟着bt学数据结构","bt写代码的样子很帅","这里永远是bt的精神自留地","bt等你很久了","bt的朋友就是我的朋友","有问题尽管问bt","bt的电路笔记超详细","bt说早点睡别熬夜"];
-function rnd();spk(){var t=qs[Math.floor(Math.random()*qs.length)];b.textContent=t;b.style.opacity="1";var r=p.getBoundingClientRect();b.style.left=Math.max(10,r.left-50)+"px";b.style.top=Math.max(10,r.top-40)+"px";clearTimeout(b._t);b._t=setTimeout(function(){b.style.opacity="0"},3000)}
+function spk(){var t=qs[Math.floor(Math.random()*qs.length)];b.textContent=t;b.style.opacity="1";var r=p.getBoundingClientRect();b.style.left=Math.max(10,r.left-50)+"px";b.style.top=Math.max(10,r.top-40)+"px";clearTimeout(b._t);b._t=setTimeout(function(){b.style.opacity="0"},3000)}
 setInterval(function(){if(!document.hidden&&Math.random()<0.3)rnd();spk()},120000);
 var dr=false,cx=0,cy=0,sx=0,sy=0,moved=false;
 function dragStart(x,y,t){
