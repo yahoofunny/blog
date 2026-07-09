@@ -32,13 +32,22 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         if(!text.trim()||text.length<2){cb(text);return}
         if(_transCache[text]){cb(_transCache[text]);return}
         if(!/[一-鿿]/.test(text)){cb(text);return}
-        var url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q='+encodeURIComponent(text);
-        fetch(url).then(function(r){return r.json()}).then(function(d){
-          var t=(d&&d[0]&&d[0][0]&&d[0][0][0])||'';
-          if(!t||t===text){cb(text);return}
-          _transCache[text]=t;
-          cb(t);
-        }).catch(function(){cb(text)});
+        function tryGoogle(){
+          var u='https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh&tl=en&dt=t&q='+encodeURIComponent(text);
+          fetch(u,{signal:AbortSignal.timeout(3000)}).then(function(r){return r.json()}).then(function(d){
+            var t=(d&&d[0]&&d[0][0]&&d[0][0][0])||'';
+            if(!t||t===text){tryMyMemory();return}
+            _transCache[text]=t;cb(t);
+          }).catch(function(){tryMyMemory()});
+        }
+        function tryMyMemory(){
+          var u='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=zh|en';
+          fetch(u,{signal:AbortSignal.timeout(3000)}).then(function(r){return r.json()}).then(function(d){
+            var t=(d.responseData&&d.responseData.translatedText)||text;
+            _transCache[text]=t;cb(t);
+          }).catch(function(){cb(text)});
+        }
+        tryGoogle();
       }
       // Phrase-level translations (applied before API call)
       var _phrases={
