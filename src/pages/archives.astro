@@ -17,15 +17,24 @@ const meta = {
 <PageLayout meta={meta}>
   <div class="glass-card !p-8 md:!p-12">
     <h1 class="text-2xl md:text-3xl font-bold mb-2">Archives</h1>
-    <p class="text-white/40 text-sm mb-8">{allPosts.length} posts in total</p>
+    <p class="text-white/40 text-sm mb-4">{allPosts.length} posts in total</p>
 
-    <div class="space-y-10">
+    <!-- Sort -->
+    <div id="sort-bar" class="flex gap-2 mb-8">
+      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors active" data-sort="newest">最新</button>
+      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="oldest">最早</button>
+      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="az">A → Z</button>
+      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="za">Z → A</button>
+    </div>
+
+    <!-- Year-grouped view -->
+    <div id="archive-by-year" class="space-y-10">
       {years.map((year) => (
         <section>
           <h2 class="text-xl font-bold text-white/80 mb-4 border-b border-white/10 pb-2">{year}</h2>
           <ul class="space-y-3">
             {grouped[year]?.map((post) => (
-              <li class="flex items-baseline gap-4">
+              <li class="flex items-baseline gap-4 archive-item" data-date={post.data.publishDate.toISOString()} data-title={post.data.title}>
                 <time class="text-xs text-white/30 whitespace-nowrap font-mono shrink-0 w-24">
                   {getFormattedDate(post.data.publishDate, { month: "short", day: "numeric" })}
                 </time>
@@ -45,5 +54,65 @@ const meta = {
         </section>
       ))}
     </div>
+
+    <!-- Flat view (for A-Z sorting) -->
+    <ul id="archive-flat" class="space-y-3 hidden"></ul>
   </div>
 </PageLayout>
+
+<script is:inline>
+  (function(){
+    var btns = document.querySelectorAll('.sort-btn');
+    var byYear = document.getElementById('archive-by-year');
+    var flat = document.getElementById('archive-flat');
+    var items = Array.from(byYear.querySelectorAll('.archive-item'));
+
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.classList.remove('active'); b.style.color=''; b.style.fontWeight='' });
+        btn.classList.add('active');
+        btn.style.color = '#fff';
+        btn.style.fontWeight = '600';
+
+        var sort = btn.dataset.sort;
+        var isAlpha = (sort === 'az' || sort === 'za');
+        byYear.style.display = isAlpha ? 'none' : '';
+        flat.style.display = isAlpha ? '' : 'none';
+
+        var sorted = items.slice().sort(function(a, b){
+          if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
+          if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
+          if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, 'zh-CN');
+          if (sort === 'za') return b.dataset.title.localeCompare(a.dataset.title, 'zh-CN');
+          return 0;
+        });
+
+        if (isAlpha) {
+          flat.innerHTML = '';
+          sorted.forEach(function(item){ flat.appendChild(item.cloneNode(true)); });
+        } else {
+          // Group back by year sections
+          byYear.innerHTML = '';
+          var years = {};
+          sorted.forEach(function(item){
+            var y = new Date(item.dataset.date).getFullYear();
+            if (!years[y]) years[y] = [];
+            years[y].push(item);
+          });
+          Object.keys(years).sort(function(a,b){ return sort === 'newest' ? +b - +a : +a - +b; }).forEach(function(y){
+            var sec = document.createElement('section');
+            sec.innerHTML = '<h2 class="text-xl font-bold text-white/80 mb-4 border-b border-white/10 pb-2">'+y+'</h2>';
+            var ul = document.createElement('ul');
+            ul.className = 'space-y-3';
+            years[y].forEach(function(item){ ul.appendChild(item); });
+            sec.appendChild(ul);
+            byYear.appendChild(sec);
+          });
+        }
+      });
+    });
+
+    var active = document.querySelector('.sort-btn.active');
+    if (active) { active.style.color = '#fff'; active.style.fontWeight = '600'; }
+  })();
+</script>

@@ -5,20 +5,26 @@ import PageLayout from "@/layouts/Base.astro";
 import { collectionDateSort } from "@/utils/date";
 
 const allPosts = await getAllPosts();
-const latestPosts = allPosts
-  .sort(collectionDateSort)
-  .slice(0, 20) as CollectionEntry<"post">[];
+const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"post">[];
 ---
 
 <PageLayout meta={{ title: "Home" }}>
-  <section class="mb-8">
+  <section class="mb-6">
     <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-1">bt's Blog :)</h1>
     <p class="text-white/25 text-xs italic mt-3 tracking-wider">金鳞岂是池中物，一遇风云便化龙</p>
   </section>
 
-  <div class="flex flex-col gap-4">
-    {latestPosts.map((p) => (
-      <a href={`/posts/${p.id}/`} class="glass-card block">
+  <!-- Sort buttons -->
+  <div id="sort-bar" class="flex gap-2 mb-6">
+    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors active" data-sort="newest">最新</button>
+    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="oldest">最早</button>
+    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="az">A → Z</button>
+    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="za">Z → A</button>
+  </div>
+
+  <div class="flex flex-col gap-4" id="post-list">
+    {allSortedPosts.map((p) => (
+      <a href={`/posts/${p.id}/`} class="glass-card block post-item" data-date={p.data.publishDate.toISOString()} data-title={p.data.title}>
         <h2 class="text-lg font-semibold">{p.data.title}</h2>
         <p class="post-meta mt-1">
           {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
@@ -30,3 +36,34 @@ const latestPosts = allPosts
     ))}
   </div>
 </PageLayout>
+
+<script is:inline>
+  (function(){
+    var btns = document.querySelectorAll('.sort-btn');
+    var list = document.getElementById('post-list');
+    var items = Array.from(list.querySelectorAll('.post-item'));
+
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.classList.remove('active'); b.style.color=''; b.style.fontWeight='' });
+        btn.classList.add('active');
+        btn.style.color = '#fff';
+        btn.style.fontWeight = '600';
+
+        var sort = btn.dataset.sort;
+        var sorted = items.slice().sort(function(a, b){
+          if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
+          if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
+          if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, 'zh-CN');
+          if (sort === 'za') return b.dataset.title.localeCompare(a.dataset.title, 'zh-CN');
+          return 0;
+        });
+        sorted.forEach(function(item){ list.appendChild(item); });
+      });
+    });
+
+    // Init: highlight active button
+    var active = document.querySelector('.sort-btn.active');
+    if (active) { active.style.color = '#fff'; active.style.fontWeight = '600'; }
+  })();
+</script>
