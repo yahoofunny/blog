@@ -62,6 +62,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
               icon.style.filter=light?'invert(0)':'invert(1)';
               if(smiley)smiley.style.filter=light?'none':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)';
             }
+            setTheme(document.documentElement.classList.contains('light'));
             btn.onclick=function(){setTheme(!document.documentElement.classList.contains('light'))};
           })();
         </script>
