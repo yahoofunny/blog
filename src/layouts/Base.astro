@@ -24,6 +24,16 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
   <body class="spacex-body min-h-screen text-white">
     <!-- Hidden checkbox for mobile menu hamburger animation -->
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
+    <script is:inline>
+      // Language / text transform
+      function setLang(lang){
+        localStorage.setItem('lang',lang);
+        document.querySelectorAll('.lang-btn').forEach(function(b){b.style.color=lang===b.dataset.lang?'#fff':'rgba(255,255,255,0.3)';b.style.fontWeight=lang===b.dataset.lang?'700':'400'});
+        document.documentElement.setAttribute('data-lang',lang);
+      }
+      var savedLang=localStorage.getItem('lang')||'zh';
+      setLang(savedLang);
+    </script>
 
     <div class="video-bg">
       <video autoplay muted loop playsinline>
@@ -46,8 +56,11 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           <a href="/radio/" class="nav-link">Gadgets</a>
         </nav>
 
+        <!-- Desktop upcoming -->
+        <span class="hidden md:inline text-[10px] text-white/20 uppercase tracking-[0.2em] ml-auto mr-4">UPCOMING: AI Chat · MiniMind · RSS Reader</span>
+
         <!-- Theme toggle -->
-        <button id="theme-toggle" class="ml-auto md:ml-4 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
+        <button id="theme-toggle" class="md:ml-0 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
           <img id="theme-icon" src="/off.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
         </button>
         <script is:inline>
@@ -75,11 +88,25 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     </header>
 
     <!-- Mobile menu overlay -->
-    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex-col items-center justify-center gap-8" style="display:none">
+    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex-col items-center justify-center gap-6" style="display:none">
       <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Tags</a>
       <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Archives</a>
       <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">About</a>
       <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Gadgets</a>
+
+      <!-- Language -->
+      <div class="flex gap-3 mt-4">
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors active" data-lang="zh" onclick="setLang('zh')">中</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="mars" onclick="setLang('mars')">🔥</button>
+        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" data-lang="emoji" onclick="setLang('emoji')">😀</button>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="mt-6 pt-6 border-t border-white/10 text-center">
+        <p class="text-[10px] text-white/20 uppercase tracking-[0.2em] mb-2">UPCOMING</p>
+        <p class="text-xs text-white/20">AI Chat · MiniMind · RSS Reader</p>
+      </div>
     </div>
 
     <div class="relative z-10 w-full px-4 md:px-8 xl:px-16 2xl:px-24 pt-24 pb-16">
