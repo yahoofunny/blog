@@ -338,18 +338,18 @@ html.light body { background: var(--c-bg); color: var(--c-text); }
 html.light h1,html.light h2,html.light h3,html.light h4,
 html.light strong,html.light b,
 html.light .prose h1,html.light .prose h2,html.light .prose h3,html.light .prose h4,
-html.light .prose strong,html.light .prose b { color: var(--c-heading) !important; }
+html.light .prose strong,html.light .prose b { color: var(--c-heading); }
 html.light .prose,html.light .prose p,html.light .prose li,html.light .prose td,html.light .prose th,
-html.light main,html.light main p,html.light main span,html.light main li { color: var(--c-text) !important; }
-html.light .prose a,html.light main a,html.light .glass-card a { color: var(--c-link) !important; }
-html.light .prose code { color: var(--c-code-text) !important; background: var(--c-code-bg) !important; }
-html.light .prose pre { background: var(--c-pre-bg) !important; border-color: var(--c-card-border) !important; }
-html.light .glass-header { background: var(--c-header) !important; border-bottom-color: var(--c-header-border) !important; }
-html.light .glass-header a,html.light .nav-link { color: var(--c-text) !important; }
-html.light .glass-card { background: var(--c-card) !important; border-color: var(--c-card-border) !important; }
-html.light .glass-card:hover { background: var(--c-card-hover) !important; }
-html.light footer,html.light .post-meta { color: var(--c-text-dim) !important; }
-html.light .post-desc { color: var(--c-text) !important; }
+html.light main,html.light main p,html.light main span,html.light main li { color: var(--c-text); }
+html.light .prose a,html.light main a,html.light .glass-card a { color: var(--c-link); }
+html.light .prose code { color: var(--c-code-text); background: var(--c-code-bg); }
+html.light .prose pre { background: var(--c-pre-bg); border-color: var(--c-card-border); }
+html.light .glass-header { background: var(--c-header); border-bottom-color: var(--c-header-border); }
+html.light .glass-header a,html.light .nav-link { color: var(--c-text); }
+html.light .glass-card { background: var(--c-card); border-color: var(--c-card-border); }
+html.light .glass-card:hover { background: var(--c-card-hover); }
+html.light footer,html.light .post-meta { color: var(--c-text-dim); }
+html.light .post-desc { color: var(--c-text); }
 html.light .spacex-hamburger span { background: var(--c-hamburger); }
 html.light ::selection { background: var(--c-selection); color: var(--c-text); }
 html.light .glass-input { background: var(--c-glass-input); }
