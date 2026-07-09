@@ -29,9 +29,8 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
     <header class="glass-header">
       <div class="max-w-7xl mx-auto px-6 flex items-center h-16">
-        <a href="/" class="text-lg font-bold tracking-wider uppercase flex items-center gap-1">
-          <img src="/smiley.svg" alt="bt" width="26" height="26" class="inline-block" />
-          <span>bt</span>
+        <a href="/" class="flex items-center">
+          <img src="/smiley.svg" alt="bt" width="28" height="28" class="inline-block" style="filter: invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)" />
         </a>
 
         <!-- Desktop nav -->
@@ -48,14 +47,14 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         </nav>
 
         <!-- Mobile hamburger (SpaceX-style animated) -->
-        <label for="menu-toggle" class="spacex-hamburger lg:hidden ml-auto">
+        <label for="menu-toggle" class="spacex-hamburger md:hidden ml-auto">
           <span></span><span></span><span></span>
         </label>
       </div>
     </header>
 
     <!-- Mobile menu overlay -->
-    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md lg:hidden hidden flex-col items-center justify-center gap-8">
+    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md md:hidden hidden flex flex-col items-center justify-center gap-8">
       <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Tags</a>
       <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Archives</a>
       <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">About</a>
