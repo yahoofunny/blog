@@ -113,6 +113,6 @@ const meta = {
     });
 
     var active = document.querySelector('.sort-btn.active');
-    if (active) { active.style.color = '#fff'; active.style.fontWeight = '600'; }
+    if (active) { active.style.color = document.documentElement.classList.contains('light') ? '#1a1a2e' : '#fff'; active.style.fontWeight = '600'; }
   })();
 </script>
