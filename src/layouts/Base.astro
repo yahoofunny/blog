@@ -15,6 +15,11 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 <html class="scroll-smooth" lang={siteConfig.lang}>
   <head>
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
+    <script is:inline>
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light');
+      }
+    </script>
   </head>
   <body class="spacex-body min-h-screen text-white">
     <!-- Hidden checkbox for mobile menu hamburger animation -->
@@ -51,12 +56,13 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
             var icon=document.getElementById('theme-icon');
             var smiley=document.querySelector('header img[src*=\"smiley\"]');
             function setTheme(light){
-              document.body.classList.toggle('light',light);
+              document.documentElement.classList.toggle('light',light);
+              localStorage.setItem('theme',light?'light':'dark');
               icon.src=light?'/on.svg':'/off.svg';
               icon.style.filter=light?'invert(0)':'invert(1)';
               if(smiley)smiley.style.filter=light?'none':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)';
             }
-            btn.onclick=function(){setTheme(!document.body.classList.contains('light'))};
+            btn.onclick=function(){setTheme(!document.documentElement.classList.contains('light'))};
           })();
         </script>
 
