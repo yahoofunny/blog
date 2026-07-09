@@ -335,4 +335,20 @@ html.light footer a {
 html.light .spacex-hamburger span {
   background: #333;
 }
+/* Light mode text overrides */
+html.light main [class*="text-white"] {
+  color: #1a1a2e;
+}
+html.light main a[class*="text-white"] {
+  color: #1a1a2e;
+}
+html.light aside [class*="text-white"] {
+  color: #333;
+}
+html.light aside [class*="bg-white\/10"] {
+  background: rgba(0,0,0,0.06);
+}
+html.light aside [class*="bg-white\/10"]:hover {
+  background: rgba(0,0,0,0.12);
+}
 
