@@ -18,7 +18,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
   </head>
   <body class="spacex-body min-h-screen text-white">
     <!-- Hidden checkbox for mobile menu hamburger animation -->
-    <input type="checkbox" id="menu-toggle" class="hidden" onchange="if(this.checked){document.getElementById('mobile-menu').classList.remove('hidden')}else{document.getElementById('mobile-menu').classList.add('hidden')}" />
+    <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
 
     <div class="video-bg">
       <video autoplay muted loop playsinline>
@@ -43,7 +43,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
 
         <!-- Theme toggle -->
         <button id="theme-toggle" class="ml-auto md:ml-4 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
-          <img id="theme-icon" src="/sun.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
+          <img id="theme-icon" src="/off.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
         </button>
         <script is:inline>
           (function(){
@@ -52,7 +52,7 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
             var smiley=document.querySelector('header img[src*=\"smiley\"]');
             function setTheme(light){
               document.body.classList.toggle('light',light);
-              icon.src=light?'/moon.svg':'/sun.svg';
+              icon.src=light?'/on.svg':'/off.svg';
               icon.style.filter=light?'invert(0)':'invert(1)';
               if(smiley)smiley.style.filter=light?'none':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)';
             }
@@ -60,19 +60,19 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
           })();
         </script>
 
-        <!-- Mobile hamburger -->
-        <label for="menu-toggle" class="spacex-hamburger sm:hidden">
+        <!-- Mobile hamburger (only < 640px) -->
+        <label for="menu-toggle" class="spacex-hamburger hidden max-sm:flex flex-col items-center justify-center">
           <span></span><span></span><span></span>
         </label>
       </div>
     </header>
 
     <!-- Mobile menu overlay -->
-    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md sm:hidden hidden flex flex-col items-center justify-center gap-8">
-      <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Tags</a>
-      <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Archives</a>
-      <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">About</a>
-      <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').classList.add('hidden');document.getElementById('menu-toggle').checked=false">Gadgets</a>
+    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex-col items-center justify-center gap-8" style="display:none">
+      <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Tags</a>
+      <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Archives</a>
+      <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">About</a>
+      <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Gadgets</a>
     </div>
 
     <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16">
