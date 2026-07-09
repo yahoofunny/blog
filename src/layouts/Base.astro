@@ -68,13 +68,13 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <div class="video-overlay"></div>
 
     <header class="glass-header">
-      <div class="w-full px-6 2xl:px-12 flex items-center h-16">
+      <div class="w-full px-6 2xl:px-12 flex items-center h-16 relative">
         <a href="/" class="flex items-center">
           <img src="/smiley.svg" alt="bt" width="28" height="28" class="inline-block" style="filter: invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)" />
         </a>
 
-        <!-- Desktop nav -->
-        <nav class="hidden lg:flex gap-4 text-sm ml-auto items-center">
+        <!-- Desktop nav (centered) -->
+        <nav class="hidden lg:flex gap-4 text-sm items-center absolute left-1/2 -translate-x-1/2">
           <a href="/tags/" class="nav-link">Tags</a>
           <a href="/archives/" class="nav-link">Archives</a>
           <a href="/about/" class="nav-link">About</a>
