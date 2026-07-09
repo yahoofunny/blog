@@ -3,11 +3,60 @@ import PageLayout from "@/layouts/Base.astro";
 const meta = { description: "About", title: "About" };
 ---
 <PageLayout meta={meta}>
-  <div class="glass-card text-center !py-12">
-    <h1 class="text-3xl font-bold mb-6">About</h1>
-    <div class="prose max-w-none text-white/70">
-      <p class="text-lg">技术博客，记录学习与成长。</p>
-      <p>内容涵盖数据结构、算法、电路等课程笔记。</p>
+  <div class="glass-card !p-8 md:!p-12">
+    <h1 class="text-3xl font-bold mb-2">About</h1>
+    <p class="text-white/40 text-sm mb-8">技术博客，记录学习与成长。</p>
+
+    <div class="prose max-w-none text-white/70 space-y-8">
+      <div>
+        <h2 class="!text-white !text-xl">🦞 Clawd 桌宠</h2>
+        <p>右下角的螃蟹朋友！你可以：</p>
+        <ul>
+          <li><strong>点击</strong> — 切换表情 + 说话</li>
+          <li><strong>拖拽</strong> — 移动位置</li>
+          <li><strong>双击</strong> — 主动说话</li>
+          <li>每隔 2 分钟自动搭话，共 25+ 句 bt 主题台词</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="!text-white !text-xl">🎵 Claude FM & Drone Zone</h2>
+        <p>Gadgets 页面提供两路电台：</p>
+        <ul>
+          <li><strong>Claude FM</strong> — 24/7 Lo-fi & Ambient 在线电台</li>
+          <li><strong>🌑 Drone Zone</strong> — SomaFM 暗黑氛围空间音乐</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="!text-white !text-xl">📸 Telegraph 图床</h2>
+        <p>Gadgets 页面底部的 <strong>click it</strong> 按钮链接到自建 Telegraph 图床。</p>
+        <ul>
+          <li>无需注册，上传即用</li>
+          <li>适合给我分享图片、截图、表情包</li>
+          <li>点击直接跳转 → 上传 → 复制链接发给我</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="!text-white !text-xl">💬 Giscus 评论区</h2>
+        <p>每篇文章底部有评论区，基于 GitHub Discussions。</p>
+        <ul>
+          <li>用 GitHub 账号登录即可评论</li>
+          <li>支持 Markdown 和表情反应</li>
+          <li>所有评论数据归你自己（存在 GitHub 仓库）</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="!text-white !text-xl">🌙 暗/亮主题</h2>
+        <p>右上角 🌙/☀️ 按钮一键切换暗色和亮色模式，偏好自动保存。</p>
+      </div>
+
+      <div>
+        <h2 class="!text-white !text-xl">🌐 语言切换</h2>
+        <p>LANGUAGE 菜单支持中文 / EN / 颜文字模式，点击即时切换全文。</p>
+      </div>
     </div>
   </div>
 </PageLayout>

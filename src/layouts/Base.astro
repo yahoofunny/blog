@@ -26,11 +26,53 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
     <script is:inline>
       // Chinese → English phrase dictionary (longest-first matching)
-      var _zh2en={"数据结构、算法笔记 :)":"Data Structures & Algorithms Notes :)","金鳞岂是池中物，一遇风云便化龙":"\"A golden carp is no pond creature\"","Dark Ambient — 伤感空间音乐":"Dark Ambient — Melancholic Space Music","Godot 小游戏 · MiniMind 模型调用":"Godot Games · MiniMind LLM","浏览器可直接玩的小游戏":"Playable browser games","自训练轻量 LLM 对话":"Self-trained lightweight LLM","给我发图片，点击下方按钮上传":"Send me images - click below","24/7 Lo-fi & Ambient":"24/7 Lo-fi & Ambient","Powered by laut.fm":"Powered by laut.fm","SomaFM Drone Zone":"SomaFM Drone Zone","Scroll to see headings":"Scroll to see headings","← Back to Home":"← Back to Home","On This Page":"On This Page","All Posts":"All Posts","No sections":"No sections","Claude FM":"Claude FM","Drone Zone":"Drone Zone","打开图床 →":"Open Image Host →","click it":"click it","Archives":"Archives","Archive":"Archive","Gadgets":"Gadgets","UPCOMING":"UPCOMING","LANGUAGE":"LANGUAGE","Newest":"Newest","Oldest":"Oldest","A → Z":"A → Z","Z → A":"Z → A","About":"About","GAMES":"GAMES","Tags":"Tags","Home":"Home","知乎":"Zhihu","最新":"最新","最早":"最早","技术博客":"Tech Blog","数据结构":"Data Structures","算法":"Algorithms","电路":"Circuits","笔记":"Notes","考试":"Exam","排序":"Sorting","查找":"Searching","模电":"Analog Electronics","期末复习":"Final Review","随笔":"Essay","教程":"Tutorial","完整":"Complete","复习":"Review","学生":"Student","信息":"Info","姓名":"Name","学号":"Student ID","成绩":"Score","基本概念":"Basic Concepts"};
-      // Also translate common Chinese single chars and words for article content
-      var _zhChars="的一是不了在有人我他这中大来上到们说国和地要为个生年学时出就也得子自那下可过天成家多动会对心能以工然主方后开经前于种还进十部其与内小么定行法水本力全高长实而体理电明当得机重正关点外如应战向道问此意制度物但些山把加样理两同路法新公已头该只各前最从现所者加气话连打便位因数并很被见手又眼身经门名路处将门间部回军等教几做看十第比别条海内者";
-      // Chinese punctuation and common patterns
-      var _zhPatterns={"。":"." ,"，":"," ,"？":"?" ,"！":"!" ,"：":":" ,"；":";" ,"（":"(" ,"）":")" ,"“":"\"","”":"\"","《":"<","》":">","、":"," };
+      var _zh2en={
+        // Homepage
+        "数据结构、算法笔记 :)":"Data Structures & Algorithms Notes :)","技术博客":"Tech Blog",
+        "金鳞岂是池中物，一遇风云便化龙":"\"A golden carp is no pond creature...\"",
+        // About page
+        "右下角的螃蟹朋友！你可以：":"The crab friend in the bottom-right! You can:",
+        "点击":"Click","切换表情 + 说话":"switch pose + talk","拖拽":"Drag","移动位置":"move around","双击":"Double-click","主动说话":"make it speak",
+        "每隔 2 分钟自动搭话，共 25+ 句 bt 主题台词":"Auto-chats every 2 min with 25+ bt-themed lines",
+        "Gadgets 页面提供两路电台：":"The Gadgets page offers two radio streams:",
+        "24/7 Lo-fi & Ambient 在线电台":"24/7 Lo-fi & Ambient online radio",
+        "SomaFM 暗黑氛围空间音乐":"SomaFM dark ambient space music",
+        "Gadgets 页面底部的":"At the bottom of the Gadgets page, the",
+        "按钮链接到自建 Telegraph 图床。":"button links to a self-hosted Telegraph image host.",
+        "无需注册，上传即用":"No registration needed, upload and use",
+        "适合给我分享图片、截图、表情包":"Great for sharing images, screenshots, memes",
+        "点击直接跳转 → 上传 → 复制链接发给我":"Click to jump → upload → copy link to share",
+        "每篇文章底部有评论区，基于 GitHub Discussions。":"Each post has comments at the bottom, powered by GitHub Discussions.",
+        "用 GitHub 账号登录即可评论":"Log in with GitHub to comment",
+        "支持 Markdown 和表情反应":"Supports Markdown and emoji reactions",
+        "所有评论数据归你自己（存在 GitHub 仓库）":"All comment data belongs to you (stored in your GitHub repo)",
+        "右上角":"Top-right corner","按钮一键切换暗色和亮色模式，偏好自动保存。":"button switches dark/light mode, preference auto-saved.",
+        "菜单支持中文 / EN / 颜文字模式，点击即时切换全文。":"menu supports Chinese / EN / Kaomoji, instant full-page switch.",
+        "技术博客，记录学习与成长。":"A tech blog, documenting learning and growth.",
+        "内容涵盖数据结构、算法、电路等课程笔记。":"Covers data structures, algorithms, circuits, and course notes.",
+        // Gadgets
+        "Dark Ambient — 伤感空间音乐":"Dark Ambient — Melancholic Space Music",
+        "Godot 小游戏 · MiniMind 模型调用":"Godot Games · MiniMind LLM",
+        "浏览器可直接玩的小游戏":"Playable browser games",
+        "自训练轻量 LLM 对话":"Self-trained lightweight LLM",
+        "给我发图片，点击下方按钮上传":"Send me images - click below",
+        "24/7 Lo-fi & Ambient":"24/7 Lo-fi & Ambient","Powered by laut.fm":"Powered by laut.fm",
+        "SomaFM Drone Zone":"SomaFM Drone Zone","Claude FM":"Claude FM","Drone Zone":"Drone Zone",
+        "打开图床 →":"Open Image Host →","click it":"click it",
+        // Nav & UI
+        "Scroll to see headings":"Scroll to see headings","← Back to Home":"← Back to Home",
+        "On This Page":"On This Page","All Posts":"All Posts","No sections":"No sections",
+        "Archives":"Archives","Archive":"Archive","Gadgets":"Gadgets",
+        "UPCOMING":"UPCOMING","LANGUAGE":"LANGUAGE","About":"About","GAMES":"GAMES",
+        "Tags":"Tags","Home":"Home","知乎":"Zhihu","最新":"Newest","最早":"Oldest",
+        "A → Z":"A → Z","Z → A":"Z → A",
+        // Content keywords
+        "数据结构":"Data Structures","算法":"Algorithms","电路":"Circuits","笔记":"Notes",
+        "考试":"Exam","排序":"Sorting","查找":"Searching","模电":"Analog Electronics",
+        "期末复习":"Final Review","随笔":"Essay","教程":"Tutorial","完整":"Complete",
+        "复习":"Review","学生":"Student","信息":"Info","姓名":"Name",
+        "学号":"Student ID","成绩":"Score","基本概念":"Basic Concepts"
+      };
       var _kao=["(´・ω・`)","(◕‿◕)","(｡･ω･｡)","(≧∇≦)","(๑•̀ㅂ•́)و✧","(◍•ᴗ•◍)","(╯°□°）╯︵┻━┻","┐(´д`)┌","(￣▽￣)ノ","(✿◠‿◠)","(´▽`)ﾉ","(・∀・)","(◕ᴗ◕✿)","(｡•̀ᴗ-)✧","(◔‿◔)","(─‿‿─)","(人◕ω◕)","(づ｡◕‿‿◕｡)づ","(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"];
       function _walkNodes(){
         var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false);
