@@ -370,6 +370,8 @@ html.light .prose code { color: var(--c-code-text); background: var(--c-code-bg)
 html.light .prose pre { background: var(--c-pre-bg); border-color: var(--c-card-border); }
 
 /* Sort buttons (JS-inline overrides need theme-aware colors) */
+.sort-btn { color: rgba(255,255,255,0.5); transition: color 0.2s; }
+.sort-btn.active { color: #fff; font-weight: 600; }
 html.light .sort-btn { color: var(--c-sort-inactive); }
 html.light .sort-btn.active { color: var(--c-sort-active); }
 

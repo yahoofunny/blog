@@ -69,10 +69,10 @@ const meta = {
 
     btns.forEach(function(btn){
       btn.addEventListener('click', function(){
-        btns.forEach(function(b){ b.classList.remove('active'); b.style.color=''; b.style.fontWeight='' });
+        btns.forEach(function(b){ b.classList.remove('active') });
         btn.classList.add('active');
-        btn.style.color = document.documentElement.classList.contains('light') ? '#1a1a2e' : '#fff';
-        btn.style.fontWeight = '600';
+        
+        
 
         var sort = btn.dataset.sort;
         var isAlpha = (sort === 'az' || sort === 'za');
@@ -113,6 +113,6 @@ const meta = {
     });
 
     var active = document.querySelector('.sort-btn.active');
-    if (active) { active.style.color = document.documentElement.classList.contains('light') ? '#1a1a2e' : '#fff'; active.style.fontWeight = '600'; }
+    // active button styled by CSS
   })();
 </script>

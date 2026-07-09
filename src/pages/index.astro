@@ -45,10 +45,8 @@ const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"pos
 
     btns.forEach(function(btn){
       btn.addEventListener('click', function(){
-        btns.forEach(function(b){ b.classList.remove('active'); b.style.color=''; b.style.fontWeight='' });
+        btns.forEach(function(b){ b.classList.remove('active') });
         btn.classList.add('active');
-        btn.style.color = document.documentElement.classList.contains('light') ? '#1a1a2e' : '#fff';
-        btn.style.fontWeight = '600';
 
         var sort = btn.dataset.sort;
         var sorted = items.slice().sort(function(a, b){
@@ -62,8 +60,6 @@ const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"pos
       });
     });
 
-    // Init: highlight active button
-    var active = document.querySelector('.sort-btn.active');
-    if (active) { active.style.color = document.documentElement.classList.contains('light') ? '#1a1a2e' : '#fff'; active.style.fontWeight = '600'; }
+    // Init: active button styled by CSS
   })();
 </script>
