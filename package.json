@@ -2,10 +2,6 @@
 	"name": "blog2",
 	"type": "module",
 	"version": "7.2.0",
-	"contributors": [
-		"bt <bingtao2077@gmail.com>",
-		"豆包 Doubao (AI 协作助手, https://www.doubao.com)"
-	],
 	"scripts": {
 		"postinstall": "npm rebuild sharp --force",
 		"dev": "astro dev",
