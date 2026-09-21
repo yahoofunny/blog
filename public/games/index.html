@@ -5,10 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Games — bt's Arcade</title>
 <meta name="theme-color" content="#0000f2" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
 <style>
+  @font-face {
+    font-family: 'Oswald';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/oswald-var.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/courier-prime-400.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/courier-prime-700.woff2') format('woff2');
+  }
   :root {
     --paper: #fdfdfd; --panel: #f5f5f5; --card: #ffffff;
     --ink: #111; --soft: #4a4a4a; --muted: #8a8a8a;
@@ -20,16 +38,34 @@
     --mono: "Courier Prime", ui-monospace, Menlo, Consolas, monospace;
     --body: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   }
+  html.dark {
+    --paper: #0e0e13; --panel: #15151c; --card: #17171d;
+    --ink: #f0f0f2; --soft: #b9b9c2; --muted: #8b8b95;
+    --primary: #6e6eff;
+    --line: rgba(240,240,242,0.16); --dotted: #3a3a44;
+    --shadow-hair: 0 1px 2px rgba(0,0,0,0.5);
+    --shadow-lift: 0 14px 28px -14px rgba(110,110,255,0.3);
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--paper); color: var(--ink);
     font-family: var(--body); min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    transition: background-color .2s ease, color .2s ease;
   }
   .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
-  header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; }
+  header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; display: flex; align-items: center; justify-content: space-between; }
   .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
   .brand small { color: var(--muted); letter-spacing: 0.08em; }
+  .theme-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); padding: 4px;
+    transition: color .15s ease;
+  }
+  .theme-btn:hover { color: var(--primary); }
+  .theme-btn svg { width: 20px; height: 20px; display: none; }
+  html:not(.dark) .icon-moon { display: block; }
+  html.dark .icon-sun { display: block; }
   main { padding: 48px 0 64px; }
   .kicker { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--primary); margin-bottom: 10px; }
   h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.2rem, 6vw, 3.4rem); letter-spacing: 0.01em; text-transform: uppercase; }
@@ -51,11 +87,18 @@
   footer { border-top: 1px dotted var(--dotted); padding: 20px 0 32px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
   footer a { color: var(--primary); text-decoration: none; }
 </style>
+<script>
+  if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+</script>
 </head>
 <body>
 <div class="wrap">
   <header>
     <a class="brand" href="https://blog-6rb.pages.dev/">bt <small>/ arcade</small></a>
+    <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
   </header>
   <main>
     <p class="kicker">free &amp; open source</p>
@@ -102,5 +145,15 @@
   </main>
   <footer>games hosted on Cloudflare Pages · 回博客：<a href="https://blog-6rb.pages.dev/">blog-6rb.pages.dev</a></footer>
 </div>
+<script>
+  (function(){
+    var btn = document.getElementById('theme-btn');
+    btn.addEventListener('click', function(){
+      var dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    });
+  })();
+</script>
 </body>
 </html>

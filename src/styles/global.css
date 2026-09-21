@@ -10,6 +10,29 @@
 /* === Hermes-Inspired Paper Design ===
    纸面浅色 + 电光蓝(#0000f2) + 直角卡片 + 等宽大写标签 + 点状分隔线 */
 
+/* ---------- Self-hosted fonts (no Google dependency) ---------- */
+@font-face {
+  font-family: "Oswald";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/oswald-var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Courier Prime";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/courier-prime-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Courier Prime";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/courier-prime-700.woff2") format("woff2");
+}
+
 /* ---------- Design tokens ---------- */
 :root {
   --wm-paper: #fdfdfd;
