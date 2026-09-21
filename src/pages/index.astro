@@ -3,32 +3,52 @@ import { type CollectionEntry } from "astro:content";
 import { getAllPosts } from "@/data/post";
 import PageLayout from "@/layouts/Base.astro";
 import { collectionDateSort } from "@/utils/date";
+import { siteConfig } from "@/site.config";
 
 const allPosts = await getAllPosts();
 const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"post">[];
 ---
 
 <PageLayout meta={{ title: "Home" }}>
-  <section class="mb-6">
-    <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-1">bt's Blog :)</h1>
-    <p class="text-white/25 text-xs italic mt-3 tracking-wider">金鳞岂是池中物，一遇风云便化龙</p>
+  <!-- Hero -->
+  <section class="mb-10 border-b border-dotted pb-8" style="border-color: var(--wm-dotted)">
+    <p class="wm-kicker mb-3">bt's blog &mdash; tech notes</p>
+    <h1 class="text-4xl md:text-5xl font-semibold tracking-tight mb-3 uppercase" style="font-family: var(--font-display)">
+      {siteConfig.title}
+    </h1>
+    <p class="font-mono text-sm mb-4" style="color: var(--wm-ink-soft)">
+      {siteConfig.description} · <span style="color: var(--wm-muted)">金鳞岂是池中物，一遇风云便化龙</span>
+    </p>
+    <div class="flex flex-wrap gap-3 mt-5">
+      <a href="/posts/" class="wm-btn wm-btn-primary">Posts &rarr;</a>
+      <a href="/about/" class="wm-btn wm-btn-paper">About</a>
+      <a href="/radio/" class="wm-btn wm-btn-paper">Gadgets</a>
+      <a href="https://github.com/yahoofunny/blog" target="_blank" class="wm-btn wm-btn-paper">GitHub</a>
+    </div>
+  </section>
+
+  <!-- Command strip -->
+  <section class="mb-10 font-mono text-xs flex items-center gap-3 px-4 py-3 border border-dotted" style="background: var(--wm-panel); border-color: var(--wm-dotted); color: var(--wm-ink-soft)">
+    <span style="color: var(--wm-primary)">$</span>
+    <span>curl -sL blog-6rb.pages.dev</span>
+    <span class="ml-auto" style="color: var(--wm-muted)">// 文章全部免费开放</span>
   </section>
 
   <!-- Sort buttons -->
-  <div id="sort-bar" class="flex gap-2 mb-6">
-    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors active" data-sort="newest">最新</button>
-    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="oldest">最早</button>
-    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="az">A → Z</button>
-    <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="za">Z → A</button>
+  <div id="sort-bar" class="flex flex-wrap gap-2 mb-6">
+    <button class="sort-btn active" data-sort="newest">最新</button>
+    <button class="sort-btn" data-sort="oldest">最早</button>
+    <button class="sort-btn" data-sort="az">A &rarr; Z</button>
+    <button class="sort-btn" data-sort="za">Z &rarr; A</button>
   </div>
 
   <div class="flex flex-col gap-4" id="post-list">
     {allSortedPosts.map((p) => (
       <a href={`/posts/${p.id}/`} class="glass-card block post-item" data-date={p.data.publishDate.toISOString()} data-title={p.data.title}>
-        <h2 class="text-lg font-semibold">{p.data.title}</h2>
-        <p class="post-meta mt-1">
+        <p class="post-meta">
           {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
         </p>
+        <h2 class="text-xl font-semibold">{p.data.title}</h2>
         {p.data.description && (
           <p class="post-desc mt-2">{p.data.description}</p>
         )}
@@ -59,7 +79,5 @@ const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"pos
         sorted.forEach(function(item){ list.appendChild(item); });
       });
     });
-
-    // Init: active button styled by CSS
   })();
 </script>

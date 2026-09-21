@@ -17,33 +17,33 @@ const meta = {
 <PageLayout meta={meta}>
   <div class="glass-card !p-8 md:!p-12">
     <h1 class="text-2xl md:text-3xl font-bold mb-2">Archives</h1>
-    <p class="text-white/40 text-sm mb-4">{allPosts.length} posts in total</p>
+    <p class="font-mono text-xs mb-4" style="color: var(--wm-muted)">{allPosts.length} posts in total</p>
 
     <!-- Sort -->
-    <div id="sort-bar" class="flex gap-2 mb-8">
-      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors active" data-sort="newest">最新</button>
-      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="oldest">最早</button>
-      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="az">A → Z</button>
-      <button class="sort-btn glass-card !py-1.5 !px-4 !rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors" data-sort="za">Z → A</button>
+    <div id="sort-bar" class="flex flex-wrap gap-2 mb-8">
+      <button class="sort-btn active" data-sort="newest">最新</button>
+      <button class="sort-btn" data-sort="oldest">最早</button>
+      <button class="sort-btn" data-sort="az">A → Z</button>
+      <button class="sort-btn" data-sort="za">Z → A</button>
     </div>
 
     <!-- Year-grouped view -->
     <div id="archive-by-year" class="space-y-10">
       {years.map((year) => (
         <section>
-          <h2 class="text-xl font-bold text-white/80 mb-4 border-b border-white/10 pb-2">{year}</h2>
+          <h2 class="text-xl font-bold mb-4 border-b border-dotted pb-2" style="border-color: var(--wm-dotted); color: var(--wm-primary)">{year}</h2>
           <ul class="space-y-3">
             {grouped[year]?.map((post) => (
               <li class="flex items-baseline gap-4 archive-item" data-date={post.data.publishDate.toISOString()} data-title={post.data.title}>
-                <time class="text-xs text-white/30 whitespace-nowrap font-mono shrink-0 w-24">
+                <time class="text-xs whitespace-nowrap font-mono shrink-0 w-24" style="color: var(--wm-muted)">
                   {getFormattedDate(post.data.publishDate, { month: "short", day: "numeric" })}
                 </time>
-                <a href={`/posts/${post.id}/`} class="text-sm text-white/70 hover:text-white transition-colors truncate">
+                <a href={`/posts/${post.id}/`} class="text-sm transition-colors truncate" style="color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'">
                   {post.data.title}
                 </a>
                 <div class="hidden sm:flex flex-wrap gap-1 ml-auto shrink-0">
                   {post.data.tags.slice(0, 3).map((tag) => (
-                    <a href={`/tags/${tag}/`} class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 hover:bg-white/20 hover:text-white/60 transition-colors">
+                    <a href={`/tags/${tag}/`} class="text-[10px] font-mono px-1.5 py-0.5 border transition-colors" style="border-color: var(--wm-line); color: var(--wm-muted)" onmouseover="this.style.borderColor='var(--wm-primary)'; this.style.color='var(--wm-primary)'" onmouseout="this.style.borderColor='var(--wm-line)'; this.style.color='var(--wm-muted)'">
                       {tag}
                     </a>
                   ))}
@@ -71,8 +71,6 @@ const meta = {
       btn.addEventListener('click', function(){
         btns.forEach(function(b){ b.classList.remove('active') });
         btn.classList.add('active');
-        
-        
 
         var sort = btn.dataset.sort;
         var isAlpha = (sort === 'az' || sort === 'za');
@@ -101,7 +99,7 @@ const meta = {
           });
           Object.keys(years).sort(function(a,b){ return sort === 'newest' ? +b - +a : +a - +b; }).forEach(function(y){
             var sec = document.createElement('section');
-            sec.innerHTML = '<h2 class="text-xl font-bold text-white/80 mb-4 border-b border-white/10 pb-2">'+y+'</h2>';
+            sec.innerHTML = '<h2 class="text-xl font-bold mb-4 border-b border-dotted pb-2" style="border-color: var(--wm-dotted); color: var(--wm-primary)">'+y+'</h2>';
             var ul = document.createElement('ul');
             ul.className = 'space-y-3';
             years[y].forEach(function(item){ ul.appendChild(item); });
@@ -111,8 +109,5 @@ const meta = {
         }
       });
     });
-
-    var active = document.querySelector('.sort-btn.active');
-    // active button styled by CSS
   })();
 </script>

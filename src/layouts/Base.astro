@@ -16,12 +16,12 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
   <head>
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
     <script is:inline>
-      if (localStorage.getItem('theme') === 'light') {
-        document.documentElement.classList.add('light');
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
       }
     </script>
   </head>
-  <body class="spacex-body min-h-screen text-white">
+  <body class="wm-body min-h-screen">
     <!-- Hidden checkbox for mobile menu hamburger animation -->
     <input type="checkbox" id="menu-toggle" class="hidden" onchange="document.getElementById('mobile-menu').style.display=this.checked?'flex':'none'" />
     <script is:inline>
@@ -108,8 +108,8 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         document.querySelectorAll('.lang-btn').forEach(function(b){
           var t=b.textContent.trim();
           var match=(lang==='zh'&&t==='中')||(lang==='en'&&t.indexOf('EN')===0)||(lang==='kaomoji'&&t.indexOf('(')==0);
-          b.style.color=match?'#fff':'rgba(255,255,255,0.3)';
-          if(match){b.style.textShadow='0 0 8px rgba(255,255,255,0.6)';setTimeout(function(){b.style.textShadow=''},600)}
+          b.style.color=match?'var(--wm-primary)':'var(--wm-muted)';
+          if(match){b.style.textShadow='0 0 8px var(--wm-primary)';setTimeout(function(){b.style.textShadow=''},600)}
         });
         var nodes=_walkNodes();
         _aborted=true;
@@ -140,21 +140,15 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       };
     </script>
 
-    <div class="video-bg">
-      <video autoplay muted loop playsinline>
-        <source src="/spacex.mp4" type="video/mp4" />
-      </video>
-    </div>
-    <div class="video-overlay"></div>
-
-    <header class="glass-header">
+    <header class="wm-header">
       <div class="w-full px-6 2xl:px-12 flex items-center h-16 relative">
-        <a href="/" class="flex items-center">
-          <img src="/smiley.svg" alt="bt" width="28" height="28" class="inline-block" style="filter: invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)" />
+        <a href="/" class="flex items-center gap-2.5">
+          <img src="/smiley.svg" alt="bt" width="26" height="26" class="inline-block" style="color: var(--wm-primary)" />
+          <span class="font-mono text-xs font-bold uppercase tracking-[0.18em]" style="color: var(--wm-primary)">bt</span>
         </a>
 
         <!-- Desktop nav (centered) -->
-        <nav class="hidden lg:flex gap-6 text-sm items-center absolute left-1/2 -translate-x-1/2">
+        <nav class="hidden lg:flex gap-7 items-center absolute left-1/2 -translate-x-1/2">
           <a href="/tags/" class="nav-link">Tags</a>
           <a href="/archives/" class="nav-link">Archives</a>
           <a href="/about/" class="nav-link">About</a>
@@ -162,54 +156,52 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
         </nav>
 
         <!-- Desktop only: LANGUAGE + UPCOMING -->
-        <div class="hidden md:flex items-center gap-4 ml-auto">
+        <div class="hidden md:flex items-center gap-5 ml-auto">
           <div class="lang-dropdown">
-            <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">LANGUAGE</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30 inline"><polyline points="6 9 12 15 18 9"/></svg>
-            <div class="lang-menu glass-card !p-3 !rounded-xl absolute top-full right-0 pt-0 min-w-[120px] z-[110]">
+            <span class="text-[10px] uppercase tracking-[0.2em] cursor-default select-none font-mono font-bold" style="color: var(--wm-muted)">LANGUAGE</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 inline" style="color: var(--wm-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+            <div class="lang-menu glass-card !p-3 absolute top-full right-0 pt-0 min-w-[130px] z-[110]">
               <div class="lang-bridge"></div>
-              <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('zh')">中 文</a>
-              <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('en')">EN (test)</a>
-              <a href="javascript:void(0)" class="block text-sm text-white/70 hover:text-white hover:bg-white/5 px-2 py-1.5 rounded transition-colors" onclick="window._setLang('kaomoji')">(´・ω・`) 颜文字</a>
+              <a href="javascript:void(0)" class="block text-sm px-2 py-1.5 transition-colors hover:bg-[var(--wm-panel)]" style="color: var(--wm-ink-soft)" onclick="window._setLang('zh')">中 文</a>
+              <a href="javascript:void(0)" class="block text-sm px-2 py-1.5 transition-colors hover:bg-[var(--wm-panel)]" style="color: var(--wm-ink-soft)" onclick="window._setLang('en')">EN (test)</a>
+              <a href="javascript:void(0)" class="block text-sm px-2 py-1.5 transition-colors hover:bg-[var(--wm-panel)]" style="color: var(--wm-ink-soft)" onclick="window._setLang('kaomoji')">(´・ω・`) 颜文字</a>
             </div>
           </div>
           <div class="upcoming-dropdown">
-            <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] cursor-default select-none">UPCOMING</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 text-white/30 inline"><polyline points="6 9 12 15 18 9"/></svg>
-            <div class="upcoming-menu glass-card !p-4 !rounded-xl absolute top-full right-0 pt-0 min-w-[220px] space-y-3 z-[110]">
+            <span class="text-[10px] uppercase tracking-[0.2em] cursor-default select-none font-mono font-bold" style="color: var(--wm-muted)">UPCOMING</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 inline" style="color: var(--wm-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+            <div class="upcoming-menu glass-card !p-4 absolute top-full right-0 pt-0 min-w-[230px] space-y-3 z-[110]">
               <div class="upcoming-bridge"></div>
-              <a href="https://itch.io/games/made-with-godot/platform-web" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors">
-                <p class="text-xs text-white/30 uppercase tracking-wider mb-1">GAMES</p>
-                <p class="text-sm text-white/70">🎮 Godot 小游戏</p>
-                <p class="text-[10px] text-white/30 mt-0.5">浏览器可直接玩的小游戏</p>
+              <a href="https://itch.io/games/made-with-godot/platform-web" target="_blank" class="block hover:bg-[var(--wm-panel)] -mx-1 px-1 py-1 transition-colors">
+                <p class="wm-kicker mb-1">GAMES</p>
+                <p class="text-sm" style="color: var(--wm-ink-soft)">🎮 Godot 小游戏</p>
+                <p class="text-[10px] mt-0.5" style="color: var(--wm-muted)">浏览器可直接玩的小游戏</p>
               </a>
-              <a href="https://github.com/jingyaogong/minimind" target="_blank" class="block hover:bg-white/5 -mx-1 px-1 py-1 rounded-lg transition-colors border-t border-white/10 pt-3">
-                <p class="text-xs text-white/30 uppercase tracking-wider mb-1">AI</p>
-                <p class="text-sm text-white/70">🤖 MiniMind 模型调用</p>
-                <p class="text-[10px] text-white/30 mt-0.5">自训练轻量 LLM 对话</p>
+              <a href="https://github.com/jingyaogong/minimind" target="_blank" class="block hover:bg-[var(--wm-panel)] -mx-1 px-1 py-1 transition-colors border-t border-dotted pt-3" style="border-color: var(--wm-dotted)">
+                <p class="wm-kicker mb-1">AI</p>
+                <p class="text-sm" style="color: var(--wm-ink-soft)">🤖 MiniMind 模型调用</p>
+                <p class="text-[10px] mt-0.5" style="color: var(--wm-muted)">自训练轻量 LLM 对话</p>
               </a>
             </div>
           </div>
         </div>
 
         <!-- Theme toggle (always visible, outside desktop-only group) -->
-        <button id="theme-toggle" class="ml-auto md:ml-2 text-white/50 hover:text-white transition-colors" aria-label="Toggle theme">
-          <img id="theme-icon" src="/off.svg" alt="theme" width="22" height="22" style="filter:invert(1)" />
+        <button id="theme-toggle" class="ml-auto md:ml-2 transition-colors" style="color: var(--wm-muted)" aria-label="Toggle theme" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">
+          <img id="theme-icon" src="/off.svg" alt="theme" width="20" height="20" style="filter:none" />
         </button>
         <script is:inline>
           (function(){
             var btn=document.getElementById('theme-toggle');
             var icon=document.getElementById('theme-icon');
-            var smiley=document.querySelector('header img[src*=\"smiley\"]');
-            function setTheme(light){
-              document.documentElement.classList.toggle('light',light);
-              localStorage.setItem('theme',light?'light':'dark');
-              icon.src=light?'/on.svg':'/off.svg';
-              icon.style.filter=light?'invert(0)':'invert(1)';
-              if(smiley)smiley.style.filter=light?'none':'invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%)';
+            function setTheme(dark){
+              document.documentElement.classList.toggle('dark',dark);
+              localStorage.setItem('theme',dark?'dark':'light');
+              icon.src=dark?'/on.svg':'/off.svg';
+              icon.style.filter=dark?'invert(1)':'none';
             }
-            setTheme(document.documentElement.classList.contains('light'));
-            btn.onclick=function(){setTheme(!document.documentElement.classList.contains('light'))};
+            setTheme(document.documentElement.classList.contains('dark'));
+            btn.onclick=function(){setTheme(!document.documentElement.classList.contains('dark'))};
           })();
         </script>
 
@@ -221,23 +213,23 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
     </header>
 
     <!-- Mobile menu overlay -->
-    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex-col items-center justify-center gap-6" style="display:none">
-      <a href="/tags/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Tags</a>
-      <a href="/archives/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Archives</a>
-      <a href="/about/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">About</a>
-      <a href="/radio/" class="text-2xl text-white/70 hover:text-white transition-colors font-semibold tracking-wide" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Gadgets</a>
+    <div id="mobile-menu" class="fixed inset-0 z-[90] flex-col items-center justify-center gap-6" style="display:none; background: var(--wm-paper); border-bottom: 1px dotted var(--wm-dotted)">
+      <a href="/tags/" class="text-2xl transition-colors font-semibold tracking-wide" style="color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Tags</a>
+      <a href="/archives/" class="text-2xl transition-colors font-semibold tracking-wide" style="color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Archives</a>
+      <a href="/about/" class="text-2xl transition-colors font-semibold tracking-wide" style="color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">About</a>
+      <a href="/radio/" class="text-2xl transition-colors font-semibold tracking-wide" style="color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'" onclick="document.getElementById('mobile-menu').style.display='none';document.getElementById('menu-toggle').checked=false">Gadgets</a>
 
       <!-- Language -->
       <div class="flex gap-3 mt-4">
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors active" onclick="window._setLang('zh')">中</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('en')">EN (test)</button>
-        <button class="lang-btn text-xs text-white/30 hover:text-white/70 transition-colors" onclick="window._setLang('kaomoji')">(´・ω・`)</button>
+        <button class="lang-btn text-xs transition-colors" style="color: var(--wm-muted)" onclick="window._setLang('zh')">中</button>
+        <button class="lang-btn text-xs transition-colors" style="color: var(--wm-muted)" onclick="window._setLang('en')">EN (test)</button>
+        <button class="lang-btn text-xs transition-colors" style="color: var(--wm-muted)" onclick="window._setLang('kaomoji')">(´・ω・`)</button>
       </div>
 
       <!-- Upcoming -->
-      <div class="mt-6 pt-6 border-t border-white/10 text-center">
-        <p class="text-[10px] text-white/20 uppercase tracking-[0.2em] mb-2">UPCOMING</p>
-        <p class="text-xs text-white/20">Godot 小游戏 · MiniMind 模型调用</p>
+      <div class="mt-6 pt-6 border-t border-dotted text-center" style="border-color: var(--wm-dotted)">
+        <p class="text-[10px] uppercase tracking-[0.2em] mb-2 font-mono font-bold" style="color: var(--wm-muted)">UPCOMING</p>
+        <p class="text-xs" style="color: var(--wm-muted)">Godot 小游戏 · MiniMind 模型调用</p>
       </div>
     </div>
 
@@ -257,14 +249,14 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
       </div>
     </div>
 
-    <footer class="relative z-10 flex justify-center items-center gap-3 text-white/40 text-xs py-8">
-      <a href="mailto:bingtao2077@gmail.com" class="hover:text-white/60 transition-colors" title="Email">
+    <footer class="relative z-10 flex justify-center items-center gap-3 text-xs py-8 font-mono" style="color: var(--wm-muted)">
+      <a href="mailto:bingtao2077@gmail.com" class="transition-colors" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'" title="Email">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 4-10 8L2 4"/></svg>
       </a>
       <span>|</span>
-      <a href="https://www.zhihu.com/people/liu-run-run-28" target="_blank" class="hover:text-white/60 transition-colors">知乎</a>
+      <a href="https://www.zhihu.com/people/liu-run-run-28" target="_blank" class="transition-colors" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">知乎</a>
       <span>|</span>
-      <a href="https://github.com/yahoofunny/blog" target="_blank" class="hover:text-white/60 transition-colors" title="GitHub">
+      <a href="https://github.com/yahoofunny/blog" target="_blank" class="transition-colors" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'" title="GitHub">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
       </a>
       <span>&mdash; {siteConfig.title} &copy; {new Date().getFullYear()}</span>

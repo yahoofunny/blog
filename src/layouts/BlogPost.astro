@@ -19,10 +19,10 @@ const wordCount = bodyText.replace(/\s+/g, "").length;
 const readingTime = Math.max(1, Math.round(wordCount / 400));
 
 // Build TOC
-let tocHtml = '<p class="text-white/30 italic text-xs">No sections</p>';
+let tocHtml = '<p style="color: var(--wm-muted); font-style: italic; font-size: 0.75rem">No sections</p>';
 if (headings.length > 0) {
   tocHtml = headings.map((h: any) =>
-    `<a href="#${h.slug}" class="block text-white/50 hover:text-white py-0.5 transition-colors text-xs" style="padding-left:${(h.depth-1)*0.8}rem">${h.text}</a>`
+    `<a href="#${h.slug}" class="block py-0.5 transition-colors text-xs" style="padding-left:${(h.depth-1)*0.8}rem; color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'">${h.text}</a>`
   ).join('');
 }
 ---
@@ -31,8 +31,8 @@ if (headings.length > 0) {
   <article class="glass-card !p-8 md:!p-12">
     <header class="mb-10">
       <h1 class="text-3xl md:text-4xl font-bold mb-3">{title}</h1>
-      <!-- Chirpy-style post meta -->
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/40">
+      <!-- Post meta -->
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-mono text-xs" style="color: var(--wm-muted)">
         <time datetime={publishDate.toISOString()}>
           <svg class="inline-block w-3.5 h-3.5 mr-1 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
@@ -55,8 +55,8 @@ if (headings.length > 0) {
               </svg>
               {tags.map((tag, i) => (
                 <span>
-                  <a href={`/tags/${tag}/`} class="hover:text-white/70 transition-colors">{tag}</a>
-                  {i < tags.length - 1 ? <span class="text-white/20">,</span> : ""}
+                  <a href={`/tags/${tag}/`} class="transition-colors" style="color: var(--wm-primary)">{tag}</a>
+                  {i < tags.length - 1 ? <span style="color: var(--wm-faint)">,</span> : ""}
                 </span>
               ))}
             </span>
@@ -64,7 +64,7 @@ if (headings.length > 0) {
         )}
       </div>
       {updatedDate && updatedDate > publishDate && (
-        <p class="text-xs text-white/25 mt-2 italic">
+        <p class="text-xs mt-2 italic" style="color: var(--wm-muted)">
           Updated: {getFormattedDate(updatedDate, { year: "numeric", month: "long", day: "numeric" })}
         </p>
       )}
@@ -87,7 +87,7 @@ if (headings.length > 0) {
       data-reactions-enabled="1"
       data-emit-metadata="0"
       data-input-position="bottom"
-      data-theme="dark_dimmed"
+      data-theme="light"
       data-lang="zh-CN"
       crossorigin="anonymous"
       async>
@@ -95,7 +95,7 @@ if (headings.length > 0) {
   </div>
 
   <div class="text-center mt-8">
-    <a href="/" class="text-white/40 hover:text-white/70 transition-colors text-sm">&larr; Back to Home</a>
+    <a href="/" class="transition-colors text-sm font-mono" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">&larr; Back to Home</a>
   </div>
 </BaseLayout>
 

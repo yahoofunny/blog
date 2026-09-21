@@ -85,6 +85,12 @@ const socialImageURL = new URL(ogImage ? ogImage : "/social-card.png?v=2", Astro
 
 <meta content={Astro.generator} name="generator" />
 
+		{/* Hermes-style fonts: condensed gothic display + mono */}
+		<meta name="theme-color" content="#0000f2" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
 	<!-- KaTeX for LaTeX rendering -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
 	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>

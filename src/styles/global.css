@@ -7,184 +7,259 @@
 @source not "../pages/og-image";
 @config "../../tailwind.config.ts";
 
-/* === SpaceX-Inspired Glassmorphism Design === */
+/* === Hermes-Inspired Paper Design ===
+   纸面浅色 + 电光蓝(#0000f2) + 直角卡片 + 等宽大写标签 + 点状分隔线 */
 
-/* Video Background */
-.video-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 0;
-  overflow: hidden;
-}
-.video-bg video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.video-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 1;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(1px);
+/* ---------- Design tokens ---------- */
+:root {
+  --wm-paper: #fdfdfd;
+  --wm-panel: #f5f5f5;
+  --wm-card: #ffffff;
+  --wm-ink: #111111;
+  --wm-ink-soft: #4a4a4a;
+  --wm-muted: #8a8a8a;
+  --wm-faint: #b9b9b9;
+  --wm-primary: #0000f2;
+  --wm-primary-soft: #2b2bf5;
+  --wm-on-primary: #ffffff;
+  --wm-accent: #ffcd42;
+  --wm-line: rgba(17, 17, 17, 0.14);
+  --wm-dotted: #c9c9c9;
+  --wm-shadow-hair: 0 1px 2px rgba(17, 17, 17, 0.07);
+  --wm-shadow-lift: 0 14px 28px -14px rgba(0, 0, 242, 0.25);
+  --wm-shadow-press: 0 1px 1px rgba(17, 17, 17, 0.14);
+  --font-display: "Oswald", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "Courier Prime", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
-/* Glass Header */
-.glass-header {
+/* Dark variant (toggled by adding .dark on <html>) */
+html.dark {
+  --wm-paper: #0e0e13;
+  --wm-panel: #15151c;
+  --wm-card: #17171d;
+  --wm-ink: #f0f0f2;
+  --wm-ink-soft: #b9b9c2;
+  --wm-muted: #8b8b95;
+  --wm-faint: #5c5c66;
+  --wm-primary: #6e6eff;
+  --wm-primary-soft: #8f8fff;
+  --wm-on-primary: #ffffff;
+  --wm-accent: #ffcd42;
+  --wm-line: rgba(240, 240, 242, 0.16);
+  --wm-dotted: #3a3a44;
+  --wm-shadow-hair: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --wm-shadow-lift: 0 14px 28px -14px rgba(110, 110, 255, 0.3);
+  --wm-shadow-press: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Base ---------- */
+html { overflow-x: hidden; }
+body.wm-body {
+  background: var(--wm-paper);
+  color: var(--wm-ink);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--wm-ink);
+}
+
+/* Mono uppercase micro-label (section kickers, meta) */
+.wm-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--wm-primary);
+}
+
+/* ---------- Header ---------- */
+.wm-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--wm-paper);
+  border-bottom: 1px dotted var(--wm-dotted);
 }
-.glass-header a {
-  color: #fff;
-  text-decoration: none;
-  transition: opacity 0.3s;
-}
+.wm-header a { color: var(--wm-ink); text-decoration: none; transition: color 0.15s ease; }
+.wm-header a:hover { color: var(--wm-primary); }
 .nav-link {
-  color: rgba(255,255,255,0.8);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--wm-ink-soft);
   text-decoration: none;
-  transition: color 0.3s;
-  font-size: 0.875rem;
-  letter-spacing: 0.05em;
+  transition: color 0.15s ease;
 }
-.nav-link:hover { color: #fff; }
+.nav-link:hover { color: var(--wm-primary); }
 
-/* Glass Cards (for posts, sections) */
+/* ---------- Buttons ---------- */
+.wm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.wm-btn:active { transform: scale(0.98); }
+.wm-btn-primary {
+  background: var(--wm-primary);
+  color: var(--wm-on-primary);
+  box-shadow: var(--wm-shadow-hair);
+}
+.wm-btn-primary:hover {
+  background: var(--wm-primary-soft);
+  color: var(--wm-on-primary);
+  box-shadow: var(--wm-shadow-lift);
+}
+.wm-btn-paper {
+  background: var(--wm-card);
+  color: var(--wm-primary);
+  border-color: var(--wm-line);
+  box-shadow: var(--wm-shadow-hair);
+}
+.wm-btn-paper:hover {
+  border-color: var(--wm-primary);
+  box-shadow: var(--wm-shadow-lift);
+}
+
+/* ---------- Cards (replaces glass look) ---------- */
 .glass-card {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
-  transition: all 0.4s ease;
+  background: var(--wm-card);
+  border: 1px solid var(--wm-line);
+  border-radius: 0;
+  padding: 1.5rem;
+  box-shadow: var(--wm-shadow-hair);
+  color: var(--wm-ink);
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  border-color: var(--wm-primary);
+  box-shadow: var(--wm-shadow-lift);
+  transform: translateY(-1px);
 }
-.glass-card a {
-  color: rgba(255,255,255,0.9);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-.glass-card a:hover { color: #fff; }
-
-/* Glass input for search */
-.glass-input {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  outline: none;
-  transition: all 0.3s;
-}
-.glass-input:focus {
-  border-color: rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.12);
-}
-
-/* Typography */
-html { overflow-x: hidden; }
-.spacex-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-h1, h2, h3 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
+.glass-card a { color: inherit; text-decoration: none; transition: color 0.15s ease; }
+.glass-card a:hover { color: var(--wm-primary); }
 .glass-card h2 {
-  font-size: 1.5rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
 }
 .glass-card .post-meta {
-  color: rgba(255,255,255,0.5);
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--wm-muted);
 }
 .glass-card .post-desc {
-  color: rgba(255,255,255,0.7);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  color: var(--wm-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.65;
   margin-top: 0.5rem;
 }
 
-/* Prose overrides for glass look */
-.prose {
-  color: rgba(255,255,255,0.85);
+/* ---------- Input ---------- */
+.glass-input {
+  background: var(--wm-paper);
+  border: 1px solid var(--wm-line);
+  border-radius: 0;
+  color: var(--wm-ink);
+  padding: 0.55rem 1rem;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  transition: border-color 0.15s ease;
 }
-.prose h1, .prose h2, .prose h3, .prose h4 {
-  color: #fff;
+.glass-input:focus { border-color: var(--wm-primary); }
+
+/* ---------- Sort buttons (index) ---------- */
+.sort-btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wm-muted);
+  background: var(--wm-card);
+  border: 1px solid var(--wm-line);
+  border-radius: 0;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
+.sort-btn:hover { color: var(--wm-primary); border-color: var(--wm-primary); }
+.sort-btn.active {
+  color: var(--wm-on-primary);
+  background: var(--wm-primary);
+  border-color: var(--wm-primary);
+}
+
+/* ---------- Prose (article content) ---------- */
+.prose { color: var(--wm-ink-soft); }
+.prose h1, .prose h2, .prose h3, .prose h4 { color: var(--wm-ink); }
 .prose a {
-  color: rgba(255,255,255,0.9);
+  color: var(--wm-primary);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 .prose code {
-  background: rgba(255,255,255,0.1);
-  color: #e0e0e0;
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.9em;
+  background: var(--wm-panel);
+  color: var(--wm-primary);
+  padding: 0.12em 0.35em;
+  border-radius: 0;
+  font-size: 0.85em;
+  border: 1px dotted var(--wm-dotted);
 }
 .prose pre {
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
+  background: var(--wm-panel);
+  border: 1px solid var(--wm-line);
+  border-radius: 0;
 }
 .prose blockquote {
-  border-left: 3px solid rgba(255,255,255,0.3);
-  color: rgba(255,255,255,0.6);
+  border-left: 3px solid var(--wm-primary);
+  color: var(--wm-muted);
+  font-style: normal;
 }
 .prose table th {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
+  background: var(--wm-panel);
+  color: var(--wm-ink);
 }
-.prose table td {
-  border-color: rgba(255,255,255,0.1);
-}
-.prose hr {
-  border-color: rgba(255,255,255,0.1);
-}
-.prose strong {
-  color: #fff;
-}
+.prose table td { border-color: var(--wm-line); }
+.prose hr { border-color: var(--wm-dotted); border-top-style: dotted; }
+.prose strong { color: var(--wm-ink); }
+.prose em { color: var(--wm-ink-soft); }
 
-/* Scrollbar */
+/* ---------- Scrollbar & selection ---------- */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+::-webkit-scrollbar-track { background: var(--wm-paper); }
+::-webkit-scrollbar-thumb { background: var(--wm-dotted); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--wm-primary); }
+::selection { background: var(--wm-primary); color: var(--wm-on-primary); }
 
-/* Selection */
-::selection {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
-}
-
-/* Clawd Browser Pet */
+/* ---------- Clawd Browser Pet (kept, reskinned) ---------- */
 .clawd-pet {
   position: fixed;
   bottom: 20px;
@@ -194,11 +269,11 @@ h1, h2, h3 {
   user-select: none;
   touch-action: none;
   will-change: transform;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
   animation: clawd-float 3s ease-in-out infinite;
 }
 .clawd-pet:active { cursor: grabbing; }
-.clawd-pet:hover { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5)) brightness(1.1); }
+.clawd-pet:hover { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35)) brightness(1.05); }
 @keyframes clawd-float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   25% { transform: translateY(-6px) rotate(0.5deg); }
@@ -207,13 +282,13 @@ h1, h2, h3 {
 .clawd-speech {
   position: fixed;
   z-index: 201;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 12px;
+  background: var(--wm-ink);
+  border: 1px solid var(--wm-line);
+  border-radius: 0;
   padding: 8px 14px;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: #fff;
+  color: var(--wm-paper);
   max-width: 220px;
   pointer-events: none;
   opacity: 0;
@@ -221,7 +296,7 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
-/* SpaceX-style dropdown menus */
+/* ---------- Dropdown menus ---------- */
 .upcoming-dropdown, .lang-dropdown { position: relative; }
 .upcoming-menu, .lang-menu {
   display: none;
@@ -244,7 +319,7 @@ h1, h2, h3 {
   transform: translateY(0);
 }
 
-/* SpaceX-style animated hamburger */
+/* ---------- Animated hamburger ---------- */
 .spacex-hamburger {
   background: transparent;
   border: none;
@@ -260,7 +335,7 @@ h1, h2, h3 {
   position: absolute;
   height: 1.5px;
   width: 30px;
-  background: #ffffff;
+  background: var(--wm-ink);
   opacity: 1;
   left: 5px;
   transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
@@ -282,35 +357,3 @@ h1, h2, h3 {
   top: 19px;
   transform: rotate(-45deg);
 }
-
-/* ===== Light Theme ===== */
-html.light .video-bg,
-html.light .video-overlay { display: none; }
-html.light body { background: #f0f2f5; }
-html.light h1, html.light h2, html.light h3, html.light h4,
-html.light strong, html.light b { color: #1a1a2e; }
-html.light p, html.light li, html.light span, html.light a, html.light time { color: #333; }
-html.light .prose, html.light .prose * { color: #1a1a2e; }
-html.light .prose a { color: #2563eb; }
-html.light .prose code { color: #d63384; background: rgba(0,0,0,0.06); }
-html.light .prose pre { background: #f8f9fa; border-color: rgba(0,0,0,0.1); }
-html.light .glass-header { background: rgba(255,255,255,0.85); border-bottom-color: rgba(0,0,0,0.08); }
-html.light .glass-card { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
-html.light .glass-card:hover { background: #fff; }
-html.light .glass-header a, html.light .nav-link { color: #333; }
-html.light .nav-link:hover { color: #000; }
-html.light .post-meta { color: #666; }
-html.light .post-desc { color: #444; }
-html.light footer { color: #888; }
-html.light footer a { color: #666; }
-html.light .spacex-hamburger span { background: #333; }
-html.light ::selection { background: rgba(0,0,0,0.1); color: #1a1a2e; }
-html.light #mobile-menu { background: rgba(255,255,255,0.95); }
-html.light #mobile-menu a { color: #1a1a2e; }
-html.light .sort-btn { color: #888; }
-html.light .sort-btn.active { color: #1a1a2e; }
-html.light aside a, html.light aside span, html.light aside p { color: #333; }
-html.light .upcoming-menu p, html.light .lang-menu a { color: #333; }
-.sort-btn { color: rgba(255,255,255,0.5); }
-.sort-btn.active { color: #fff; font-weight: 600; }
-

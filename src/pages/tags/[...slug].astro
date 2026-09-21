@@ -26,7 +26,7 @@ const meta = {
 <PageLayout meta={meta}>
   <div class="mb-8">
     <h1 class="text-2xl md:text-3xl font-bold mb-1">#{slug}</h1>
-    <p class="text-white/40 text-sm">{tagPosts.length} post{tagPosts.length !== 1 ? 's' : ''}</p>
+    <p class="font-mono text-xs" style="color: var(--wm-muted)">{tagPosts.length} post{tagPosts.length !== 1 ? 's' : ''}</p>
   </div>
 
   <div class="flex flex-col gap-4">
@@ -41,7 +41,7 @@ const meta = {
         )}
         <div class="flex flex-wrap gap-1 mt-2">
           {p.data.tags.map((tag) => (
-            <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/40">
+            <span class="text-xs font-mono px-2 py-0.5 border" style="border-color: var(--wm-line); color: var(--wm-muted)">
               {tag}
             </span>
           ))}
@@ -51,6 +51,6 @@ const meta = {
   </div>
 
   <div class="mt-8 text-center">
-    <a href="/tags/" class="text-white/40 hover:text-white/70 transition-colors text-sm">&larr; All Tags</a>
+    <a href="/tags/" class="transition-colors text-sm font-mono" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">&larr; All Tags</a>
   </div>
 </PageLayout>
