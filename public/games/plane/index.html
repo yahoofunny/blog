@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞机大战 - Plane War</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- 游戏UI界面 -->
+        <div id="gameUI">
+            <div id="gameHUD" class="hud hidden">
+                <!-- 左上角：生存状态 -->
+                <div class="hud-section hud-survival">
+                    <div class="hud-item lives-item">
+                        <div id="livesContainer" class="lives-container">
+                            <span class="heart">♥</span>
+                            <span class="heart">♥</span>
+                            <span class="heart">♥</span>
+                        </div>
+                    </div>
+                    <div class="hud-item hp-item">
+                        <div class="hp-container">
+                            <span id="hp" class="hp-text">100/100</span>
+                            <div class="hp-bar-container">
+                                <div id="hpBar" class="hp-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右上角：分数和等级 -->
+                <div class="hud-section hud-stats">
+                    <div class="hud-item score-item">
+                        <div class="stat-container">
+                            <span class="stat-icon">🏆</span>
+                            <span id="score" class="stat-value">0</span>
+                        </div>
+                    </div>
+                    <div class="hud-item level-item">
+                        <div class="stat-container">
+                            <span class="stat-icon">⭐</span>
+                            <span id="level" class="stat-value">1</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 左下角：武器信息 -->
+                <div class="hud-section hud-weapons">
+                    <div class="hud-item weapon-item">
+                        <div class="weapon-container">
+                            <span class="weapon-label">主武器</span>
+                            <span id="primaryWeapon" class="weapon-name">基础武器</span>
+                            <span id="weaponLevel" class="weapon-level">Lv.1</span>
+                        </div>
+                    </div>
+                    <div class="hud-item weapon-item">
+                        <div class="weapon-container">
+                            <span class="weapon-label">副武器</span>
+                            <span id="secondaryWeapons" class="weapon-name">无</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右下角：状态效果 -->
+                <div class="hud-section hud-effects">
+                    <div class="score-multiplier" id="scoreMultiplier" style="display: none;">
+                        <span class="effect-icon">✨</span>
+                        <span class="effect-value" id="scoreMultiplierValue">x1</span>
+                    </div>
+                    <div class="combo-display" id="comboDisplay" style="display: none;">
+                        <span class="combo-icon">⚡</span>
+                        <span class="combo-value" id="comboValue">0</span>
+                        <span class="combo-text">连击</span>
+                    </div>
+                    <div class="wingman-count" id="wingmanCount" style="display: none;">
+                        <span class="wingman-icon">🛩️</span>
+                        <span class="wingman-value" id="wingmanValue">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 主菜单 -->
+            <div id="mainMenu" class="menu">
+                <h1>飞机大战</h1>
+                <button id="startGame" class="menu-btn">开始游戏</button>
+                <button id="showSettings" class="menu-btn">游戏设置</button>
+                <button id="showLeaderboard" class="menu-btn">排行榜</button>
+                <button id="showAchievements" class="menu-btn">成就系统</button>
+            </div>
+            
+            <!-- 暂停菜单 -->
+            <div id="pauseMenu" class="menu hidden">
+                <h2>游戏暂停</h2>
+                <button id="resumeGame" class="menu-btn">继续游戏</button>
+                <button id="restartGame" class="menu-btn">重新开始</button>
+                <button id="backToMain" class="menu-btn">返回主菜单</button>
+            </div>
+            
+            <!-- 游戏结束界面 -->
+            <div id="gameOverMenu" class="menu hidden">
+                <h2>游戏结束</h2>
+                <p>最终分数: <span id="finalScore">0</span></p>
+                <button id="retryGame" class="menu-btn">重新开始</button>
+                <button id="shareScore" class="menu-btn">分享分数</button>
+                <button id="backToMainFromGameOver" class="menu-btn">返回主菜单</button>
+            </div>
+            
+            <!-- 设置界面 -->
+            <div id="settingsMenu" class="menu hidden">
+                <h2>游戏设置</h2>
+                <div class="setting-item">
+                    <label>生命数量:</label>
+                    <select id="playerLives">
+                        <option value="1">1条命 (100血)</option>
+                        <option value="2">2条命 (200血)</option>
+                        <option value="3">3条命 (300血)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>音效音量:</label>
+                    <input type="range" id="soundVolume" min="0" max="100" value="50">
+                </div>
+                <div class="setting-item">
+                    <label>音乐音量:</label>
+                    <input type="range" id="musicVolume" min="0" max="100" value="30">
+                </div>
+                <div class="setting-item">
+                    <label>控制方式:</label>
+                    <select id="controlType">
+                        <option value="keyboard">键盘控制</option>
+                        <option value="mouse">鼠标控制</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>调试模式:</label>
+                    <input type="checkbox" id="debugMode">
+                    <span class="checkbox-label">显示调试信息</span>
+                </div>
+                <button id="backToMainFromSettings" class="menu-btn">返回</button>
+            </div>
+            
+            <!-- 排行榜 -->
+            <div id="leaderboardMenu" class="menu hidden">
+                <h2>排行榜</h2>
+                <div id="leaderboardList"></div>
+                <button id="backToMainFromLeaderboard" class="menu-btn">返回</button>
+            </div>
+            
+            <!-- 成就系统 -->
+            <div id="achievementsMenu" class="menu hidden">
+                <h2>成就系统</h2>
+                <div id="achievementsList"></div>
+                <button id="backToMainFromAchievements" class="menu-btn">返回</button>
+            </div>
+        </div>
+        
+        <!-- 控制说明 -->
+        <div id="controls" class="controls">
+            <p>WASD/方向键: 移动 | 空格: 射击 | ESC: 暂停 | B: 召唤Boss | V: 查看Boss状态</p>
+        </div>
+    </div>
+    
+    <!-- 音频文件 -->
+    <audio id="bgMusic" loop>
+        <source src="audio/background.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="shootSound">
+        <source src="audio/shoot.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="explosionSound">
+        <source src="audio/explosion.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="powerupSound">
+        <source src="audio/powerup.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- 加载游戏脚本 -->
+    <script src="js/utils/Vector2D.js"></script>
+    <script src="js/utils/ObjectPool.js"></script>
+    <script src="js/utils/ParticleSystem.js"></script>
+    <script src="js/core/GameObject.js"></script>
+    <script src="js/core/InputManager.js"></script>
+    <script src="js/core/AudioGenerator.js"></script>
+    <script src="js/core/AudioManager.js"></script>
+    <script src="js/core/ImageManager.js"></script>
+    <script src="js/core/GameStateManager.js"></script>
+    <script src="js/core/AchievementManager.js"></script>
+    <script src="js/entities/Enemy.js"></script>
+    <script src="js/entities/Boss.js"></script>
+    <script src="js/entities/Bullet.js"></script>
+    <script src="js/entities/PowerUp.js"></script>
+    <script src="js/entities/Wingman.js"></script>
+    <script src="js/entities/Player.js"></script>
+    <script src="js/debug/DebugCommands.js"></script>
+    <script src="js/Game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 

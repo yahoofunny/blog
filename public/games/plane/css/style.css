@@ -1,0 +1,606 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    color: #ffffff;
+    overflow: visible !important;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameContainer {
+    position: relative;
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    background: #000;
+    overflow: visible !important;
+}
+
+#gameCanvas {
+    display: block;
+    background: linear-gradient(180deg, #001122 0%, #003366 50%, #002244 100%);
+}
+
+/* UI界面样式 */
+#gameUI {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible !important;
+    z-index: 100;
+}
+
+/* 菜单容器 - 独立的居中布局 */
+#gameUI > .menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* HUD显示 - 重新设计 */
+.hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+    padding: 15px;
+    display: none !important; /* 默认隐藏，!important确保优先级 */
+}
+
+/* 只在游戏进行时显示HUD */
+body.game-playing .hud {
+    display: grid !important;
+    grid-template-areas: 
+        "survival stats"
+        "weapons effects";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 15px;
+}
+
+/* HUD区域定位 */
+.hud-survival {
+    grid-area: survival;
+    justify-self: start;
+    align-self: start;
+}
+
+.hud-stats {
+    grid-area: stats;
+    justify-self: end;
+    align-self: start;
+}
+
+.hud-weapons {
+    grid-area: weapons;
+    justify-self: start;
+    align-self: end;
+}
+
+.hud-effects {
+    grid-area: effects;
+    justify-self: end;
+    align-self: end;
+}
+
+/* HUD区域样式 */
+.hud-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* HUD项目基础样式 */
+.hud-item {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(0, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 8px 12px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.hud-item:hover {
+    border-color: rgba(0, 255, 255, 0.9);
+    box-shadow: 0 6px 20px rgba(0, 255, 255, 0.5);
+}
+
+/* 生命爱心显示 */
+.lives-item {
+    padding: 6px 10px;
+}
+
+.lives-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.heart {
+    color: #ff0066;
+    font-size: 20px;
+    text-shadow: 0 0 8px rgba(255, 0, 102, 0.8);
+    transition: all 0.3s ease;
+    animation: heartbeat 2s ease-in-out infinite;
+}
+
+.heart.lost {
+    color: #444444;
+    text-shadow: none;
+    animation: none;
+    opacity: 0.4;
+}
+
+@keyframes heartbeat {
+    0%, 50%, 100% {
+        transform: scale(1);
+    }
+    25%, 75% {
+        transform: scale(1.15);
+    }
+}
+
+/* 血量显示 */
+.hp-item {
+    min-width: 140px;
+}
+
+.hp-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.hp-text {
+    color: #00ffff;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+}
+
+.hp-bar-container {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    border: 1px solid #00ffff;
+    overflow: hidden;
+    position: relative;
+}
+
+.hp-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #44ff44);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+    width: 100%;
+    position: relative;
+}
+
+.hp-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* 统计数据显示 */
+.stat-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-icon {
+    font-size: 18px;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.8));
+}
+
+.stat-value {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 16px;
+    text-shadow: 0 0 5px rgba(255, 255, 0, 0.8);
+    min-width: 60px;
+    text-align: right;
+}
+
+/* 武器信息显示 */
+.weapon-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 120px;
+}
+
+.weapon-label {
+    color: #aaaaaa;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.weapon-name {
+    color: #00ffff;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: 0 0 3px rgba(0, 255, 255, 0.6);
+}
+
+.weapon-level {
+    color: #ffff00;
+    font-size: 11px;
+    text-shadow: 0 0 3px rgba(255, 255, 0, 0.6);
+}
+
+/* 状态效果显示 */
+.effect-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 0, 0.6);
+    border-radius: 8px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    backdrop-filter: blur(3px);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.effect-item.hidden {
+    display: none;
+}
+
+.effect-icon {
+    font-size: 14px;
+}
+
+.effect-text {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: 0 0 3px rgba(255, 255, 0, 0.6);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(255, 255, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(255, 255, 0, 0.6);
+    }
+}
+
+/* 菜单样式 */
+.menu {
+    background: rgba(0, 0, 50, 0.95);
+    border: 2px solid #00ffff;
+    border-radius: 15px;
+    padding: 30px;
+    min-width: 300px;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.menu h1 {
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.menu h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #00ffff;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
+.menu-btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px 24px;
+    background: linear-gradient(45deg, #003366, #0066cc);
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.menu-btn:hover {
+    background: linear-gradient(45deg, #0066cc, #0099ff);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+.menu-btn:active {
+    transform: translateY(0);
+}
+
+/* 设置界面样式 */
+.setting-item {
+    margin: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1001;
+}
+
+.setting-item label {
+    font-size: 16px;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff;
+    flex: 1;
+    text-align: left;
+}
+
+.setting-item select,
+.setting-item input {
+    background: #003366;
+    color: #ffffff;
+    border: 1px solid #00ffff;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 14px;
+    outline: none;
+    appearance: menulist;
+    -webkit-appearance: menulist;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1002;
+}
+
+.setting-item select:focus,
+.setting-item input:focus {
+    box-shadow: 0 0 8px #00ffff;
+    border-color: #66ffff;
+}
+
+.setting-item select option {
+    background: #003366;
+    color: #ffffff;
+}
+
+/* 自定义下拉框样式增强 */
+.custom-dropdown {
+    position: relative !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+.custom-options {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3) !important;
+}
+
+/* 排行榜样式 */
+#leaderboardList {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 20px 0;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    margin: 5px 0;
+    background: rgba(0, 51, 102, 0.3);
+    border-radius: 5px;
+    border-left: 3px solid #00ffff;
+}
+
+/* 成就系统样式 */
+#achievementsList {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 8px 0;
+    background: rgba(0, 51, 102, 0.2);
+    border-radius: 8px;
+    border-left: 4px solid #ffaa00;
+}
+
+.achievement-item.completed {
+    border-left-color: #00ff00;
+    background: rgba(0, 102, 51, 0.2);
+}
+
+.achievement-icon {
+    width: 40px;
+    height: 40px;
+    background: #ffaa00;
+    border-radius: 50%;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.achievement-item.completed .achievement-icon {
+    background: #00ff00;
+}
+
+.achievement-info {
+    flex: 1;
+    text-align: left;
+}
+
+.achievement-title {
+    font-weight: bold;
+    color: #00ffff;
+    margin-bottom: 5px;
+}
+
+.achievement-description {
+    font-size: 12px;
+    color: #cccccc;
+}
+
+/* 控制说明 */
+.controls {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #00ffff;
+    font-size: 12px;
+    color: #00ffff;
+    pointer-events: none;
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none !important;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -60%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.menu {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* 响应式设计 */
+@media (max-width: 900px) {
+    #gameContainer {
+        border: none;
+        border-radius: 0;
+    }
+    
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+    }
+    
+    .menu {
+        width: 90%;
+        max-width: 400px;
+    }
+    
+    .controls {
+        font-size: 10px;
+        bottom: 5px;
+    }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #00ffff;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #0099cc;
+}
+
+/* 连击显示 */
+.combo-display {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(255, 100, 0, 0.2);
+    border: 2px solid #ff6600;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 100, 0, 0.3);
+    animation: comboGlow 1s ease-in-out infinite alternate;
+}
+
+.combo-icon {
+    font-size: 16px;
+    color: #ffaa00;
+}
+
+.combo-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 0 5px #ff6600;
+}
+
+.combo-text {
+    font-size: 12px;
+    color: #ffccaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@keyframes comboGlow {
+    from {
+        box-shadow: 0 0 10px rgba(255, 100, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 0 20px rgba(255, 100, 0, 0.6);
+    }
+} 

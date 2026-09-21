@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Games — bt's Arcade</title>
+<meta name="theme-color" content="#0000f2" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #fdfdfd; --panel: #f5f5f5; --card: #ffffff;
+    --ink: #111; --soft: #4a4a4a; --muted: #8a8a8a;
+    --primary: #0000f2; --on-primary: #fff;
+    --line: rgba(17,17,17,0.14); --dotted: #c9c9c9;
+    --shadow-hair: 0 1px 2px rgba(17,17,17,0.07);
+    --shadow-lift: 0 14px 28px -14px rgba(0,0,242,0.25);
+    --display: "Oswald", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "Courier Prime", ui-monospace, Menlo, Consolas, monospace;
+    --body: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; }
+  .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
+  .brand small { color: var(--muted); letter-spacing: 0.08em; }
+  main { padding: 48px 0 64px; }
+  .kicker { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--primary); margin-bottom: 10px; }
+  h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.2rem, 6vw, 3.4rem); letter-spacing: 0.01em; text-transform: uppercase; }
+  .sub { font-family: var(--mono); font-size: 0.85rem; color: var(--soft); margin: 12px 0 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .card {
+    display: block; background: var(--card); border: 1px solid var(--line);
+    box-shadow: var(--shadow-hair); padding: 24px; text-decoration: none; color: inherit;
+    transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
+  }
+  .card:hover { border-color: var(--primary); box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+  .card .tag { font-family: var(--mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+  .card h2 { font-family: var(--display); font-weight: 600; font-size: 1.4rem; margin: 8px 0 6px; }
+  .card p { font-size: 0.85rem; line-height: 1.6; color: var(--soft); }
+  .card .go { display: inline-block; margin-top: 14px; font-family: var(--mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); }
+  footer { border-top: 1px dotted var(--dotted); padding: 20px 0 32px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+  footer a { color: var(--primary); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="https://blog-6rb.pages.dev/">bt <small>/ arcade</small></a>
+  </header>
+  <main>
+    <p class="kicker">free &amp; open source</p>
+    <h1>bt's Arcade</h1>
+    <p class="sub">// 免费开源浏览器游戏 · 全部本地托管 · 手机/电脑都能玩</p>
+    <div class="grid">
+      <a class="card" href="/games/plane/">
+        <span class="tag">Shoot 'em up</span>
+        <h2>飞机大战</h2>
+        <p>全民飞机大战风格：5 级武器升级、6 种敌机、4 种 Boss、僚机与护盾炸弹道具。WASD/方向键移动，空格射击，支持触屏。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
+      <a class="card" href="/games/agar/">
+        <span class="tag">Arcade / io</span>
+        <h2>大球吃小球</h2>
+        <p>agar.io 单机版：吃小球长大，躲避大球。纯原生 JS，加载极快。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
+      <a class="card" href="/games/suika/">
+        <span class="tag">Puzzle</span>
+        <h2>合成大西瓜</h2>
+        <p>当年爆火的 Suika 玩法：水果掉落合成，越大分越高，小心爆框。触屏友好。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
+      <a class="card" href="https://wangzifan396-wzf.github.io/mini-browser-games/" target="_blank" rel="noopener">
+        <span class="tag">Collection</span>
+        <h2>小游戏合集 &times;124</h2>
+        <p>124 款零依赖单文件小游戏：闯关、益智、射击、桌游应有尽有（外链到开源项目官方托管）。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
+    </div>
+  </main>
+  <footer>games hosted on Cloudflare Pages · 回博客：<a href="https://blog-6rb.pages.dev/">blog-6rb.pages.dev</a></footer>
+</div>
+</body>
+</html>
