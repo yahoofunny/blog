@@ -41,8 +41,11 @@
     transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
   }
   .card:hover { border-color: var(--primary); box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+  .card .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .card .tag { font-family: var(--mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
-  .card h2 { font-family: var(--display); font-weight: 600; font-size: 1.4rem; margin: 8px 0 6px; }
+  .card .dev { font-family: var(--mono); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; padding: 2px 6px; border: 1px solid var(--line); color: var(--soft); white-space: nowrap; }
+  .card .dev.mobile { color: var(--primary); border-color: var(--primary); }
+  .card h2 { font-family: var(--display); font-weight: 600; font-size: 1.4rem; margin: 10px 0 6px; }
   .card p { font-size: 0.85rem; line-height: 1.6; color: var(--soft); }
   .card .go { display: inline-block; margin-top: 14px; font-family: var(--mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); }
   footer { border-top: 1px dotted var(--dotted); padding: 20px 0 32px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
@@ -60,27 +63,39 @@
     <p class="sub">// 免费开源浏览器游戏 · 全部本地托管 · 手机/电脑都能玩</p>
     <div class="grid">
       <a class="card" href="/games/plane/">
-        <span class="tag">Shoot 'em up</span>
+        <div class="top"><span class="tag">Shoot 'em up</span><span class="dev mobile">📱 手机可玩</span></div>
         <h2>飞机大战</h2>
-        <p>全民飞机大战风格：5 级武器升级、6 种敌机、4 种 Boss、僚机与护盾炸弹道具。WASD/方向键移动，空格射击，支持触屏。</p>
+        <p>全民飞机大战风格：5 级武器升级、6 种敌机、4 种 Boss、僚机与护盾炸弹道具。手机触屏直接玩。</p>
         <span class="go">Play &rarr;</span>
       </a>
       <a class="card" href="/games/agar/">
-        <span class="tag">Arcade / io</span>
+        <div class="top"><span class="tag">Arcade / io</span><span class="dev mobile">📱 手机可玩</span></div>
         <h2>大球吃小球</h2>
-        <p>agar.io 单机版：吃小球长大，躲避大球。纯原生 JS，加载极快。</p>
+        <p>agar.io 单机版：手指拖动控制小球，吃小球长大，躲避大球。已加触屏支持。</p>
         <span class="go">Play &rarr;</span>
       </a>
       <a class="card" href="/games/suika/">
-        <span class="tag">Puzzle</span>
+        <div class="top"><span class="tag">Puzzle</span><span class="dev mobile">📱 手机可玩</span></div>
         <h2>合成大西瓜</h2>
-        <p>当年爆火的 Suika 玩法：水果掉落合成，越大分越高，小心爆框。触屏友好。</p>
+        <p>爆火的 Suika 玩法：水果掉落合成，越大分越高，小心爆框。移动端原生适配。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
+      <a class="card" href="/games/celeste/ccleste.html">
+        <div class="top"><span class="tag">Platformer</span><span class="dev">🖥 电脑/手柄</span></div>
+        <h2>蔚蓝 Celeste</h2>
+        <p>蔚蓝原版（Celeste Classic）网页移植：方向键移动，Z/C 跳跃，X/V 冲刺。手机想玩请走下方 PICO-8 版。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
+      <a class="card" href="https://www.lexaloffle.com/bbs/?tid=2145" target="_blank" rel="noopener">
+        <div class="top"><span class="tag">Platformer</span><span class="dev mobile">📱 手机可玩</span></div>
+        <h2>蔚蓝 · PICO-8 原版</h2>
+        <p>官方 BBS 的 PICO-8 原版卡带，网页播放器自带触屏按钮，手机也能爬蔚蓝山（外链）。</p>
         <span class="go">Play &rarr;</span>
       </a>
       <a class="card" href="https://wangzifan396-wzf.github.io/mini-browser-games/" target="_blank" rel="noopener">
-        <span class="tag">Collection</span>
+        <div class="top"><span class="tag">Collection</span><span class="dev mobile">📱 手机可玩</span></div>
         <h2>小游戏合集 &times;124</h2>
-        <p>124 款零依赖单文件小游戏：闯关、益智、射击、桌游应有尽有（外链到开源项目官方托管）。</p>
+        <p>124 款零依赖单文件小游戏：闯关、益智、射击、桌游应有尽有，桌面/触屏双支持（外链开源项目官方托管）。</p>
         <span class="go">Play &rarr;</span>
       </a>
     </div>

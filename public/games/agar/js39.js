@@ -245,3 +245,13 @@ return [a[0]*c,a[1]*c];
 }
 
 gameLoop();
+/* ==== bt's arcade: mobile touch shim ==== */
+(function(){
+  function fire(type, t){
+    var e = new MouseEvent(type, {clientX:t.clientX, clientY:t.clientY, bubbles:true, cancelable:true});
+    canvas.dispatchEvent(e);
+  }
+  canvas.style.touchAction = 'none';
+  canvas.addEventListener('touchstart', function(ev){ ev.preventDefault(); fire('mousemove', ev.touches[0]); }, {passive:false});
+  canvas.addEventListener('touchmove', function(ev){ ev.preventDefault(); fire('mousemove', ev.touches[0]); }, {passive:false});
+})();
