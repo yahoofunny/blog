@@ -79,13 +79,42 @@ html.dark {
 /* ---------- Base ---------- */
 html { overflow-x: hidden; }
 body.wm-body {
-  background: var(--wm-paper);
+  position: relative;
+  background-color: var(--wm-paper);
   color: var(--wm-ink);
   font-family: var(--font-body);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 背景图：模糊铺满四周 + 原图清晰居中（适配任意屏幕尺寸） */
+body.wm-body::before,
+body.wm-body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+body.wm-body::before {
+  background-image: url("/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px);
+  transform: scale(1.08);
+}
+body.wm-body::after {
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--wm-paper) 42%, transparent),
+      color-mix(in srgb, var(--wm-paper) 42%, transparent)
+    ),
+    url("/bg.jpg");
+  background-size: 100% 100%, contain;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
 }
 
 h1, h2, h3, h4 {
