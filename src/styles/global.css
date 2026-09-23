@@ -117,6 +117,17 @@ body.wm-body::after {
   background-position: center, center;
 }
 
+/* 桌面横屏：去掉居中竖幅原图，只留全幅模糊铺满（色彩连贯） */
+@media (min-aspect-ratio: 3/4) {
+  body.wm-body::after {
+    background-image: linear-gradient(
+      color-mix(in srgb, var(--wm-paper) 42%, transparent),
+      color-mix(in srgb, var(--wm-paper) 42%, transparent)
+    );
+    background-size: 100% 100%;
+  }
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 600;

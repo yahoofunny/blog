@@ -70,6 +70,12 @@
     background-repeat: no-repeat, no-repeat;
     background-position: center, center;
   }
+  @media (min-aspect-ratio: 3/4) {
+    body::after {
+      background-image: linear-gradient(color-mix(in srgb, var(--paper) 42%, transparent), color-mix(in srgb, var(--paper) 42%, transparent));
+      background-size: 100% 100%;
+    }
+  }
   .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
   header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; display: flex; align-items: center; justify-content: space-between; }
   .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
