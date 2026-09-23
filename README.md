@@ -32,7 +32,7 @@
 新增游戏：把静态文件放进 `public/games/<name>/`，在 `public/games/index.html` 加卡片即可。
 
 ### 交互
-- **🦞 Clawd 桌宠** — 右下角像素螃蟹，点击切换姿态+说话，拖拽移动，双击问候，定时主动搭话。25+ 句 bt 主题对话
+- **<img src="public/clawd-icon.svg" width="18" alt="Clawd"> Clawd 桌宠** — 右下角像素螃蟹，点击切换姿态+说话，拖拽移动，双击问候，定时主动搭话。25+ 句 bt 主题对话
 - **Giscus 评论区** — GitHub Discussions 驱动，无需第三方服务
 
 ### 导航
