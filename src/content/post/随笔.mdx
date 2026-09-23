@@ -8,6 +8,7 @@ pinned: true
 ---
 import { Image } from 'astro:assets';
 import mc1 from '@/assets/mc1.png';
+import ielts from '@/assets/ielts.jpg';
 
 <div style="background:var(--wm-panel);border:1px solid var(--wm-line);border-radius:0;padding:1rem;margin:1rem 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
   <span style="font-size:1.5rem;flex-shrink:0;">🎵</span>
@@ -35,6 +36,9 @@ import mc1 from '@/assets/mc1.png';
 <Image src={mc1} alt="first minecraft" width={800} />
 
 今天玩 MC 真的很开心，搭建属于自己的世界，就像搭建这个博客一样，一点一滴都是心血。
+
+{/* 雅思成绩单 */}
+<Image src={ielts} alt="IELTS score report" width={800} />
 
 <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 0; margin: 2rem 0; border: 1px solid var(--wm-line);">
   <iframe 
