@@ -58,9 +58,8 @@
     content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   }
   body::before {
-    background-image: url('/bg-4k.jpg');
+    background-image: url('/bg-wide.jpg');
     background-size: cover; background-position: center;
-    filter: blur(10px); transform: scale(1.08);
   }
   body::after {
     background-image:
@@ -71,9 +70,6 @@
     background-position: center, center;
   }
   @media (min-aspect-ratio: 3/4) {
-    body::before {
-      filter: none; transform: none;
-    }
     body::after {
       background-image: linear-gradient(color-mix(in srgb, var(--paper) 50%, transparent), color-mix(in srgb, var(--paper) 50%, transparent));
       background-size: 100% 100%;

@@ -99,11 +99,9 @@ body.wm-body::after {
   pointer-events: none;
 }
 body.wm-body::before {
-  background-image: url("/bg-4k.jpg");
+  background-image: url("/bg-wide.jpg");
   background-size: cover;
   background-position: center;
-  filter: blur(10px);
-  transform: scale(1.08);
 }
 body.wm-body::after {
   background-image:
@@ -117,12 +115,8 @@ body.wm-body::after {
   background-position: center, center;
 }
 
-/* 桌面横屏：取消模糊，4K 原图锐利铺满；蒙层加深保证文字可读 */
+/* 桌面横屏：横版扩图锐利铺满；蒙层加深保证文字可读 */
 @media (min-aspect-ratio: 3/4) {
-  body.wm-body::before {
-    filter: none;
-    transform: none;
-  }
   body.wm-body::after {
     background-image: linear-gradient(
       color-mix(in srgb, var(--wm-paper) 50%, transparent),
