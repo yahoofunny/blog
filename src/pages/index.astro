@@ -7,6 +7,7 @@ import { siteConfig } from "@/site.config";
 
 const allPosts = await getAllPosts();
 const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"post">[];
+const displayPosts = [...allSortedPosts.filter((p) => p.data.pinned), ...allSortedPosts.filter((p) => !p.data.pinned)];
 ---
 
 <PageLayout meta={{ title: "Home" }}>
@@ -28,9 +29,10 @@ const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"pos
   </div>
 
   <div class="flex flex-col gap-4" id="post-list">
-    {allSortedPosts.map((p) => (
-      <a href={`/posts/${p.id}/`} class="glass-card block post-item" data-date={p.data.publishDate.toISOString()} data-title={p.data.title}>
+    {displayPosts.map((p) => (
+      <a href={`/posts/${p.id}/`} class="glass-card block post-item" data-date={p.data.publishDate.toISOString()} data-title={p.data.title} data-pinned={p.data.pinned ? "1" : "0"}>
         <p class="post-meta">
+          {p.data.pinned && <span class="mr-2" style="color: var(--wm-primary); font-weight: 700">📌 PINNED</span>}
           {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
         </p>
         <h2 class="text-xl font-semibold">{p.data.title}</h2>
@@ -55,6 +57,8 @@ const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"pos
 
         var sort = btn.dataset.sort;
         var sorted = items.slice().sort(function(a, b){
+          var pa = a.dataset.pinned === '1', pb = b.dataset.pinned === '1';
+          if (pa !== pb) return pa ? -1 : 1;   // 置顶文章永远排最前
           if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
           if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
           if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, 'zh-CN');
