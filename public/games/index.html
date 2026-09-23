@@ -71,8 +71,11 @@
     background-position: center, center;
   }
   @media (min-aspect-ratio: 3/4) {
+    body::before {
+      filter: none; transform: none;
+    }
     body::after {
-      background-image: linear-gradient(color-mix(in srgb, var(--paper) 42%, transparent), color-mix(in srgb, var(--paper) 42%, transparent));
+      background-image: linear-gradient(color-mix(in srgb, var(--paper) 50%, transparent), color-mix(in srgb, var(--paper) 50%, transparent));
       background-size: 100% 100%;
     }
   }
