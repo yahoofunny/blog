@@ -18,11 +18,11 @@ const bodyText = post.body || "";
 const wordCount = bodyText.replace(/\s+/g, "").length;
 const readingTime = Math.max(1, Math.round(wordCount / 400));
 
-// Build TOC
+// Build TOC (strip inline HTML like star markers from heading text)
 let tocHtml = '<p style="color: var(--wm-muted); font-style: italic; font-size: 0.75rem">No sections</p>';
 if (headings.length > 0) {
   tocHtml = headings.map((h: any) =>
-    `<a href="#${h.slug}" class="block py-0.5 transition-colors text-xs" style="padding-left:${(h.depth-1)*0.8}rem; color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'">${h.text}</a>`
+    `<a href="#${h.slug}" class="block py-0.5 transition-colors text-xs" style="padding-left:${(h.depth-1)*0.8}rem; color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'">${h.text.replace(/<[^>]+>/g, "")}</a>`
   ).join('');
 }
 ---
