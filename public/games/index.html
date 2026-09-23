@@ -58,14 +58,14 @@
     content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   }
   body::before {
-    background-image: url('/bg.jpg');
+    background-image: url('/bg-4k.jpg');
     background-size: cover; background-position: center;
-    filter: blur(28px); transform: scale(1.08);
+    filter: blur(10px); transform: scale(1.08);
   }
   body::after {
     background-image:
       linear-gradient(color-mix(in srgb, var(--paper) 42%, transparent), color-mix(in srgb, var(--paper) 42%, transparent)),
-      url('/bg.jpg');
+      url('/bg-4k.jpg');
     background-size: 100% 100%, contain;
     background-repeat: no-repeat, no-repeat;
     background-position: center, center;

@@ -99,10 +99,10 @@ body.wm-body::after {
   pointer-events: none;
 }
 body.wm-body::before {
-  background-image: url("/bg.jpg");
+  background-image: url("/bg-4k.jpg");
   background-size: cover;
   background-position: center;
-  filter: blur(28px);
+  filter: blur(10px);
   transform: scale(1.08);
 }
 body.wm-body::after {
@@ -111,7 +111,7 @@ body.wm-body::after {
       color-mix(in srgb, var(--wm-paper) 42%, transparent),
       color-mix(in srgb, var(--wm-paper) 42%, transparent)
     ),
-    url("/bg.jpg");
+    url("/bg-4k.jpg");
   background-size: 100% 100%, contain;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
