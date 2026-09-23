@@ -116,7 +116,8 @@
   footer a { color: var(--primary); text-decoration: none; }
 </style>
 <script>
-  if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+  // 默认暗色；只有明确选过亮色才打开亮色
+  if (localStorage.getItem('theme') !== 'light') document.documentElement.classList.add('dark');
 </script>
 </head>
 <body>

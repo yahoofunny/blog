@@ -16,7 +16,8 @@ const { articleDate, description = siteConfig.description, ogImage, title } = me
   <head>
     <BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
     <script is:inline>
-      if (localStorage.getItem('theme') === 'dark') {
+      // 默认暗色；只有明确选过亮色才打开亮色
+      if (localStorage.getItem('theme') !== 'light') {
         document.documentElement.classList.add('dark');
       }
     </script>
