@@ -126,6 +126,25 @@ body.wm-body::after {
   }
 }
 
+/* 暗色模式背景：WatchDogs 粒子壁纸（iframe 动画），替换静态图 */
+#wm-particle {
+  display: none;
+}
+html.dark #wm-particle {
+  display: block;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  border: 0;
+  pointer-events: none;
+}
+html.dark body.wm-body::before,
+html.dark body.wm-body::after {
+  display: none;
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 600;
