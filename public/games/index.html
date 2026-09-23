@@ -86,10 +86,14 @@
   .brand small { color: var(--muted); letter-spacing: 0.08em; }
   .theme-btn {
     background: none; border: none; cursor: pointer;
-    color: var(--muted); padding: 4px;
+    color: var(--soft); padding: 4px;
     transition: color .15s ease, opacity .15s ease;
   }
-  .theme-btn:hover { opacity: 0.7; }
+  html.dark .theme-btn { color: var(--soft); }
+  .theme-btn:hover { color: var(--primary); }
+  .theme-btn svg { width: 20px; height: 20px; display: none; }
+  html:not(.dark) .icon-bulb-off { display: block; }
+  html.dark .icon-bulb-on { display: block; }
   main { padding: 48px 0 64px; }
   .kicker { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--primary); margin-bottom: 10px; }
   h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.2rem, 6vw, 3.4rem); letter-spacing: 0.01em; text-transform: uppercase; }
@@ -118,9 +122,13 @@
 <body>
 <div class="wrap">
   <header>
-    <a class="brand" href="https://blog-6rb.pages.dev/">bt <small>/ arcade</small></a>
+    <a class="brand" href="https://blog-6rb.pages.dev/">
+      <img src="/smiley.svg" alt="bt" width="26" height="26" style="filter: invert(47%) sepia(96%) saturate(3590%) hue-rotate(190deg) brightness(101%) contrast(101%); vertical-align: middle" />
+      <small>/ arcade</small>
+    </a>
     <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">
-      <img id="theme-icon" src="/off.svg" alt="theme" width="20" height="20" />
+      <svg class="icon-bulb-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-.107c0-.795-.496-1.488-1.117-1.984a5 5 0 1 1 6.235 0c-.622.497-1.118 1.189-1.118 1.984V18m-4 0v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2m-4 0h4m-2-3v-2"/></svg>
+      <svg class="icon-bulb-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-.107c0-.795-.496-1.488-1.117-1.984a5 5 0 1 1 6.235 0c-.622.497-1.118 1.189-1.118 1.984V18m-4 0v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2m-4 0h4m6-6h1M4 12H3m9-8V3m5.657 3.343l.707-.707m-12.02.707l-.708-.707M12 15v-2"/></svg>
     </button>
   </header>
   <main>
@@ -189,16 +197,10 @@
 <script>
   (function(){
     var btn = document.getElementById('theme-btn');
-    var icon = document.getElementById('theme-icon');
-    function setTheme(dark){
+    btn.addEventListener('click', function(){
+      var dark = !document.documentElement.classList.contains('dark');
       document.documentElement.classList.toggle('dark', dark);
       localStorage.setItem('theme', dark ? 'dark' : 'light');
-      icon.src = dark ? '/on.svg' : '/off.svg';
-      icon.style.filter = dark ? 'invert(1)' : 'none';
-    }
-    setTheme(document.documentElement.classList.contains('dark'));
-    btn.addEventListener('click', function(){
-      setTheme(!document.documentElement.classList.contains('dark'));
     });
   })();
 </script>
