@@ -3,10 +3,10 @@
   if (!('ontouchstart' in window)) return;
 
   function press(code) {
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: code, key: code }));
+    document.dispatchEvent(new KeyboardEvent('keydown', { code: code, key: code }));
   }
   function release(code) {
-    window.dispatchEvent(new KeyboardEvent('keyup', { code: code, key: code }));
+    document.dispatchEvent(new KeyboardEvent('keyup', { code: code, key: code }));
   }
 
   window.addEventListener('DOMContentLoaded', function () {
