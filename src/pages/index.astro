@@ -32,7 +32,12 @@ const displayPosts = [...allSortedPosts.filter((p) => p.data.pinned), ...allSort
     {displayPosts.map((p) => (
       <a href={`/posts/${p.id}/`} class="glass-card block post-item" data-date={p.data.publishDate.toISOString()} data-title={p.data.title} data-pinned={p.data.pinned ? "1" : "0"}>
         <p class="post-meta">
-          {p.data.pinned && <span class="mr-2" style="color: var(--wm-primary); font-weight: 700">📌 PINNED</span>}
+          {p.data.pinned && (
+            <span class="mr-2 inline-flex items-center gap-1" style="color: var(--wm-primary); font-weight: 700">
+              <svg width="12" height="12" viewBox="0 0 640 640" aria-hidden="true"><path fill="currentColor" d="M160 96c0-17.7 14.3-32 32-32h256c17.7 0 32 14.3 32 32s-14.3 32-32 32h-29.5l10.3 134.1c37.1 21.2 65.8 56.4 78.2 99.7l3.8 13.4c2.8 9.7.8 20-5.2 28.1S490 416 480 416H160c-10 0-19.5-4.7-25.5-12.7s-8-18.4-5.2-28.1l3.7-13.4c12.4-43.3 41-78.5 78.2-99.7L221.5 128H192c-17.7 0-32-14.3-32-32m128 368h64v112c0 17.7-14.3 32-32 32s-32-14.3-32-32z"/></svg>
+              PINNED
+            </span>
+          )}
           {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
         </p>
         <h2 class="text-xl font-semibold">{p.data.title}</h2>
