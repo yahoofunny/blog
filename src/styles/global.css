@@ -126,11 +126,8 @@ body.wm-body::after {
   }
 }
 
-/* 暗色模式背景：WatchDogs 粒子壁纸（iframe 动画），替换静态图 */
+/* 背景：WatchDogs 粒子壁纸（iframe 动画），亮暗模式通用；静态图片层停用 */
 #wm-particle {
-  display: none;
-}
-html.dark #wm-particle {
   display: block;
   position: fixed;
   inset: 0;
@@ -140,8 +137,8 @@ html.dark #wm-particle {
   border: 0;
   pointer-events: none;
 }
-html.dark body.wm-body::before,
-html.dark body.wm-body::after {
+body.wm-body::before,
+body.wm-body::after {
   display: none;
 }
 
