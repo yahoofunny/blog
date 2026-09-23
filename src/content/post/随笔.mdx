@@ -4,29 +4,30 @@ description: "今天终于把博客的插图功能也搞定了！这里是我专
 publishDate: "2026-06-14"
 tags: ["games", "happy", "isolated"]
 updatedDate: "2026-06-14"
+pinned: true
 ---
 import { Image } from 'astro:assets';
 import mc1 from '@/assets/mc1.png';
 
-<div style="background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1rem;margin:1rem 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+<div style="background:var(--wm-panel);border:1px solid var(--wm-line);border-radius:0;padding:1rem;margin:1rem 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
   <span style="font-size:1.5rem;flex-shrink:0;">🎵</span>
   <div style="flex:1;min-width:100px;">
-    <div style="color:#fff;font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My Lullaby</div>
-    <div style="color:rgba(255,255,255,.5);font-size:.75rem;">Cécile Corbel</div>
+    <div style="color:var(--wm-ink);font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My Lullaby</div>
+    <div style="color:var(--wm-muted);font-size:.75rem;">Cécile Corbel</div>
   </div>
   <audio controls style="width:100%;height:32px;margin-top:8px;flex:1;min-width:180px;">
     <source src="/mylullaby.mp3" type="audio/mpeg" />
   </audio>
 </div>
 
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;margin:1rem 0;">
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0;border:1px solid var(--wm-line);margin:1rem 0;">
   <iframe src="//player.bilibili.com/player.html?bvid=BV1Dj64BoE8C&page=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" scrolling="no" allowfullscreen></iframe>
 </div>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;margin:1rem 0;">
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0;border:1px solid var(--wm-line);margin:1rem 0;">
   <iframe src="//player.bilibili.com/player.html?bvid=BV1ZFTG6jEAC&page=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" scrolling="no" allowfullscreen></iframe>
 </div>
 
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;margin:1rem 0;">
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0;border:1px solid var(--wm-line);margin:1rem 0;">
   <iframe src="//player.bilibili.com/player.html?bvid=BV1zRT36SErU&page=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" scrolling="no" allowfullscreen></iframe>
 </div>
 
@@ -35,7 +36,7 @@ import mc1 from '@/assets/mc1.png';
 
 今天玩 MC 真的很开心，搭建属于自己的世界，就像搭建这个博客一样，一点一滴都是心血。
 
-<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 0; margin: 2rem 0; border: 1px solid var(--wm-line);">
   <iframe 
     src="https://www.youtube-nocookie.com/embed/DLL-aF9vuOM?autoplay=0&rel=0" 
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
