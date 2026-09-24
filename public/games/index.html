@@ -73,7 +73,9 @@
   .kicker { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--primary); margin-bottom: 10px; }
   h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2.2rem, 6vw, 3.4rem); letter-spacing: 0.01em; text-transform: uppercase; }
   .sub { font-family: var(--mono); font-size: 0.85rem; color: var(--soft); margin: 12px 0 40px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
   .card {
     display: block; background: var(--card); border: 1px solid var(--line);
     box-shadow: var(--shadow-hair); padding: 24px; text-decoration: none; color: inherit;
