@@ -11,15 +11,18 @@ const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"pos
 const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "8086", "电路", "模电", "期末复习", "考试"];
 const isIelts = (p: CollectionEntry<"post">) => p.data.tags.includes("雅思");
 const isCS = (p: CollectionEntry<"post">) => p.data.tags.some((t) => CS_TAGS.includes(t));
+const isTest = (p: CollectionEntry<"post">) => p.data.tags.includes("壁纸") || p.data.title.includes("壁纸测试");
 
 const ielts = allSortedPosts.filter(isIelts);
 const cs = allSortedPosts.filter((p) => !isIelts(p) && isCS(p));
-const essay = allSortedPosts.filter((p) => !isIelts(p) && !isCS(p));
+const essay = allSortedPosts.filter((p) => !isIelts(p) && !isCS(p) && !isTest(p));
+const test = allSortedPosts.filter((p) => !isIelts(p) && !isCS(p) && isTest(p));
 
 const groups = [
   { key: "ielts", label: "IELTS · 雅思", items: ielts },
   { key: "cs", label: "CS · 计算机专业", items: cs },
   { key: "essay", label: "随笔", items: essay },
+  { key: "test", label: "测试", items: test },
 ];
 ---
 
