@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { ogImage, title, description, updatedDate, publishDate, tags } = post.data;
+const { ogImage, title, description, updatedDate, publishDate, tags, background } = post.data;
 const socialImage = ogImage ?? `/og-image/${post.id}.png`;
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
 
@@ -28,6 +28,25 @@ if (headings.length > 0) {
 ---
 
 <BaseLayout meta={{ articleDate, description, ogImage: socialImage, title }}>
+  {
+    background && (
+      <>
+        <style is:inline define:vars={{ background }}>
+          html.has-post-bg #wm-particle { display: none; }
+          html.has-post-bg body.wm-body::before {
+            display: block;
+            content: "";
+            background-image: url(var(--background));
+            background-size: cover;
+            background-position: center;
+          }
+        </style>
+        <script is:inline>
+          document.documentElement.classList.add("has-post-bg");
+        </script>
+      </>
+    )
+  }
   <article class="glass-card !p-8 md:!p-12">
     <header class="mb-10">
       <h1 class="text-3xl md:text-4xl font-bold mb-3">{title}</h1>
