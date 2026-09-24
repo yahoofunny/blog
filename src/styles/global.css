@@ -57,7 +57,12 @@
 }
 
 /* Dark variant (toggled by adding .dark on <html>) */
+:root {
+  --wm-veil: 45%;
+}
 html.dark {
+  --wm-veil: 62%;
+}
   --wm-paper: #0e0e13;
   --wm-panel: #15151c;
   --wm-card: #17171d;
@@ -89,7 +94,7 @@ body.wm-body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 背景图：模糊铺满四周 + 原图清晰居中（适配任意屏幕尺寸） */
+/* 背景：Summer House 像素场景（暖色日落 + 小屋 + 草地，全站通用） */
 body.wm-body::before,
 body.wm-body::after {
   content: "";
@@ -99,47 +104,18 @@ body.wm-body::after {
   pointer-events: none;
 }
 body.wm-body::before {
-  background-image: url("/bg-wide.jpg");
+  background-image: url("/bg-summer.svg");
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 body.wm-body::after {
-  background-image:
-    linear-gradient(
-      color-mix(in srgb, var(--wm-paper) 42%, transparent),
-      color-mix(in srgb, var(--wm-paper) 42%, transparent)
-    ),
-    url("/bg-4k.jpg");
-  background-size: 100% 100%, contain;
-  background-repeat: no-repeat, no-repeat;
-  background-position: center, center;
-}
-
-/* 桌面横屏：横版扩图锐利铺满；蒙层加深保证文字可读 */
-@media (min-aspect-ratio: 3/4) {
-  body.wm-body::after {
-    background-image: linear-gradient(
-      color-mix(in srgb, var(--wm-paper) 50%, transparent),
-      color-mix(in srgb, var(--wm-paper) 50%, transparent)
-    );
-    background-size: 100% 100%;
-  }
-}
-
-/* 背景：WatchDogs 粒子壁纸（iframe 动画），亮暗模式通用；静态图片层停用 */
-#wm-particle {
-  display: block;
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  border: 0;
-  pointer-events: none;
-}
-body.wm-body::before,
-body.wm-body::after {
-  display: none;
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--wm-paper) var(--wm-veil), transparent),
+    color-mix(in srgb, var(--wm-paper) var(--wm-veil), transparent)
+  );
+  background-size: 100% 100%;
 }
 
 h1, h2, h3, h4 {

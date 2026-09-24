@@ -58,29 +58,15 @@
     content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   }
   body::before {
-    background-image: url('/bg-wide.jpg');
-    background-size: cover; background-position: center;
+    background-image: url('/bg-summer.svg');
+    background-size: cover; background-position: center bottom;
+    image-rendering: pixelated;
   }
   body::after {
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--paper) 42%, transparent), color-mix(in srgb, var(--paper) 42%, transparent)),
-      url('/bg-4k.jpg');
-    background-size: 100% 100%, contain;
-    background-repeat: no-repeat, no-repeat;
-    background-position: center, center;
+    background-image: linear-gradient(color-mix(in srgb, var(--paper) var(--veil, 45%), transparent), color-mix(in srgb, var(--paper) var(--veil, 45%), transparent));
+    background-size: 100% 100%;
   }
-  @media (min-aspect-ratio: 3/4) {
-    body::after {
-      background-image: linear-gradient(color-mix(in srgb, var(--paper) 50%, transparent), color-mix(in srgb, var(--paper) 50%, transparent));
-      background-size: 100% 100%;
-    }
-  }
-  #wm-particle {
-    display: block; position: fixed; inset: 0; width: 100%; height: 100%;
-    z-index: -1; border: 0; pointer-events: none;
-  }
-  body::before, body::after { display: none; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  html.dark { --veil: 62%; }
   header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; display: flex; align-items: center; justify-content: space-between; }
   .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
   .brand small { color: var(--muted); letter-spacing: 0.08em; }
@@ -173,6 +159,12 @@
         <p>QQ飞车同人还原的 3D 竞速游戏。3D 游戏，电脑键盘体验更佳。</p>
         <span class="go">Play &rarr;</span>
       </a>
+      <a class="card" href="/games/pixel-monsters/">
+        <div class="top"><span class="tag">RPG 对战</span><span class="dev mobile">📱 手机可玩</span></div>
+        <h2>像素怪物对战</h2>
+        <p>自制像素宝可梦风小游戏：选一只卡带兽，属性克制 + 会心一击，打败 3 只野生怪通关。纯原创像素画。</p>
+        <span class="go">Play &rarr;</span>
+      </a>
       <a class="card" href="/games/celeste/ccleste.html">
         <div class="top"><span class="tag">Platformer</span><span class="dev mobile">📱 手机可玩</span></div>
         <h2>蔚蓝 Celeste</h2>
@@ -205,6 +197,5 @@
     });
   })();
 </script>
-<iframe id="wm-particle" src="/bg-particle/" title="" aria-hidden="true" tabindex="-1"></iframe>
 </body>
 </html>
