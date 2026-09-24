@@ -93,9 +93,9 @@ body.wm-body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 背景：WatchDogs 粒子壁纸（iframe 动画），亮暗模式通用 */
+/* 背景：暗色模式 = WatchDogs 粒子壁纸；亮色模式 = 干净纸面（保证可读） */
 #wm-particle {
-  display: block;
+  display: none;
   position: fixed;
   inset: 0;
   width: 100%;
@@ -103,6 +103,9 @@ body.wm-body {
   z-index: -1;
   border: 0;
   pointer-events: none;
+}
+html.dark #wm-particle {
+  display: block;
 }
 body.wm-body::before,
 body.wm-body::after {
