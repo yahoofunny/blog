@@ -59,6 +59,9 @@
     z-index: -1; border: 0; pointer-events: none;
   }
   body::before, body::after { display: none; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
   .theme-btn {
     background: none; border: none; cursor: pointer;
     color: var(--soft); padding: 4px;
@@ -102,7 +105,6 @@
   <header>
     <a class="brand" href="https://blog-6rb.pages.dev/">
       <img src="/pacman.svg" alt="bt" width="26" height="26" style="vertical-align: middle" />
-      <small>/ arcade</small>
     </a>
     <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">
       <svg class="icon-bulb-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-.107c0-.795-.496-1.488-1.117-1.984a5 5 0 1 1 6.235 0c-.622.497-1.118 1.189-1.118 1.984V18m-4 0v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2m-4 0h4m-2-3v-2"/></svg>
