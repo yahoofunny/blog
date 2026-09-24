@@ -7,7 +7,20 @@ import { siteConfig } from "@/site.config";
 
 const allPosts = await getAllPosts();
 const allSortedPosts = allPosts.sort(collectionDateSort) as CollectionEntry<"post">[];
-const displayPosts = [...allSortedPosts.filter((p) => p.data.pinned), ...allSortedPosts.filter((p) => !p.data.pinned)];
+
+const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "8086", "电路", "模电", "期末复习", "考试"];
+const isIelts = (p: CollectionEntry<"post">) => p.data.tags.includes("雅思");
+const isCS = (p: CollectionEntry<"post">) => p.data.tags.some((t) => CS_TAGS.includes(t));
+
+const ielts = allSortedPosts.filter(isIelts);
+const cs = allSortedPosts.filter((p) => !isIelts(p) && isCS(p));
+const essay = allSortedPosts.filter((p) => !isIelts(p) && !isCS(p));
+
+const groups = [
+  { key: "ielts", label: "IELTS · 雅思", items: ielts },
+  { key: "cs", label: "CS · 计算机专业", items: cs },
+  { key: "essay", label: "随笔", items: essay },
+];
 ---
 
 <PageLayout meta={{ title: "Home" }}>
@@ -28,23 +41,34 @@ const displayPosts = [...allSortedPosts.filter((p) => p.data.pinned), ...allSort
     <button class="sort-btn" data-sort="za">Z &rarr; A</button>
   </div>
 
-  <div class="flex flex-col gap-4" id="post-list">
-    {displayPosts.map((p) => (
-      <a href={`/posts/${p.id}/`} class="glass-card block post-item" data-date={p.data.publishDate.toISOString()} data-title={p.data.title} data-pinned={p.data.pinned ? "1" : "0"}>
-        <p class="post-meta">
-          {p.data.pinned && (
-            <span class="mr-2 inline-flex items-center gap-1" style="color: var(--wm-primary); font-weight: 700">
-              <svg width="12" height="12" viewBox="0 0 640 640" aria-hidden="true"><path fill="currentColor" d="M160 96c0-17.7 14.3-32 32-32h256c17.7 0 32 14.3 32 32s-14.3 32-32 32h-29.5l10.3 134.1c37.1 21.2 65.8 56.4 78.2 99.7l3.8 13.4c2.8 9.7.8 20-5.2 28.1S490 416 480 416H160c-10 0-19.5-4.7-25.5-12.7s-8-18.4-5.2-28.1l3.7-13.4c12.4-43.3 41-78.5 78.2-99.7L221.5 128H192c-17.7 0-32-14.3-32-32m128 368h64v112c0 17.7-14.3 32-32 32s-32-14.3-32-32z"/></svg>
-              PINNED
-            </span>
-          )}
-          {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
-        </p>
-        <h2 class="text-xl font-semibold">{p.data.title}</h2>
-        {p.data.description && (
-          <p class="post-desc mt-2">{p.data.description}</p>
-        )}
-      </a>
+  <!-- Drawers -->
+  <div class="flex flex-col">
+    {groups.map((g) => (
+      <details class="wm-drawer" open>
+        <summary>
+          <span>{g.label}</span>
+          <span class="cnt">{g.items.length} 篇</span>
+        </summary>
+        <div class="flex flex-col gap-3 pb-6 pt-3" data-group={g.key}>
+          {g.items.map((p) => (
+            <a href={`/posts/${p.id}/`} class="glass-card block post-item !p-4" data-date={p.data.publishDate.toISOString()} data-title={p.data.title} data-pinned={p.data.pinned ? "1" : "0"}>
+              <p class="post-meta">
+                {p.data.pinned && (
+                  <span class="mr-2 inline-flex items-center gap-1" style="color: var(--wm-primary); font-weight: 700">
+                    <svg width="12" height="12" viewBox="0 0 640 640" aria-hidden="true"><path fill="currentColor" d="M160 96c0-17.7 14.3-32 32-32h256c17.7 0 32 14.3 32 32s-14.3 32-32 32h-29.5l10.3 134.1c37.1 21.2 65.8 56.4 78.2 99.7l3.8 13.4c2.8 9.7.8 20-5.2 28.1S490 416 480 416H160c-10 0-19.5-4.7-25.5-12.7s-8-18.4-5.2-28.1l3.7-13.4c12.4-43.3 41-78.5 78.2-99.7L221.5 128H192c-17.7 0-32-14.3-32-32m128 368h64v112c0 17.7-14.3 32-32 32s-32-14.3-32-32z"/></svg>
+                    PINNED
+                  </span>
+                )}
+                {p.data.publishDate.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
+              </p>
+              <h2 class="text-lg font-semibold">{p.data.title}</h2>
+              {p.data.description && (
+                <p class="post-desc mt-2">{p.data.description}</p>
+              )}
+            </a>
+          ))}
+        </div>
+      </details>
     ))}
   </div>
 </PageLayout>
@@ -52,25 +76,29 @@ const displayPosts = [...allSortedPosts.filter((p) => p.data.pinned), ...allSort
 <script is:inline>
   (function(){
     var btns = document.querySelectorAll('.sort-btn');
-    var list = document.getElementById('post-list');
-    var items = Array.from(list.querySelectorAll('.post-item'));
+
+    function sortBox(box, sort) {
+      var items = Array.from(box.querySelectorAll('.post-item'));
+      var sorted = items.slice().sort(function(a, b){
+        var pa = a.dataset.pinned === '1', pb = b.dataset.pinned === '1';
+        if (pa !== pb) return pa ? -1 : 1;   // 置顶文章永远排最前
+        if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
+        if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
+        if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, 'zh-CN');
+        if (sort === 'za') return b.dataset.title.localeCompare(a.dataset.title, 'zh-CN');
+        return 0;
+      });
+      sorted.forEach(function(item){ box.appendChild(item); });
+    }
 
     btns.forEach(function(btn){
       btn.addEventListener('click', function(){
         btns.forEach(function(b){ b.classList.remove('active') });
         btn.classList.add('active');
-
         var sort = btn.dataset.sort;
-        var sorted = items.slice().sort(function(a, b){
-          var pa = a.dataset.pinned === '1', pb = b.dataset.pinned === '1';
-          if (pa !== pb) return pa ? -1 : 1;   // 置顶文章永远排最前
-          if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
-          if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
-          if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, 'zh-CN');
-          if (sort === 'za') return b.dataset.title.localeCompare(a.dataset.title, 'zh-CN');
-          return 0;
+        document.querySelectorAll('[data-group]').forEach(function(box){
+          sortBox(box, sort);
         });
-        sorted.forEach(function(item){ list.appendChild(item); });
       });
     });
   })();

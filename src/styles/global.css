@@ -254,6 +254,39 @@ h1, h2, h3, h4 {
 }
 .glass-input:focus { border-color: var(--wm-primary); }
 
+/* ---------- Homepage drawers ---------- */
+.wm-drawer {
+  border-bottom: 1px dotted var(--wm-dotted);
+}
+.wm-drawer summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--wm-ink);
+  padding: 16px 2px;
+  user-select: none;
+}
+.wm-drawer summary::-webkit-details-marker { display: none; }
+.wm-drawer summary::before {
+  content: "▸";
+  color: var(--wm-primary);
+  transition: transform 0.15s ease;
+}
+.wm-drawer[open] summary::before { transform: rotate(90deg); }
+.wm-drawer summary .cnt {
+  margin-left: auto;
+  color: var(--wm-muted);
+  font-size: 0.68rem;
+}
+.wm-drawer summary:hover { color: var(--wm-primary); }
+
 /* ---------- Sort buttons (index) ---------- */
 .sort-btn {
   font-family: var(--font-mono);
