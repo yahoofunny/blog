@@ -275,11 +275,20 @@ h1, h2, h3, h4 {
 }
 .wm-drawer summary::-webkit-details-marker { display: none; }
 .wm-drawer summary::before {
-  content: "▸";
-  color: var(--wm-primary);
+  content: "";
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  background: var(--wm-primary);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m12 15l-5-5h10z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m12 15l-5-5h10z'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
   transition: transform 0.15s ease;
 }
-.wm-drawer[open] summary::before { transform: rotate(90deg); }
+.wm-drawer[open] summary::before { transform: rotate(180deg); }
 .wm-drawer summary .cnt {
   margin-left: auto;
   color: var(--wm-muted);
