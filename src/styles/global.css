@@ -93,28 +93,20 @@ body.wm-body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 背景：Summer House 像素场景（暖色日落 + 小屋 + 草地，全站通用） */
-body.wm-body::before,
-body.wm-body::after {
-  content: "";
+/* 背景：WatchDogs 粒子壁纸（iframe 动画），亮暗模式通用 */
+#wm-particle {
+  display: block;
   position: fixed;
   inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
+  border: 0;
   pointer-events: none;
 }
-body.wm-body::before {
-  background-image: url("/bg-summer.svg");
-  background-size: cover;
-  background-position: center bottom;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-}
+body.wm-body::before,
 body.wm-body::after {
-  background-image: linear-gradient(
-    color-mix(in srgb, var(--wm-paper) var(--wm-veil), transparent),
-    color-mix(in srgb, var(--wm-paper) var(--wm-veil), transparent)
-  );
-  background-size: 100% 100%;
+  display: none;
 }
 
 h1, h2, h3, h4 {

@@ -54,25 +54,11 @@
     -webkit-font-smoothing: antialiased;
     transition: background-color .2s ease, color .2s ease;
   }
-  body::before, body::after {
-    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  #wm-particle {
+    display: block; position: fixed; inset: 0; width: 100%; height: 100%;
+    z-index: -1; border: 0; pointer-events: none;
   }
-  body::before {
-    background-image: url('/bg-summer.svg');
-    background-size: cover; background-position: center bottom;
-    image-rendering: pixelated;
-  }
-  body::after {
-    background-image: linear-gradient(color-mix(in srgb, var(--paper) var(--veil, 45%), transparent), color-mix(in srgb, var(--paper) var(--veil, 45%), transparent));
-    background-size: 100% 100%;
-  }
-  html.dark { --veil: 62%; }
-  header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; display: flex; align-items: center; justify-content: space-between; }
-  .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
-  .brand small { color: var(--muted); letter-spacing: 0.08em; }
-  .theme-btn {
-    background: none; border: none; cursor: pointer;
-    color: var(--soft); padding: 4px;
+  body::before, body::after { display: none; }
     transition: color .15s ease, opacity .15s ease;
   }
   html.dark .theme-btn { color: var(--soft); }
@@ -197,5 +183,6 @@
     });
   })();
 </script>
+<iframe id="wm-particle" src="/bg-particle/" title="" aria-hidden="true" tabindex="-1"></iframe>
 </body>
 </html>
