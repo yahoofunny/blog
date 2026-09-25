@@ -1,0 +1,20 @@
+name: translate-posts
+on:
+  workflow_dispatch:
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install argos-translate
+        run: |
+          pip install --quiet argostranslate
+          python scripts/translate-posts.py
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "i18n: 机器翻译英文版文章（argos-translate zh→en）"
+          file_pattern: "src/content/post-en/*"
