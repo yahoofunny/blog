@@ -26,7 +26,7 @@
   function getQuip(){
     if(state==='sleeping')return['zzzZZZ...','💤'][Math.floor(Math.random()*2)];
     if(cur==='/')return['首页又来看我了','金鳞岂是池中物','今天想学点啥','博客越来越漂亮了'][Math.floor(Math.random()*4)];
-    if(cur.indexOf('posts')>=0)return['这篇文章不错哦','看完了记得评论','你认真阅读的样子真帅'][Math.floor(Math.random()*3)];
+    if(cur.indexOf('posts')>=0)return['这篇文章不错哦','慢慢看，不着急','你认真阅读的样子真帅'][Math.floor(Math.random()*3)];
     if(cur.indexOf('radio')>=0)return['Lo-fi好心情','Claude FM 24/7'][Math.floor(Math.random()*2)];
     if(pageViews%10===0)return['第'+pageViews+'次访问了！','你是最忠实的读者'][Math.floor(Math.random()*2)];
     return['Hello!','今天过得咋样','写代码了吗','早点睡别熬夜','bt最棒'][Math.floor(Math.random()*5)];

@@ -33,7 +33,6 @@
 
 ### 交互
 - **<img src="public/clawd-icon.svg" width="18" alt="Clawd"> Clawd 桌宠** — 右下角像素螃蟹，点击切换姿态+说话，拖拽移动，双击问候，定时主动搭话。25+ 句 bt 主题对话
-- **Giscus 评论区** — GitHub Discussions 驱动，无需第三方服务
 
 ### 导航
 - 顶部导航：**Games / Archives / About / Gadgets**
@@ -62,7 +61,6 @@
 | 内容 | MDX + Markdown |
 | 数学 | [KaTeX](https://katex.org) |
 | 搜索 | [Pagefind](https://pagefind.app) |
-| 评论 | [Giscus](https://giscus.app) |
 | 代码高亮 | [Expressive Code](https://expressive-code.com) |
 | 部署 | [Cloudflare Pages](https://pages.cloudflare.com) |
 | CI/CD | GitHub Actions |
