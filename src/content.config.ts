@@ -44,6 +44,9 @@ const postEn = defineCollection({
 	loader: glob({ base: "./src/content/post-en", pattern: "**/*.{md,mdx}" }),
 	schema: ({ image }) =>
 		baseSchema.extend({
+			// 中文标题译成英文通常会长不少（汇编语言那篇 24 字 → 80 字符），
+			// 原文的 60 字符上限对译文不适用
+			title: z.string().max(160),
 			description: z.string(),
 			coverImage: z
 				.object({
