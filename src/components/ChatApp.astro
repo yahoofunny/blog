@@ -1,0 +1,278 @@
+---
+import { type Locale, useTranslations } from "@/i18n/ui";
+
+interface Props {
+	lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// 构建期注入。留空 -> 页面进"后端还没接上"状态，不会渲染出一个点了没反应的输入框
+const API = import.meta.env.CHAT_API_URL ?? "";
+---
+
+<div
+	id="chat-app"
+	class="glass-card chat-card"
+	data-api={API}
+	data-lang={lang}
+	data-state="idle"
+>
+	<header class="chat-head">
+		<img id="chat-face" src="/clawd/clawd-idle.gif" width="44" height="44" alt="" />
+		<div class="chat-head-text">
+			<p class="chat-name">Clawd</p>
+			<p class="chat-status" id="chat-status">{t("chatIdle")}</p>
+		</div>
+	</header>
+
+	<!-- 开场白是静态的：不占模型的对话历史，模型只看见访客真正说过的话 -->
+	<div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-label={t("chatTitle")}>
+		<div class="chat-row bot"><div class="chat-bubble bot">{t("chatGreeting")}</div></div>
+	</div>
+
+	{API ? (
+		<form id="chat-form" class="chat-form">
+			<textarea
+				id="chat-input"
+				class="chat-input"
+				rows="1"
+				autocomplete="off"
+				placeholder={t("chatPlaceholder")}
+				aria-label={t("chatPlaceholder")}></textarea>
+			<button type="submit" class="wm-btn wm-btn-primary" id="chat-send">{t("chatSend")}</button>
+			<button type="button" class="wm-btn wm-btn-paper" id="chat-clear">{t("chatClear")}</button>
+		</form>
+	) : (
+		<div class="chat-offline">
+			<p class="chat-offline-title">{t("chatOfflineTitle")}</p>
+			<p class="chat-offline-desc">{t("chatOfflineDesc")}</p>
+		</div>
+	)}
+
+	<p class="chat-note">{t("chatNote")}</p>
+</div>
+
+<script
+	define:vars={{
+		API,
+		LANG: lang,
+		S: {
+			idle: t("chatIdle"),
+			thinking: t("chatThinking"),
+			typing: t("chatTyping"),
+			error: t("chatError"),
+			greeting: t("chatGreeting"),
+		},
+	}}
+>
+	(function () {
+		var root = document.getElementById("chat-app");
+		if (!root) return;
+
+		var thread = document.getElementById("chat-thread");
+		var face = document.getElementById("chat-face");
+		var status = document.getElementById("chat-status");
+		var form = document.getElementById("chat-form");
+		var input = document.getElementById("chat-input");
+		var clearBtn = document.getElementById("chat-clear");
+		if (!thread || !face || !status) return;
+
+		// 没配后端就到此为止：静态内容已经够用，不留一个点了没反应的输入框
+		if (!API) return;
+
+		var FACES = {
+			idle: "/clawd/clawd-idle.gif",
+			thinking: "/clawd/clawd-thinking.gif",
+			typing: "/clawd/clawd-typing.gif",
+			happy: "/clawd/clawd-happy.gif",
+			error: "/clawd/clawd-error.gif",
+		};
+
+		var turns = []; // 送给模型的对话历史（不含开场白）
+		var busy = false;
+		var reader = null;
+		var happyTimer = null;
+		var pending = null; // 正在流式写入的那个气泡
+
+		function setState(s) {
+			var f = FACES[s] || FACES.idle;
+			if (face.getAttribute("src") !== f) face.setAttribute("src", f);
+			status.textContent = S[s] || S.idle;
+			root.setAttribute("data-state", s);
+		}
+
+		// 一律 textContent —— 模型的输出永远当纯文本，不进 innerHTML
+		function bubble(role, text) {
+			var row = document.createElement("div");
+			row.className = "chat-row " + role;
+			var b = document.createElement("div");
+			b.className = "chat-bubble " + role;
+			b.textContent = text;
+			row.appendChild(b);
+			thread.appendChild(row);
+			toBottom();
+			return b;
+		}
+
+		function toBottom() {
+			thread.scrollTop = thread.scrollHeight;
+		}
+
+		function autogrow() {
+			if (!input) return;
+			input.style.height = "auto";
+			input.style.height = Math.min(input.scrollHeight, 120) + "px";
+		}
+
+		function fail(msg) {
+			if (busy) busy = false;
+			// 这轮没成，历史里不留一条孤零零的 user
+			if (turns.length && turns[turns.length - 1].role === "user") turns.pop();
+			if (reader) {
+				try {
+					reader.cancel();
+				} catch (e) {}
+				reader = null;
+			}
+			setState("error");
+			bubble("bot", S.error + (msg ? "（" + msg + "）" : ""));
+		}
+
+		function handleFrame(raw) {
+			if (!raw) return;
+			var ev = "message";
+			var parts = [];
+			raw.split("\n").forEach(function (line) {
+				if (line.indexOf("event:") === 0) ev = line.slice(6).trim();
+				else if (line.indexOf("data:") === 0) parts.push(line.slice(5).replace(/^ /, ""));
+			});
+			if (!parts.length) return;
+
+			var payload = parts.join("\n");
+			if (payload === "[DONE]") return;
+
+			var obj;
+			try {
+				obj = JSON.parse(payload);
+			} catch (e) {
+				obj = { text: payload }; // 后端要是不发 JSON，就当成纯文本增量
+			}
+			if (ev === "error" || obj.message) {
+				throw new Error(obj.message || "后端报错");
+			}
+			var chunk = obj.text || obj.delta || "";
+			if (chunk) {
+				if (!busy) return; // 已经失败了，后面的帧丢掉
+				if (pending && pending.textContent === "") setState("typing");
+				pending.textContent += chunk;
+				toBottom();
+			}
+		}
+
+		function send(text) {
+			busy = true;
+			bubble("user", text);
+			turns.push({ role: "user", content: text });
+
+			pending = bubble("bot", "");
+			pending.classList.add("pending");
+			setState("thinking");
+
+			var payload = turns.slice();
+			var acc = "";
+
+			fetch(API, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ messages: payload, lang: LANG }),
+			})
+				.then(function (r) {
+					if (!r.ok) {
+						return r.text().then(function (txt) {
+							var m = txt;
+							try {
+								m = JSON.parse(txt).error || txt;
+							} catch (e) {}
+							throw new Error("HTTP " + r.status + " " + String(m).slice(0, 120));
+						});
+					}
+					if (!r.body || !r.body.getReader) throw new Error("浏览器不支持流式");
+					reader = r.body.getReader();
+					var dec = new TextDecoder();
+					var buf = "";
+
+					function pump() {
+						return reader.read().then(function (res) {
+							if (res.done) return;
+							buf += dec.decode(res.value, { stream: true });
+							var frames = buf.split("\n\n");
+							buf = frames.pop();
+							for (var i = 0; i < frames.length; i++) handleFrame(frames[i]);
+							return pump();
+						});
+					}
+					return pump();
+				})
+				.then(function () {
+					if (!busy) return;
+					busy = false;
+					reader = null;
+					acc = pending ? pending.textContent : "";
+					if (pending) pending.classList.remove("pending");
+					if (!acc) {
+						acc = "……";
+						if (pending) pending.textContent = acc;
+					}
+					turns.push({ role: "assistant", content: acc });
+					setState("happy");
+					clearTimeout(happyTimer);
+					happyTimer = setTimeout(function () {
+						if (!busy) setState("idle");
+					}, 2000);
+				})
+				.catch(function (e) {
+					if (pending) pending.classList.remove("pending");
+					fail(e && e.message ? e.message : String(e));
+				});
+		}
+
+		function submit() {
+			if (busy || !input) return;
+			var v = input.value.trim();
+			if (!v) return;
+			input.value = "";
+			autogrow();
+			send(v);
+		}
+
+		if (form && input) {
+			form.addEventListener("submit", function (e) {
+				e.preventDefault();
+				submit();
+			});
+			// Enter 发送，Shift+Enter 换行
+			input.addEventListener("keydown", function (e) {
+				if (e.key === "Enter" && !e.shiftKey) {
+					e.preventDefault();
+					submit();
+				}
+			});
+			input.addEventListener("input", autogrow);
+		}
+
+		if (clearBtn) {
+			clearBtn.addEventListener("click", function () {
+				if (busy) return;
+				turns = [];
+				thread.innerHTML = "";
+				bubble("bot", S.greeting);
+				setState("idle");
+				if (input) input.focus();
+			});
+		}
+
+		setState("idle");
+	})();
+</script>

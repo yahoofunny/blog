@@ -1,0 +1,12 @@
+---
+import ChatApp from "@/components/ChatApp.astro";
+import { useTranslations } from "@/i18n/ui";
+import PageLayout from "@/layouts/Base.astro";
+
+const t = useTranslations("en");
+const meta = { description: t("chatDesc"), title: t("chatTitle") };
+---
+
+<PageLayout meta={meta} hidePet>
+  <ChatApp lang="en" />
+</PageLayout>

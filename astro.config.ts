@@ -91,6 +91,9 @@ export default defineConfig({
 			WEBMENTION_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
 			WEBMENTION_URL: envField.string({ context: "client", access: "public", optional: true }),
 			WEBMENTION_PINGBACK: envField.string({ context: "client", access: "public", optional: true }),
+			// 聊天后端地址。留空 = 页面进"还没接上"状态。
+			// 本地测试填 http://127.0.0.1:8787/chat，上线填 https://api.bingtao.xyz/chat
+			CHAT_API_URL: envField.string({ context: "client", access: "public", optional: true }),
 		},
 	},
 });
