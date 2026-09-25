@@ -24,7 +24,14 @@ pkg = next(p for p in available if p.from_code == "zh" and p.to_code == "en")
 argostranslate.package.install_from_path(pkg.download())
 
 
+CJK = re.compile(r"[㐀-䶿一-鿿豈-﫿]")
+
+
 def _translate(core: str) -> str:
+    if not CJK.search(core):
+        # 没有汉字就没什么可翻的。argos 对纯英文输入只会瞎改
+        # （代码行、英文术语、雅思范文都走这条路）
+        return core
     return argostranslate.translate.translate(core, "zh", "en")
 
 
