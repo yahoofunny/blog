@@ -78,17 +78,54 @@ FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 TABLE_SEP = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
 # 行首的 Markdown 结构标记，翻完要原样接回去
 STRUCT_PREFIX = re.compile(r"^(\s*(?:#{1,6}\s+|>\s?|[-*+]\s+|\d+[.)]\s+|\|\s*)?)(.*)$")
+# 标签开始：<div / </div / <!--，避免把正文里的 a < b 当标签
+TAG_START = re.compile(r"<[A-Za-z/!]")
+
+
+def scan_tag_state(line: str, in_tag: bool) -> bool:
+    """扫完这一行后，是否还停在一个没闭合的 HTML/JSX 标签里。
+
+    随笔.mdx 里的 <iframe> 属性是跨行写的：
+        <iframe
+          src="..."
+          title="YouTube Video">
+        </iframe>
+    行内保护正则 <[^>\\n]+> 跨不过换行，这些属性行会被当成正文送去翻译，
+    标签被改烂 → MDX 报 "Unexpected closing tag </iframe>"。
+    """
+    i = 0
+    while True:
+        if in_tag:
+            j = line.find(">", i)
+            if j == -1:
+                return True
+            in_tag = False
+            i = j + 1
+        else:
+            m = TAG_START.search(line, i)
+            if not m:
+                return False
+            i = m.start() + 1
 
 
 def translate_body(body: str) -> str:
-    out, in_fence = [], False
+    out, in_fence, in_tag = [], False, False
     for line in body.split("\n"):
         if FENCE.match(line):
             in_fence = not in_fence
+            in_tag = False
             out.append(line)
             continue
+        if in_fence:
+            out.append(line)
+            continue
+
+        started_in_tag = in_tag
+        in_tag = scan_tag_state(line, in_tag)
+
         if (
-            in_fence
+            started_in_tag
+            or in_tag
             or not line.strip()
             or TABLE_SEP.match(line)
             or line.lstrip().startswith(("import ", "export "))
