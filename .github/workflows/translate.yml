@@ -8,6 +8,11 @@ on:
         type: boolean
         default: false
 
+# 仓库的 default_workflow_permissions 是 read，不显式要写权限的话
+# 最后 git-auto-commit 推的时候会 403（denied to github-actions[bot]）
+permissions:
+  contents: write
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -41,19 +46,20 @@ jobs:
         run: |
           ls -la src/content/post-en/ | head -25
 
-      # 构建失败时把译文传上来，省得为了看一眼产物重跑十几分钟
-      - uses: actions/upload-artifact@v4
-        if: steps.verify.outcome != 'success'
-        with:
-          name: post-en-unverified
-          path: src/content/post-en/
-          retention-days: 7
-
       - uses: stefanzweifel/git-auto-commit-action@v5
+        id: commit
         if: steps.verify.outcome == 'success' || inputs.force
         with:
           commit_message: "i18n: argos-translate 自动翻译英文文章（zh→en）"
           file_pattern: "src/content/post-en/*"
+
+      # 没提交成功就把译文传上来，省得为了看一眼产物重跑十几分钟
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.commit.outcome != 'success'
+        with:
+          name: post-en-unverified
+          path: src/content/post-en/
+          retention-days: 7
 
       - name: Fail the job if the build broke (nothing committed)
         if: steps.verify.outcome != 'success' && !inputs.force
