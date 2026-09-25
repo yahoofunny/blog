@@ -1,0 +1,118 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+import { getLocalizedPosts, type LocalizedPost } from "@/data/post";
+import { type Locale, useTranslations } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+import { siteConfig } from "@/site.config";
+
+interface Props {
+	lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const L = (path: string) => localizePath(path, lang);
+
+const allPosts = (await getLocalizedPosts(lang)).sort(
+	(a, b) => b.publishDate.getTime() - a.publishDate.getTime(),
+);
+
+// 分组用的标签（中文标签，中英站共用同一批文章）
+const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "8086", "电路", "模电", "期末复习", "考试"];
+const isIelts = (p: LocalizedPost) => p.tags.includes("雅思");
+const isCS = (p: LocalizedPost) => p.tags.some((tag) => CS_TAGS.includes(tag));
+const isTest = (p: LocalizedPost) => p.tags.includes("壁纸") || p.title.includes("壁纸测试");
+
+const groups = [
+	{ key: "ielts", label: t("groupIelts"), items: allPosts.filter(isIelts) },
+	{ key: "cs", label: t("groupCs"), items: allPosts.filter((p) => !isIelts(p) && isCS(p)) },
+	{ key: "essay", label: t("groupEssay"), items: allPosts.filter((p) => !isIelts(p) && !isCS(p) && !isTest(p)) },
+	{ key: "test", label: t("groupTest"), items: allPosts.filter((p) => !isIelts(p) && !isCS(p) && isTest(p)) },
+].filter((g) => g.items.length > 0);
+
+const dateLocale = lang === "en" ? "en-US" : "zh-CN";
+const titleSort = lang === "en" ? "en" : "zh-CN";
+---
+
+<PageLayout meta={{ title: lang === "en" ? "Home" : "首页" }}>
+  <!-- Hero -->
+  <section class="mb-10 border-b border-dotted pb-8" style="border-color: var(--wm-dotted)">
+    <p class="wm-kicker mb-3">{t("homeKicker")}</p>
+    <h1 class="text-4xl md:text-5xl font-semibold tracking-tight mb-3 uppercase" style="font-family: var(--font-display)">
+      {siteConfig.title}
+    </h1>
+    <p class="font-mono text-sm mb-4" style="color: var(--wm-muted)">{t("homeTagline")}</p>
+  </section>
+
+  <!-- Sort buttons -->
+  <div id="sort-bar" class="flex flex-wrap gap-2 mb-6" data-locale={titleSort}>
+    <button class="sort-btn active" data-sort="newest">{t("sortNewest")}</button>
+    <button class="sort-btn" data-sort="oldest">{t("sortOldest")}</button>
+    <button class="sort-btn" data-sort="az">{t("sortAz")}</button>
+    <button class="sort-btn" data-sort="za">{t("sortZa")}</button>
+  </div>
+
+  <!-- Drawers -->
+  <div class="flex flex-col">
+    {groups.map((g) => (
+      <details class="wm-drawer">
+        <summary>
+          <span>{g.label}</span>
+          <span class="cnt">{g.items.length} {t("postCount")}</span>
+        </summary>
+        <div class="flex flex-col gap-3 pb-6 pt-3" data-group={g.key}>
+          {g.items.map((p) => (
+            <a href={L(`/posts/${p.id}/`)} class="glass-card block post-item !p-4" data-date={p.publishDate.toISOString()} data-title={p.title} data-pinned={p.pinned ? "1" : "0"}>
+              <p class="post-meta">
+                {p.pinned && (
+                  <span class="mr-2 inline-flex items-center gap-1" style="color: var(--wm-primary); font-weight: 700">
+                    <svg width="12" height="12" viewBox="0 0 640 640" aria-hidden="true"><path fill="currentColor" d="M160 96c0-17.7 14.3-32 32-32h256c17.7 0 32 14.3 32 32s-14.3 32-32 32h-29.5l10.3 134.1c37.1 21.2 65.8 56.4 78.2 99.7l3.8 13.4c2.8 9.7.8 20-5.2 28.1S490 416 480 416H160c-10 0-19.5-4.7-25.5-12.7s-8-18.4-5.2-28.1l3.7-13.4c12.4-43.3 41-78.5 78.2-99.7L221.5 128H192c-17.7 0-32-14.3-32-32m128 368h64v112c0 17.7-14.3 32-32 32s-32-14.3-32-32z"/></svg>
+                    {t("pinned")}
+                  </span>
+                )}
+                {p.publishDate.toLocaleDateString(dateLocale, { year: "numeric", month: "long", day: "numeric" })}
+              </p>
+              <h2 class="text-lg font-semibold">{p.title}</h2>
+              {p.description && (
+                <p class="post-desc mt-2">{p.description}</p>
+              )}
+            </a>
+          ))}
+        </div>
+      </details>
+    ))}
+  </div>
+</PageLayout>
+
+<script is:inline>
+  (function(){
+    var bar = document.getElementById('sort-bar');
+    var locale = (bar && bar.dataset.locale) || 'zh-CN';
+    var btns = document.querySelectorAll('.sort-btn');
+
+    function sortBox(box, sort) {
+      var items = Array.from(box.querySelectorAll('.post-item'));
+      var sorted = items.slice().sort(function(a, b){
+        var pa = a.dataset.pinned === '1', pb = b.dataset.pinned === '1';
+        if (pa !== pb) return pa ? -1 : 1;   // 置顶文章永远排最前
+        if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
+        if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
+        if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, locale);
+        if (sort === 'za') return b.dataset.title.localeCompare(a.dataset.title, locale);
+        return 0;
+      });
+      sorted.forEach(function(item){ box.appendChild(item); });
+    }
+
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.classList.remove('active') });
+        btn.classList.add('active');
+        var sort = btn.dataset.sort;
+        document.querySelectorAll('[data-group]').forEach(function(box){
+          sortBox(box, sort);
+        });
+      });
+    });
+  })();
+</script>

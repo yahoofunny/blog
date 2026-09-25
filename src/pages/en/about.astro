@@ -1,0 +1,83 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+
+const meta = { description: "About", title: "About" };
+---
+
+<PageLayout meta={meta}>
+  <div class="glass-card !p-8 md:!p-12">
+    <h1 class="text-3xl font-bold mb-2">About</h1>
+    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">A tech blog, documenting learning and growth.</p>
+
+    <div class="prose max-w-none space-y-8">
+      <div>
+        <h2 class="text-xl !flex items-center gap-2"><img src="/clawd-icon.svg" alt="" width="22" height="22" />Clawd, the desktop pet</h2>
+        <p>The crab friend in the bottom-right corner. You can:</p>
+        <ul>
+          <li><strong>Click</strong> — switch expression + say something random</li>
+          <li><strong>Double-click</strong> — make it talk to you</li>
+          <li><strong>Drag</strong> — move it around (desktop only)</li>
+          <li>It also speaks up on its own every 2 minutes, with 25+ bt-themed lines</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🎵 Claude FM &amp; Drone Zone</h2>
+        <p>The Gadgets page hosts two radio streams:</p>
+        <ul>
+          <li><strong>Claude FM</strong> — 24/7 lo-fi &amp; ambient online radio</li>
+          <li><strong>🌑 Drone Zone</strong> — SomaFM dark ambient space music</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">📸 Telegraph image host</h2>
+        <p>The <strong>click it</strong> button at the bottom of the Gadgets page links to a self-hosted Telegraph image host.</p>
+        <ul>
+          <li>No registration — upload and go</li>
+          <li>Handy for sending me images, screenshots and memes</li>
+          <li>Click through → upload → copy the link and send it to me</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">💬 Giscus comments</h2>
+        <p>Every post has a comment section at the bottom, powered by GitHub Discussions.</p>
+        <ul>
+          <li>Log in with GitHub to comment</li>
+          <li>Supports Markdown and emoji reactions</li>
+          <li>All comment data stays with you (stored in your GitHub repo)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🎮 Arcade</h2>
+        <p>The <strong>Games</strong> item in the top nav goes straight to the arcade (/games/). Everything is open source and self-hosted:</p>
+        <ul>
+          <li><strong>Plane Wars</strong> — shoot 'em up with weapon upgrades, bosses and touch controls</li>
+          <li><strong>Agar</strong> — single-player agar.io, touch supported</li>
+          <li><strong>Suika</strong> — the fruit-merging puzzle hit</li>
+          <li><strong>Transport Ship · CrossFire 3D</strong> — the classic CF map rebuilt in 3D</li>
+          <li><strong>Pelican on a Bike</strong> — a relaxed 3D toy</li>
+          <li><strong>QQ Speed 3D</strong> — 3D racing fan remake</li>
+          <li><strong>Celeste</strong> — Celeste Classic ported to the web, plus the PICO-8 original</li>
+          <li><strong>Pixel Monsters</strong> — a hand-made pixel RPG battle game</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🌙 Dark / light theme</h2>
+        <p>The bulb button in the top-right switches between dark and light mode. Your preference is saved, and the arcade follows it too. Dark is the default.</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🌐 Language switch</h2>
+        <p>The three-part switch in the header: <strong>中</strong> / <strong>EN</strong> / <strong>(´・ω・`)</strong>.</p>
+        <ul>
+          <li><strong>EN</strong> — real English pages under <code>/en/</code>. Posts are translated offline with argos-translate; no online translation API is involved.</li>
+          <li><strong>(´・ω・`)</strong> — sprinkles a random kaomoji after each sentence-ending punctuation mark, purely a local display effect</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</PageLayout>

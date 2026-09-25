@@ -1,5 +1,15 @@
 ---
 import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
+import { DEFAULT_LOCALE, type Locale, tagLabel, useTranslations } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+
+interface Props {
+	lang?: Locale;
+}
+
+const { lang = DEFAULT_LOCALE } = Astro.props;
+const t = useTranslations(lang);
+const L = (path: string) => localizePath(path, lang);
 
 const allPosts = await getAllPosts();
 const tagsWithCount = getUniqueTagsWithCount(allPosts);
@@ -7,20 +17,20 @@ const tagsWithCount = getUniqueTagsWithCount(allPosts);
 
 <!-- TOC slot (filled by blog post pages) -->
 <div id="toc-container" class="glass-card !p-4">
-  <h3 class="wm-kicker mb-3">On This Page</h3>
+  <h3 class="wm-kicker mb-3">{t("onThisPage")}</h3>
   <nav id="toc-nav" class="text-xs space-y-1">
-    <p style="color: var(--wm-muted); font-style: italic">Scroll to see headings</p>
+    <p style="color: var(--wm-muted); font-style: italic">{t("scrollToSeeHeadings")}</p>
   </nav>
 </div>
 <!-- Tags -->
 <div class="glass-card !p-4">
   <h3 class="wm-kicker mb-3">
-    <a href="/tags/" class="transition-colors">Tags</a>
+    <a href={L("/tags/")} class="transition-colors">{t("tags")}</a>
   </h3>
   <div class="flex flex-wrap gap-1.5">
     {tagsWithCount.map(([tag, count]) => (
-      <a href={`/tags/${tag}/`} class="inline-block font-mono text-[11px] px-2 py-0.5 border transition-colors" style="border-color: var(--wm-line); color: var(--wm-ink-soft)" onmouseover="this.style.borderColor='var(--wm-primary)'; this.style.color='var(--wm-primary)'" onmouseout="this.style.borderColor='var(--wm-line)'; this.style.color='var(--wm-ink-soft)'">
-        {tag}<span style="color: var(--wm-muted)" class="ml-0.5">{count}</span>
+      <a href={L(`/tags/${tag}/`)} class="inline-block font-mono text-[11px] px-2 py-0.5 border transition-colors" style="border-color: var(--wm-line); color: var(--wm-ink-soft)" onmouseover="this.style.borderColor='var(--wm-primary)'; this.style.color='var(--wm-primary)'" onmouseout="this.style.borderColor='var(--wm-line)'; this.style.color='var(--wm-ink-soft)'">
+        {tagLabel(tag, lang)}<span style="color: var(--wm-muted)" class="ml-0.5">{count}</span>
       </a>
     ))}
   </div>

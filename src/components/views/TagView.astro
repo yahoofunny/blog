@@ -1,0 +1,58 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+import { getLocalizedPosts } from "@/data/post";
+import { type Locale, tagLabel, useTranslations } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+import { getFormattedDate } from "@/utils/date";
+
+interface Props {
+	lang: Locale;
+	slug: string;
+}
+
+const { lang, slug } = Astro.props;
+const t = useTranslations(lang);
+const L = (path: string) => localizePath(path, lang);
+
+const tagPosts = (await getLocalizedPosts(lang))
+	.filter((p) => p.tags.includes(slug))
+	.sort((a, b) => b.publishDate.getTime() - a.publishDate.getTime());
+
+const label = tagLabel(slug, lang);
+const meta = {
+	description: `Posts tagged with "${label}"`,
+	title: `#${label}`,
+};
+---
+
+<PageLayout meta={meta}>
+  <div class="mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold mb-1">#{label}</h1>
+    <p class="font-mono text-xs" style="color: var(--wm-muted)">{tagPosts.length} post{tagPosts.length !== 1 ? 's' : ''}</p>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    {tagPosts.map((p) => (
+      <a href={L(`/posts/${p.id}/`)} class="glass-card block">
+        <h2 class="text-lg font-semibold">{p.title}</h2>
+        <p class="post-meta mt-1">
+          {getFormattedDate(p.publishDate, { year: "numeric", month: "long", day: "numeric" })}
+        </p>
+        {p.description && (
+          <p class="post-desc mt-2">{p.description}</p>
+        )}
+        <div class="flex flex-wrap gap-1 mt-2">
+          {p.tags.map((tag) => (
+            <span class="text-xs font-mono px-2 py-0.5 border" style="border-color: var(--wm-line); color: var(--wm-muted)">
+              {tagLabel(tag, lang)}
+            </span>
+          ))}
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <div class="mt-8 text-center">
+    <a href={L("/tags/")} class="transition-colors text-sm font-mono" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">&larr; {t("tags")}</a>
+  </div>
+</PageLayout>

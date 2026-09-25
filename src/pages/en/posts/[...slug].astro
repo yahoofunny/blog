@@ -3,9 +3,8 @@ import type { GetStaticPaths, InferGetStaticPropsType } from "astro";
 import { getLocalizedPosts } from "@/data/post";
 import PostLayout from "@/layouts/BlogPost.astro";
 
-// if you're using an adaptor in SSR mode, getStaticPaths wont work -> https://docs.astro.build/en/guides/routing/#modifying-the-slug-example-for-ssr
 export const getStaticPaths = (async () => {
-	const blogEntries = await getLocalizedPosts("zh");
+	const blogEntries = await getLocalizedPosts("en");
 	return blogEntries.map((post) => ({
 		params: { slug: post.id },
 		props: { post },

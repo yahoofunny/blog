@@ -1,0 +1,127 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+import { getLocalizedPosts, type LocalizedPost } from "@/data/post";
+import { type Locale, useTranslations } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+interface Props {
+	lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const L = (path: string) => localizePath(path, lang);
+
+const allPosts = (await getLocalizedPosts(lang)).sort(
+	(a, b) => b.publishDate.getTime() - a.publishDate.getTime(),
+);
+
+const grouped = Object.groupBy(allPosts, (p) => p.publishDate.getFullYear().toString());
+const years = Object.keys(grouped).sort((a, b) => +b - +a);
+const dateLocale = lang === "en" ? "en-US" : "zh-CN";
+const shortDate = (d: Date) =>
+	d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+const meta = {
+	description: t("archivesDesc"),
+	title: t("archivesTitle"),
+};
+---
+
+<PageLayout meta={meta}>
+  <div class="glass-card !p-8 md:!p-12">
+    <h1 class="text-2xl md:text-3xl font-bold mb-2">{t("archivesTitle")}</h1>
+    <p class="font-mono text-xs mb-4" style="color: var(--wm-muted)">{allPosts.length} {t("postsTotal")}</p>
+
+    <!-- Sort -->
+    <div id="sort-bar" class="flex flex-wrap gap-2 mb-8" data-locale={dateLocale}>
+      <button class="sort-btn active" data-sort="newest">{t("sortNewest")}</button>
+      <button class="sort-btn" data-sort="oldest">{t("sortOldest")}</button>
+      <button class="sort-btn" data-sort="az">{t("sortAz")}</button>
+      <button class="sort-btn" data-sort="za">{t("sortZa")}</button>
+    </div>
+
+    <!-- Year-grouped view -->
+    <div id="archive-by-year" class="space-y-10">
+      {years.map((year) => (
+        <section>
+          <h2 class="text-xl font-bold mb-4 border-b border-dotted pb-2" style="border-color: var(--wm-dotted); color: var(--wm-primary)">{year}</h2>
+          <ul class="space-y-3">
+            {grouped[year]?.map((post: LocalizedPost) => (
+              <li class="flex items-baseline gap-4 archive-item" data-date={post.publishDate.toISOString()} data-title={post.title}>
+                <time class="text-xs whitespace-nowrap font-mono shrink-0 w-24" style="color: var(--wm-muted)">
+                  {shortDate(post.publishDate)}
+                </time>
+                <a href={L(`/posts/${post.id}/`)} class="text-sm transition-colors truncate" style="color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'">
+                  {post.title}
+                </a>
+                <div class="hidden sm:flex flex-wrap gap-1 ml-auto shrink-0">
+                  {post.tags.slice(0, 3).map((tag) => (
+                    <a href={L(`/tags/${tag}/`)} class="text-[10px] font-mono px-1.5 py-0.5 border transition-colors" style="border-color: var(--wm-line); color: var(--wm-muted)" onmouseover="this.style.borderColor='var(--wm-primary)'; this.style.color='var(--wm-primary)'" onmouseout="this.style.borderColor='var(--wm-line)'; this.style.color='var(--wm-muted)'">
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <!-- Flat view (for A-Z sorting) -->
+    <ul id="archive-flat" class="space-y-3 hidden"></ul>
+  </div>
+</PageLayout>
+
+<script is:inline>
+  (function(){
+    var bar = document.getElementById('sort-bar');
+    var locale = (bar && bar.dataset.locale) || 'zh-CN';
+    var btns = document.querySelectorAll('.sort-btn');
+    var byYear = document.getElementById('archive-by-year');
+    var flat = document.getElementById('archive-flat');
+    var items = Array.from(byYear.querySelectorAll('.archive-item'));
+
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.classList.remove('active') });
+        btn.classList.add('active');
+
+        var sort = btn.dataset.sort;
+        var isAlpha = (sort === 'az' || sort === 'za');
+        byYear.style.display = isAlpha ? 'none' : '';
+        flat.style.display = isAlpha ? '' : 'none';
+
+        var sorted = items.slice().sort(function(a, b){
+          if (sort === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
+          if (sort === 'oldest') return new Date(a.dataset.date) - new Date(b.dataset.date);
+          if (sort === 'az') return a.dataset.title.localeCompare(b.dataset.title, locale);
+          if (sort === 'za') return b.dataset.title.localeCompare(a.dataset.title, locale);
+          return 0;
+        });
+
+        if (isAlpha) {
+          flat.innerHTML = '';
+          sorted.forEach(function(item){ flat.appendChild(item.cloneNode(true)); });
+        } else {
+          // Group back by year sections
+          byYear.innerHTML = '';
+          var years = {};
+          sorted.forEach(function(item){
+            var y = new Date(item.dataset.date).getFullYear();
+            if (!years[y]) years[y] = [];
+            years[y].push(item);
+          });
+          Object.keys(years).sort(function(a,b){ return sort === 'newest' ? +b - +a : +a - +b; }).forEach(function(y){
+            var sec = document.createElement('section');
+            sec.innerHTML = '<h2 class="text-xl font-bold mb-4 border-b border-dotted pb-2" style="border-color: var(--wm-dotted); color: var(--wm-primary)">'+y+'</h2>';
+            var ul = document.createElement('ul');
+            ul.className = 'space-y-3';
+            years[y].forEach(function(item){ ul.appendChild(item); });
+            sec.appendChild(ul);
+            byYear.appendChild(sec);
+          });
+        }
+      });
+    });
+  })();
+</script>

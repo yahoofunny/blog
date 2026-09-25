@@ -39,6 +39,34 @@ const post = defineCollection({
 		}),
 });
 
+// 英文译文（由 scripts/translate-posts.py 生成，CI 里跑 argos-translate zh→en）
+const postEn = defineCollection({
+	loader: glob({ base: "./src/content/post-en", pattern: "**/*.{md,mdx}" }),
+	schema: ({ image }) =>
+		baseSchema.extend({
+			description: z.string(),
+			coverImage: z
+				.object({
+					alt: z.string(),
+					src: image(),
+				})
+				.optional(),
+			draft: z.boolean().default(false),
+			ogImage: z.string().optional(),
+			tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+			publishDate: z
+				.string()
+				.or(z.date())
+				.transform((val) => new Date(val)),
+			updatedDate: z
+				.string()
+				.optional()
+				.transform((str) => (str ? new Date(str) : undefined)),
+			pinned: z.boolean().default(false),
+			background: z.string().optional(),
+		}),
+});
+
 const note = defineCollection({
 	loader: glob({ base: "./src/content/note", pattern: "**/*.{md,mdx}" }),
 	schema: baseSchema.extend({
@@ -57,4 +85,4 @@ const tag = defineCollection({
 	}),
 });
 
-export const collections = { post, note, tag };
+export const collections = { post, postEn, note, tag };

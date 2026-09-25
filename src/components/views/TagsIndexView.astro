@@ -1,0 +1,37 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
+import { type Locale, tagLabel, useTranslations } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+
+interface Props {
+	lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const L = (path: string) => localizePath(path, lang);
+
+const allPosts = await getAllPosts();
+const tagsWithCount = getUniqueTagsWithCount(allPosts);
+
+const meta = {
+	description: lang === "en" ? "Browse all tags" : "浏览全部标签",
+	title: t("tags"),
+};
+---
+
+<PageLayout meta={meta}>
+  <div class="glass-card !p-8 md:!p-12">
+    <h1 class="text-2xl md:text-3xl font-bold mb-2">{t("tags")}</h1>
+    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">{tagsWithCount.length} tags</p>
+    <div class="flex flex-wrap gap-3">
+      {tagsWithCount.map(([tag, count]) => (
+        <a href={L(`/tags/${tag}/`)} class="glass-card !px-4 !py-3 inline-flex items-center gap-2 transition-colors">
+          <span class="font-medium" style="color: var(--wm-ink)">{tagLabel(tag, lang)}</span>
+          <span class="font-mono text-xs px-2 py-0.5 border" style="border-color: var(--wm-line); color: var(--wm-muted)">{count}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</PageLayout>

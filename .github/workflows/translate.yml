@@ -1,20 +1,54 @@
 name: translate-posts
+
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: "即使站点构建校验失败也提交译文"
+        type: boolean
+        default: false
 
 jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install argos-translate
+
+      - name: Install argos-translate and translate zh -> en
         run: |
           pip install --quiet argostranslate
           python scripts/translate-posts.py
-      - uses: stefanzweifel/git-auto-commit-action@v5
+
+      - uses: actions/setup-node@v4
         with:
-          commit_message: "i18n: 机器翻译英文版文章（argos-translate zh→en）"
+          node-version: "22"
+
+      - name: Install site dependencies
+        run: npm ci --no-audit --no-fund
+
+      # 译文是机器生成的，可能把 MDX 弄坏。构建过一次再提交，
+      # 保证 main 上的站点永远是可构建的。
+      - name: Verify the site still builds with the new translations
+        id: verify
+        continue-on-error: true
+        run: npx astro build
+
+      - name: Show translation sample
+        run: |
+          ls -la src/content/post-en/ | head -25
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        if: steps.verify.outcome == 'success' || inputs.force
+        with:
+          commit_message: "i18n: argos-translate 自动翻译英文文章（zh→en）"
           file_pattern: "src/content/post-en/*"
+
+      - name: Fail the job if the build broke (nothing committed)
+        if: steps.verify.outcome != 'success' && !inputs.force
+        run: |
+          echo "::error::译文让站点构建失败，已放弃提交。看 build 那一步的日志找原因。"
+          exit 1

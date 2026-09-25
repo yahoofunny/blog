@@ -1,25 +1,32 @@
 ---
-import { type CollectionEntry, render } from "astro:content";
+import { render } from "astro:content";
 import BaseLayout from "./Base.astro";
+import type { LocalizedPost } from "@/data/post";
+import { useTranslations } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
 import { getFormattedDate } from "@/utils/date";
 
 interface Props {
-  post: CollectionEntry<"post">;
+  post: LocalizedPost;
 }
 
 const { post } = Astro.props;
-const { ogImage, title, description, updatedDate, publishDate, tags, background } = post.data;
+const lang = post.lang;
+const t = useTranslations(lang);
+const L = (path: string) => localizePath(path, lang);
+
+const { ogImage, title, description, updatedDate, publishDate, tags, background } = post;
 const socialImage = ogImage ?? `/og-image/${post.id}.png`;
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
 
-// Estimate reading time
-const { headings } = await render(post);
-const bodyText = post.body || "";
+// Render the entry (English translation when available, Chinese original otherwise)
+const { Content, headings } = await render(post.entry);
+const bodyText = post.entry.body || "";
 const wordCount = bodyText.replace(/\s+/g, "").length;
 const readingTime = Math.max(1, Math.round(wordCount / 400));
 
 // Build TOC (strip inline HTML like star markers from heading text)
-let tocHtml = '<p style="color: var(--wm-muted); font-style: italic; font-size: 0.75rem">No sections</p>';
+let tocHtml = `<p style="color: var(--wm-muted); font-style: italic; font-size: 0.75rem">${t("noSections")}</p>`;
 if (headings.length > 0) {
   tocHtml = headings.map((h: any) =>
     `<a href="#${h.slug}" class="block py-0.5 transition-colors text-xs" style="padding-left:${(h.depth-1)*0.8}rem; color: var(--wm-ink-soft)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-ink-soft)'">${h.text.replace(/<[^>]+>/g, "")}</a>`
@@ -74,7 +81,7 @@ if (headings.length > 0) {
               </svg>
               {tags.map((tag, i) => (
                 <span>
-                  <a href={`/tags/${tag}/`} class="transition-colors" style="color: var(--wm-primary)">{tag}</a>
+                  <a href={L(`/tags/${tag}/`)} class="transition-colors" style="color: var(--wm-primary)">{tag}</a>
                   {i < tags.length - 1 ? <span style="color: var(--wm-faint)">,</span> : ""}
                 </span>
               ))}
@@ -84,13 +91,18 @@ if (headings.length > 0) {
       </div>
       {updatedDate && updatedDate > publishDate && (
         <p class="text-xs mt-2 italic" style="color: var(--wm-muted)">
-          Updated: {getFormattedDate(updatedDate, { year: "numeric", month: "long", day: "numeric" })}
+          {t("updated")}: {getFormattedDate(updatedDate, { year: "numeric", month: "long", day: "numeric" })}
+        </p>
+      )}
+      {lang === "en" && !post.translated && (
+        <p class="text-xs mt-2 font-mono" style="color: var(--wm-muted)">
+          ⚠︎ This post has no English translation yet — showing the original Chinese text.
         </p>
       )}
     </header>
 
     <div class="prose max-w-none">
-      <slot />
+      <Content />
     </div>
   </article>
 
@@ -107,14 +119,14 @@ if (headings.length > 0) {
       data-emit-metadata="0"
       data-input-position="bottom"
       data-theme="light"
-      data-lang="zh-CN"
+      data-lang={lang === "en" ? "en" : "zh-CN"}
       crossorigin="anonymous"
       async>
     </script>
   </div>
 
   <div class="text-center mt-8">
-    <a href="/" class="transition-colors text-sm font-mono" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">&larr; Back to Home</a>
+    <a href={L("/")} class="transition-colors text-sm font-mono" style="color: var(--wm-muted)" onmouseover="this.style.color='var(--wm-primary)'" onmouseout="this.style.color='var(--wm-muted)'">{t("backHome")}</a>
   </div>
 </BaseLayout>
 
