@@ -42,7 +42,12 @@ def translate_fragment(s: str) -> str:
         return s
     lead = s[: len(s) - len(s.lstrip())]
     trail = s[len(s.rstrip()) :]
-    return lead + _translate(core) + trail
+    if not CJK.search(core):
+        # 没有汉字 = 不会翻译，必须一个字符都不动地还回去。
+        # 这里如果顺手做 MDX 转义，跨行标签的 `<iframe ` 会变成 `&lt;iframe `，
+        # JSX 开标签消失，后面那行的 </iframe> 就成了「意外的闭合标签」。
+        return s
+    return lead + _translate(core).translate(MDX_UNSAFE) + trail
 
 
 # 行内不该被翻译的东西
@@ -65,11 +70,11 @@ def translate_inline(line: str) -> str:
     out, pos = [], 0
     for m in INLINE.finditer(line):
         if m.start() > pos:
-            out.append(translate_fragment(line[pos : m.start()]).translate(MDX_UNSAFE))
+            out.append(translate_fragment(line[pos : m.start()]))
         out.append(m.group(0))
         pos = m.end()
     if pos < len(line):
-        out.append(translate_fragment(line[pos:]).translate(MDX_UNSAFE))
+        out.append(translate_fragment(line[pos:]))
     return "".join(out)
 
 
@@ -78,8 +83,11 @@ FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 TABLE_SEP = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
 # 行首的 Markdown 结构标记，翻完要原样接回去
 STRUCT_PREFIX = re.compile(r"^(\s*(?:#{1,6}\s+|>\s?|[-*+]\s+|\d+[.)]\s+|\|\s*)?)(.*)$")
-# 标签开始：<div / </div / <!--，避免把正文里的 a < b 当标签
-TAG_START = re.compile(r"<[A-Za-z/!]")
+# 标签开头。`</` 和 `<!` 没有歧义；`<字母` 则要求前面不是字母数字，
+# 否则正文里的比较式 a<b ⇔ SF≠OF 会被当成标签开头。那一行又没有 `>`，
+# in_tag 就会一直卡在 True，后面整段正文被跳过不翻。
+# 注意 `</` 必须无条件算标签：文字</span> 里的 `<` 前面照样是字母。
+TAG_START = re.compile(r"</|<!|(?<![A-Za-z0-9])<[A-Za-z]")
 
 
 def scan_tag_state(line: str, in_tag: bool) -> bool:
@@ -105,6 +113,7 @@ def scan_tag_state(line: str, in_tag: bool) -> bool:
             m = TAG_START.search(line, i)
             if not m:
                 return False
+            in_tag = True  # 找到 < 就进入标签内状态，下一轮去找配对的 >
             i = m.start() + 1
 
 
@@ -149,14 +158,20 @@ def shorten(text: str, limit: int) -> str:
 
 
 def process_file(path: str) -> None:
-    raw = open(path, encoding="utf-8").read()
+    # 有几篇是 CRLF 存的（数据结构那几篇 + 电路模电），不归一化的话
+    # 下面这个 ^---\n 匹配不上，整篇会被静默跳过、永远没有英文版
+    raw = open(path, encoding="utf-8").read().replace("\r\n", "\n")
     m = re.match(r"^---\n(.*?)\n---\n(.*)$", raw, re.S)
     if not m:
-        return
+        # 读不出来必须炸，不能 return 溜走
+        raise SystemExit(f"解析不出 frontmatter：{path}")
     fm, body = m.groups()
 
     def sub_field(mm: re.Match) -> str:
-        value = _translate(mm.group(2)).replace('"', "'")
+        src = mm.group(2)
+        if not CJK.search(src):
+            return mm.group(0)  # 没汉字就没翻译，引号也别动
+        value = _translate(src).replace('"', "'")
         if mm.group(1) == "title":
             value = shorten(value, MAX_TITLE)
         return f'{mm.group(1)}: "{value}"'
@@ -164,23 +179,28 @@ def process_file(path: str) -> None:
     fm = FRONT_FIELD.sub(sub_field, fm)
     new_body = translate_body(body)
 
-    # 结构不变式：行数必须和原文一致，围栏数必须一致
+    # 结构不变式：行数、围栏数、属性数都必须和原文一致
     src_lines = body.count("\n")
     dst_lines = new_body.count("\n")
     if src_lines != dst_lines:
         raise SystemExit(f"结构被破坏（行数 {src_lines} -> {dst_lines}）：{path}")
     if body.count("```") != new_body.count("```"):
         raise SystemExit(f"代码围栏数量对不上：{path}")
+    # 裸属性 =" 只可能出现在标签里，翻没了就是标签被改烂了
+    src_attrs = body.count('="')
+    dst_attrs = new_body.count('="')
+    if src_attrs != dst_attrs:
+        raise SystemExit(f"标签属性数量对不上（{src_attrs} -> {dst_attrs}）：{path}")
 
     os.makedirs(DST, exist_ok=True)
     out_path = os.path.join(DST, os.path.basename(path))
-    with open(out_path, "w", encoding="utf-8") as f:
+    with open(out_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(f"---\n{fm}\n---\n{new_body}")
     print("translated:", out_path, flush=True)
 
 
-for name in sorted(os.listdir(SRC)):
-    if name.endswith((".md", ".mdx")):
-        process_file(os.path.join(SRC, name))
+names = sorted(n for n in os.listdir(SRC) if n.endswith((".md", ".mdx")))
+for name in names:
+    process_file(os.path.join(SRC, name))
 
-print("done", file=sys.stderr)
+print(f"done: {len(names)} 篇", file=sys.stderr)
