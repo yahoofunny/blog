@@ -49,8 +49,6 @@ export const ui = {
 		noSections: "暂无目录",
 		tags: "Tags",
 		language: "语言",
-		upcoming: "即将上线",
-		upcomingItems: "Godot 小游戏 · MiniMind 模型调用",
 		// 排序
 		sortNewest: "最新",
 		sortOldest: "最早",
@@ -109,8 +107,6 @@ export const ui = {
 		noSections: "No sections",
 		tags: "Tags",
 		language: "Language",
-		upcoming: "Upcoming",
-		upcomingItems: "Godot mini games · MiniMind LLM",
 		sortNewest: "Newest",
 		sortOldest: "Oldest",
 		sortAz: "A → Z",
