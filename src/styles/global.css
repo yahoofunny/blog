@@ -513,6 +513,10 @@ h1, h2, h3, h4 {
   padding: 0;
   overflow: hidden;
   height: min(72vh, 720px);
+  /* 聊天页没有侧栏了，main 会占满整宽 —— 不封顶的话大屏上对话框会拉成一条 */
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
 }
 .chat-head {
   display: flex;

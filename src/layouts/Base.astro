@@ -11,9 +11,11 @@ interface Props {
 	meta: SiteMeta;
 	/** 聊天页自己就是聊天界面，右下角再飘一只会挡输入框 */
 	hidePet?: boolean;
+	/** 聊天页要整块地方给对话框，左边那条侧栏（文章数/标签）在那儿没意义 */
+	hideSidebar?: boolean;
 }
 
-const { meta, hidePet = false } = Astro.props;
+const { meta, hidePet = false, hideSidebar = false } = Astro.props;
 const { articleDate, description = siteConfig.description, ogImage, title } = meta;
 
 // 语言：/en/... 走英文站，其余是中文站
@@ -162,12 +164,14 @@ const L = (path: string) => localizePath(path, lang);
 
     <div class="relative z-10 w-full px-4 md:px-8 xl:px-16 2xl:px-24 pt-24 pb-16">
       <div class="flex gap-8">
+        {!hideSidebar && (
         <!-- Desktop sidebar (always visible md+) -->
         <aside id="sidebar" class="w-64 shrink-0 hidden md:block">
           <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-6">
             <SidebarContent lang={lang} />
           </div>
         </aside>
+        )}
 
         <!-- Main area -->
         <main id="main" class="flex-1 min-w-0 pb-16">
@@ -189,7 +193,9 @@ const L = (path: string) => localizePath(path, lang);
       <span>&mdash; {siteConfig.title} &copy; {new Date().getFullYear()}</span>
     </footer>
 
-    <iframe id="wm-particle" src="/bg-particle/" title="" aria-hidden="true" tabindex="-1"></iframe>
+    {/* 写全 index.html：`/bg-particle/` 这种目录地址 Astro 开发服务器不解析索引，
+        会 404（生产环境 Cloudflare Pages 会兜住，所以只在本地看着像坏了）。 */}
+    <iframe id="wm-particle" src="/bg-particle/index.html" title="" aria-hidden="true" tabindex="-1"></iframe>
     {!hidePet && (
       <>
     <div id="clawd-pet" class="clawd-pet" title={t("clawdHint")} data-chat={L("/chat/")} role="button" tabindex="0" aria-label={t("clawdHint")}><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false" alt=""/></div>
@@ -219,18 +225,28 @@ function dragStart(x,y,t){
   p.style.transform="translate(0,0)";
 }
 function dragMove(x,y){
-  if(!dr)return;moved=true;
+  if(!dr)return;
+  // 阈值不能省。真人点一下鼠标，指尖总有 1~2px 位移，浏览器就会发 mousemove ——
+  // 之前这里无条件 moved=true，等于"点一下就变成拖拽"，于是永远进不了 clickPet()。
+  // 桌宠点了没反应就是这个。
+  if(!moved&&Math.abs(x-sx)<5&&Math.abs(y-sy)<5)return;
+  moved=true;
   p.style.transform="translate("+(x-sx)+"px,"+(y-sy)+"px)";
 }
 function dragEnd(x,y){
   if(!dr)return;dr=false;
   var dx=x-sx,dy=y-sy;
-  // Commit position
-  p.style.left=(cx+dx)+"px";p.style.top=(cy+dy)+"px";
   p.style.transform="";
   p.style.transition="";
+  if(moved){
+    // Commit position
+    p.style.left=(cx+dx)+"px";p.style.top=(cy+dy)+"px";
+  }else{
+    // 只是点了一下：还原成右下角贴边，别把它钉成绝对坐标（否则窗口缩放时它不跟着走）
+    p.style.left="";p.style.top="";p.style.bottom="20px";p.style.right="20px";
+    clickPet();
+  }
   p.style.animation="clawd-float 3s ease-in-out infinite";
-  if(!moved)clickPet();
 }
 p.onmousedown=function(e){dragStart(e.clientX,e.clientY,e)};
 p.ontouchstart=function(e){var t=e.touches[0];dragStart(t.clientX,t.clientY,e)};
@@ -238,7 +254,8 @@ window.onmousemove=function(e){dragMove(e.clientX,e.clientY)};
 window.ontouchmove=function(e){var t=e.touches[0];dragMove(t.clientX,t.clientY);if(dr)t.preventDefault()};
 window.onmouseup=function(e){dragEnd(e.clientX,e.clientY)};
 window.ontouchend=function(e){if(!dr)return;dr=false;
-  if(!moved){p.style.left=cx+"px";p.style.top=cy+"px";openChat()}
+  // 触摸端没有 dblclick，所以轻点直接跳，不用等 220ms
+  if(!moved){p.style.left="";p.style.top="";p.style.bottom="20px";p.style.right="20px";openChat()}
   p.style.transform="";
   p.style.transition="";
   p.style.animation="clawd-float 3s ease-in-out infinite";};
