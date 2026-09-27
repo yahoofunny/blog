@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mome 主题源码 — bt's Blog</title>
+<meta name="theme-color" content="#0000f2" />
+<style>
+  @font-face {
+    font-family: 'Oswald';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/oswald-var.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/courier-prime-400.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/courier-prime-700.woff2') format('woff2');
+  }
+  :root {
+    --paper: #fdfdfd; --panel: #f5f5f5; --card: #ffffff;
+    --ink: #111; --soft: #4a4a4a; --muted: #8a8a8a;
+    --primary: #0000f2; --on-primary: #fff;
+    --line: rgba(17,17,17,0.14); --dotted: #c9c9c9;
+    --shadow-hair: 0 1px 2px rgba(17,17,17,0.07);
+    --shadow-lift: 0 14px 28px -14px rgba(0,0,242,0.25);
+    --display: "Oswald", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "Courier Prime", ui-monospace, Menlo, Consolas, monospace;
+    --body: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  html.dark {
+    --paper: #0e0e13; --panel: #15151c; --card: #17171d;
+    --ink: #f0f0f2; --soft: #b9b9c2; --muted: #8b8b95;
+    --primary: #6e6eff;
+    --line: rgba(240,240,242,0.16); --dotted: #3a3a44;
+    --shadow-hair: 0 1px 2px rgba(0,0,0,0.5);
+    --shadow-lift: 0 14px 28px -14px rgba(110,110,255,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    position: relative;
+    background-color: var(--paper); color: var(--ink);
+    font-family: var(--body); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  #wm-particle {
+    display: none; position: fixed; inset: 0; width: 100%; height: 100%;
+    z-index: -1; border: 0; pointer-events: none;
+  }
+  html.dark #wm-particle { display: block; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 20px; }
+  header { border-bottom: 1px dotted var(--dotted); padding: 18px 0; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); text-decoration: none; }
+  .brand img { display: block; width: 26px; height: 26px; }
+  .theme-btn { background: none; border: none; cursor: pointer; color: var(--soft); padding: 4px; transition: color .15s ease; }
+  .theme-btn:hover { color: var(--primary); }
+  .theme-btn svg { width: 20px; height: 20px; display: none; }
+  html:not(.dark) .icon-bulb-off { display: block; }
+  html.dark .icon-bulb-on { display: block; }
+  main { padding: 44px 0 56px; }
+  .kicker { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--primary); margin-bottom: 10px; }
+  h1 { font-family: var(--display); font-weight: 600; font-size: clamp(1.9rem, 5.5vw, 2.9rem); letter-spacing: 0.01em; }
+  .sub { font-family: var(--mono); font-size: 0.78rem; line-height: 1.9; color: var(--soft); margin: 14px 0 30px; }
+  .note { border: 1px solid var(--line); border-left: 3px solid var(--primary); background: var(--card); box-shadow: var(--shadow-hair); padding: 18px 20px; margin-bottom: 34px; }
+  .note p { font-size: 0.86rem; line-height: 1.75; color: var(--soft); }
+  .note p + p { margin-top: 10px; }
+  .note strong { color: var(--ink); }
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 36px; }
+  @media (max-width: 620px) { .links { grid-template-columns: 1fr; } }
+  .card {
+    display: block; background: var(--card); border: 1px solid var(--line);
+    box-shadow: var(--shadow-hair); padding: 20px 22px; text-decoration: none; color: inherit;
+    transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
+  }
+  .card:hover { border-color: var(--primary); box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+  .card .tag { font-family: var(--mono); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+  .card h2 { font-family: var(--display); font-weight: 600; font-size: 1.3rem; margin: 8px 0 6px; }
+  .card p { font-size: 0.82rem; line-height: 1.6; color: var(--soft); }
+  .card .go { display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); }
+  h3 { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted); margin: 34px 0 14px; }
+  ol, ul { padding-left: 1.15rem; }
+  li { font-size: 0.86rem; line-height: 1.85; color: var(--soft); }
+  li + li { margin-top: 6px; }
+  code { font-family: var(--mono); font-size: 0.86em; background: var(--panel); border: 1px solid var(--line); padding: 1px 5px; }
+  a { color: var(--primary); }
+  pre { background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-hair); padding: 16px 18px; overflow-x: auto; margin: 14px 0; }
+  pre code { background: none; border: 0; padding: 0; font-size: 0.78rem; line-height: 1.8; color: var(--soft); }
+  .files { border: 1px solid var(--line); box-shadow: var(--shadow-hair); background: var(--card); }
+  .files a, .files span { display: flex; align-items: baseline; gap: 12px; padding: 11px 16px; text-decoration: none; }
+  .files a + a, .files a + span, .files span + a, .files span + span { border-top: 1px dotted var(--dotted); }
+  .files .n { flex: none; width: 118px; font-family: var(--mono); font-size: 0.72rem; font-weight: 700; color: var(--primary); }
+  .files .d { font-size: 0.8rem; color: var(--soft); }
+  .files span .n { color: var(--muted); }
+  footer { border-top: 1px dotted var(--dotted); padding: 20px 0 32px; font-family: var(--mono); font-size: 0.72rem; line-height: 1.8; color: var(--muted); }
+  footer a { color: var(--primary); text-decoration: none; }
+</style>
+<script>
+  if (localStorage.getItem('theme') !== 'light') document.documentElement.classList.add('dark');
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="https://bingtao.xyz/">
+      <img src="/pacman.svg" alt="bt" width="26" height="26" />bt's Blog
+    </a>
+    <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">
+      <svg class="icon-bulb-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-.107c0-.795-.496-1.488-1.117-1.984a5 5 0 1 1 6.235 0c-.622.497-1.118 1.189-1.118 1.984V18m-4 0v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2m-4 0h4m-2-3v-2"/></svg>
+      <svg class="icon-bulb-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-.107c0-.795-.496-1.488-1.117-1.984a5 5 0 1 1 6.235 0c-.622.497-1.118 1.189-1.118 1.984V18m-4 0v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2m-4 0h4m-2-3v-2M12 2v1m-8 9H3m18 0h-1M5.6 5.6l-.7-.7m14.2.7.7-.7"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <div class="kicker">Source</div>
+    <h1>Mome 主题源码</h1>
+    <p class="sub">
+      这里是 <a href="https://mome.bingtao.xyz">mome.bingtao.xyz</a> 那层皮的源码 ——
+      把这个博客的皮肤，搬到了 Ech0 上。
+    </p>
+
+    <div class="note">
+      <p><strong>这些文件只是一层皮肤 —— 拿它当不了网站。</strong></p>
+      <p>
+        Ech0（Go + Vue 写的单人微博客）是<strong>要自己找台服务器跑起来的</strong>：
+        <a href="https://mome.bingtao.xyz">mome.bingtao.xyz</a> 就跑在一台自建服务器上。
+        这套主题只是往它的「自定义 CSS / 自定义 JS」里塞的两段文本，
+        <strong>不含 Ech0 本身，也不含任何后端</strong>。
+      </p>
+      <p>
+        所以想用的话，先去下面两个地方把 Ech0 装起来，再回来拿这里的文件。
+      </p>
+    </div>
+
+    <div class="links">
+      <a class="card" href="https://ech0.app/docs" target="_blank" rel="noopener">
+        <span class="tag">Docs</span>
+        <h2>Ech0 官方文档</h2>
+        <p>安装、部署、配置，以及面板里那两个「自定义 CSS / 自定义 JS」的口子怎么用。</p>
+        <span class="go">ech0.app/docs &rarr;</span>
+      </a>
+      <a class="card" href="https://github.com/lin-snow/Ech0" target="_blank" rel="noopener">
+        <span class="tag">Upstream</span>
+        <h2>Ech0 源码仓库</h2>
+        <p>lin-snow/Ech0，AGPL-3.0。发布页有单文件二进制，也有 Docker 镜像。</p>
+        <span class="go">github.com/lin-snow/Ech0 &rarr;</span>
+      </a>
+    </div>
+
+    <h3>目录里有什么</h3>
+    <div class="files">
+      <a href="./custom.css"><span class="n">custom.css</span><span class="d">构建产物 —— 粘贴到 Ech0 面板「自定义 CSS」</span></a>
+      <a href="./custom.js"><span class="n">custom.js</span><span class="d">构建产物 —— 粘贴到 Ech0 面板「自定义 JS」</span></a>
+      <a href="./src/tokens.css"><span class="n">src/tokens.css</span><span class="d">色值源码（改颜色改这里）</span></a>
+      <a href="./src/tail.css"><span class="n">src/tail.css</span><span class="d">规则源码（第 3 节往后的所有样式）</span></a>
+      <a href="./src/build.py"><span class="n">src/build.py</span><span class="d">tokens + tail → custom.css</span></a>
+      <a href="./README.md"><span class="n">README.md</span><span class="d">同一份说明的 Markdown 版</span></a>
+    </div>
+    <p class="sub" style="margin-top:12px">
+      <code>custom.css</code> 别手改，它是生成的。
+      <code>python src/build.py</code> 可以重新构建。
+    </p>
+
+    <h3>装法（四步）</h3>
+    <ol>
+      <li><strong>先有一台服务器、一个跑起来的 Ech0。</strong> 见上面那两个链接。</li>
+      <li><strong>字体。</strong> 把 <code>oswald-var.woff2</code>、<code>courier-prime-400.woff2</code>、
+          <code>courier-prime-700.woff2</code> 放到你站点的 <code>/fonts/</code> 下
+          （三份都是 SIL OFL 1.1）。放别处就用 <code>build.py</code> 带上路径重新构建。</li>
+      <li><strong>注入。</strong> 面板 → 系统设置 → 把 <code>custom.css</code> 和
+          <code>custom.js</code> 的全文分别粘进「自定义 CSS」「自定义 JS」，保存、刷新。</li>
+      <li><strong>换成你自己的。</strong> 本目录这两份是<strong>本博客在用的那一版</strong>，
+          地址写死成了 <code>bingtao.xyz</code>。改 <code>custom.js</code> 顶部的
+          <code>CONFIG</code>：</li>
+    </ol>
+    <pre><code>particleUrl: '/bg-particle/index.html',          // 粒子壁纸页面
+home:        { href: '/', icon: '/pacman.svg' }, // 左上角那个标志
+themeIcons:  { light: '/off.svg', dark: '/on.svg' }, // 右上角开关灯
+nav:         [ ... ],                            // 中间那几栏
+sourceUrl:   '',                                 // 侧栏源码入口（见下）</code></pre>
+
+    <h3>几件要知道的事</h3>
+    <ul>
+      <li><strong>没有 <code>/en/</code> 路径。</strong> Ech0 的语言是客户端状态，
+          不是路由。顶栏那个 <code>中 / EN</code> 药丸是去点它原生菜单，点完当场变、
+          不用刷新；要分享英文链接就用 <code>?lang=en</code>。</li>
+      <li><strong>顶栏是这套主题加的</strong>，不是 Ech0 自带的。Ech0 原生的主题键和
+          语言键被脚本打标记藏掉了。</li>
+      <li><strong>图标得是深色线条的 SVG</strong> —— 暗色下脚本会给它加
+          <code>invert(1)</code> 翻白。</li>
+      <li><strong>只有明暗两态。</strong> Ech0 原生是 <code>light → sunny → dark</code>
+          三态循环，这里接管成了干净的两态。</li>
+      <li><strong><code>sourceUrl</code> 请填上。</strong> Ech0 和这套主题都是
+          AGPL-3.0，§13 要求「通过网络与它交互的用户能拿到对应源码」——
+          填成你自己那份主题仓库的地址，侧栏会多出一个 <code>SOURCE</code> 入口。</li>
+    </ul>
+
+    <h3>出处</h3>
+    <p class="sub" style="margin-top:0">
+      本目录的全部内容来自同作者的
+      <a href="https://github.com/yahoofunny/bts-moment" target="_blank" rel="noopener">bts-moment</a>
+      —— 那边有完整的 README、部署套件（加载页改写 / systemd 单元）、
+      <code>extras/bg-particle/</code> 粒子壁纸页面和第三方组件清单 <code>NOTICE</code>。
+      要拿去用，<strong>去那边克隆更省事</strong>；这里这份只是给正在看这个博客的人一个就近的副本。
+    </p>
+  </main>
+
+  <footer>
+    <a href="https://github.com/yahoofunny/bts-moment" target="_blank" rel="noopener">bts-moment</a>
+    · AGPL-3.0-or-later ·
+    皮肤照搬自这个博客自己的 <code>global.css</code><br />
+    回博客：<a href="https://bingtao.xyz/">bingtao.xyz</a> ·
+    看效果：<a href="https://mome.bingtao.xyz">mome.bingtao.xyz</a>
+  </footer>
+</div>
+<script>
+  (function(){
+    var btn = document.getElementById('theme-btn');
+    btn.addEventListener('click', function(){
+      var dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    });
+  })();
+</script>
+<iframe id="wm-particle" src="/bg-particle/index.html" title="" aria-hidden="true" tabindex="-1"></iframe>
+</body>
+</html>
