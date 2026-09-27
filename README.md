@@ -39,7 +39,18 @@
 - 不想写整篇文章时的低门槛出口，发一条 = 一次 POST
 - 匿名可读、匿名可点赞（点赞端点是公开的，带 2 次/5 小时的幂等限流）
 - 评论开着但需审核；SMTP 通知已通
-- 只有一处风格靠注入：`custom.css` / `custom_js` 把 Ech0 的暖棕主题盖成上面这套暗色 token
+- 风格靠注入实现：往 Ech0 面板的「自定义 CSS / 自定义 JS」塞两段文本，把它盖成上面这套纸面 + 墨色
+
+#### 换肤源码
+
+mome 那层皮的源码在 **[yahoofunny/bts-moment](https://github.com/yahoofunny/bts-moment)**，那边是正本：
+完整的 README、部署套件（加载页 nginx 改写 / systemd 单元）、粒子壁纸页面和第三方组件清单 `NOTICE`。
+本仓库 `public/mome/` 下是一份**就近的同内容副本**，说明页在 **<https://bingtao.xyz/mome/>**。
+
+> ⚠️ **那只是一层皮肤 —— 拿它当不了网站。**
+> Ech0 本身要自己找台服务器跑起来。官方文档 <https://ech0.app/docs>，源码 <https://github.com/lin-snow/Ech0>。
+
+`custom.css` 是 `build.py` 的构建产物，别手改；改色值改 `src/tokens.css`，改规则改 `src/tail.css`。
 
 ### 交互
 - **<img src="public/clawd-icon.svg" width="18" alt="Clawd"> Clawd 桌宠** — 右下角像素螃蟹，点击切换姿态+说话，拖拽移动，双击问候，定时主动搭话。25+ 句 bt 主题对话
@@ -113,6 +124,7 @@ src/
 └── utils/          # 工具函数
 public/
 ├── games/          # 游戏中心（index.html + 各游戏静态文件）
+├── mome/           # Mome 换肤源码 + 说明页（https://bingtao.xyz/mome/）
 ├── bg-particle/    # 粒子背景画布（首页 + Mome 共用）
 ├── fonts/          # 自托管字体（Oswald / Courier Prime）
 ├── on.svg / off.svg # 主题切换灯泡图标
