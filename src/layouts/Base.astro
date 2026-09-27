@@ -49,10 +49,17 @@ const L = (path: string) => localizePath(path, lang);
         while(n=w.nextNode()){
           var p=n.parentElement;
           if(!p||p.closest('script,style,#mobile-menu,#clawd-pet,#clawd-speech,#chat-app,noscript,svg,.lang-switch,.wm-drawer summary .cnt'))continue;
-          if(n.textContent.trim())nodes.push(n);
+          if(!n.textContent.trim())continue;
+          if(_isToken.test(n.textContent.trim()))continue;
+          nodes.push(n);
         }
         return nodes;
       }
+      // ⚠️ 整块「没有空格、又全是 ASCII」的文本不是句子，是标识符：域名、URL、
+      //    文件名、版本号。里面那个 `.` 不是句号，插进去会把 bingtao.xyz 劈成
+      //    `bingtao. (・∀・) xyz`（链接卡片上真出过）。中文正文不受影响 ——
+      //    中文句号是全角「。」，而且中文本身不是 ASCII。
+      var _isToken=/^[\x21-\x7e]+$/;
       function _punct(t){var kk=_kao[Math.floor(Math.random()*_kao.length)];return t.replace(/([。！？；…\.\!\?\;])/g,'$1 '+kk+' ')}
       function _paintUI(on){
         document.querySelectorAll('.lang-switch').forEach(function(box){
