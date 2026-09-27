@@ -54,6 +54,7 @@ particleUrl: '/bg-particle/index.html',   // 粒子壁纸页面
 home:        { href: '/', icon: '/pacman.svg' },        // 左上角那个标志
 themeIcons:  { light: '/off.svg', dark: '/on.svg' },    // 右上角开关灯
 nav:         [ ... ],                     // 中间那六栏，换成你的路径
+kaomoji:     { enabled: true, label: '(´・ω・`)' },      // 药丸第三段（见下）
 sourceUrl:   '',                          // 侧栏源码入口（见下）
 ```
 
@@ -62,6 +63,11 @@ sourceUrl:   '',                          // 侧栏源码入口（见下）
 - **没有 `/en/` 路径。** Ech0 的语言是客户端状态（存在 `localStorage.locale`），
   不是路由。顶栏那个 `中 / EN` 药丸是去点它原生菜单，点完当场变、不用刷新；
   想分享一个英文链接就用 `?lang=en`。
+- **药丸的第三段是颜文字，不是一种语言。** 点它 = 开 / 关，句末标点后面随机
+  插一个颜文字 —— 纯显示效果，**不写进 Ech0 的任何数据**，状态只在
+  `localStorage.kaomoji` 里。不想要就把 `kaomoji.enabled` 改成 `false`。
+- **手机上六栏目收进汉堡。** 窄屏（≤900px）那六栏藏起来，右边多一个 ☰，
+  点开是一层全屏菜单，跟博客自己那个一模一样。
 - **顶栏是这套主题加的**，不是 Ech0 自带的。Ech0 原生的主题键和语言键被
   脚本打标记藏掉了（`.bt-native`），别按类名去藏 ——
   `.home-header__link-icon` 是 RSS / 禅模式 / 登录共用的类名，一刀切会连带干掉三个。
