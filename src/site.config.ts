@@ -5,7 +5,7 @@ export const siteConfig: SiteConfig = {
   url: "https://blog-6rb.pages.dev/",
   title: "bt's Blog",
   author: "bt",
-  description: "数据结构、算法笔记 :)",
+  description: "bt 的个人站：博客、游戏厅、在线电台，和一只会蹬车的鹈鹕。",
   lang: "zh-CN",
   ogLocale: "zh_CN",
   date: {
