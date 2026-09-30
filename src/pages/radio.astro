@@ -8,7 +8,7 @@ const meta = { description: "Claude FM - Lo-fi 24/7 Radio", title: "Claude FM" }
     <p class="wm-kicker mb-2">Gadgets — Radio</p>
     <h1 class="text-2xl font-bold mb-2">Claude FM</h1>
     <p class="text-sm mb-6" style="color: var(--wm-muted)">24/7 Lo-fi &amp; Ambient</p>
-    <audio controls autoplay class="w-full max-w-md mx-auto">
+    <audio controls class="w-full max-w-md mx-auto">
       <source src="https://lofi.stream.laut.fm/lofi" type="audio/mpeg" />
     </audio>
     <p class="font-mono text-xs mt-4" style="color: var(--wm-muted)">Powered by laut.fm</p>
@@ -30,4 +30,15 @@ const meta = { description: "Claude FM - Lo-fi 24/7 Radio", title: "Claude FM" }
 	    <p class="font-mono text-xs mt-4" style="color: var(--wm-muted)">SomaFM Drone Zone</p>
 	  </div>
   </div>
+  <script is:inline>
+    // 两路电台互斥：任何一路开始播放时，自动暂停另一路
+    const players = Array.from(document.querySelectorAll("audio"));
+    players.forEach((player) => {
+      player.addEventListener("play", () => {
+        players.forEach((other) => {
+          if (other !== player) other.pause();
+        });
+      });
+    });
+  </script>
 </PageLayout>
