@@ -38,6 +38,22 @@
   <line x1="392" y1="434" x2="258" y2="421" stroke="#3a3a52" stroke-width="2.5" stroke-dasharray="5 4"/>
   <circle cx="400" cy="415" r="22" fill="none" stroke="#55556e" stroke-width="4"/>
 
+  <!-- 远侧腿（暗色，8 帧蹬踏，相位差 180°） -->
+  <path fill="none" stroke="#b9b9c9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"
+    d="M382,286 L385,343 L376,391 L396,389">
+    <animate attributeName="d" dur="1.6s" repeatCount="indefinite"
+      keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
+      values="M382,286 L385,343 L376,391 L396,389;
+              M382,286 L397,335 L400,381 L420,379;
+              M382,286 L409,337 L424,391 L444,389;
+              M382,286 L413,349 L434,415 L454,413;
+              M382,286 L409,362 L424,439 L444,437;
+              M382,286 L397,369 L400,449 L420,447;
+              M382,286 L385,366 L376,439 L396,437;
+              M382,286 L380,356 L366,415 L386,413;
+              M382,286 L385,343 L376,391 L396,389"/>
+  </path>
+
   <!-- 车架 -->
   <g stroke="#6e6eff" stroke-width="8" stroke-linecap="round" fill="none">
     <line x1="400" y1="415" x2="255" y2="415"/>
@@ -53,11 +69,14 @@
   <circle cx="552" cy="276" r="5" fill="#ECECF4"/>
   <rect x="334" y="278" width="66" height="12" rx="6" fill="#ECECF4"/>
 
-  <!-- 曲柄 + 脚踏 -->
-  <line x1="400" y1="415" x2="434" y2="449" stroke="#ECECF4" stroke-width="6" stroke-linecap="round"/>
-  <rect x="424" y="444" width="22" height="8" fill="#FFB454"/>
-  <line x1="400" y1="415" x2="366" y2="381" stroke="#ECECF4" stroke-width="6" stroke-linecap="round"/>
-  <rect x="356" y="376" width="22" height="8" fill="#FFB454"/>
+  <!-- 曲柄 + 双踏板（整体旋转） -->
+  <g>
+    <line x1="400" y1="415" x2="424" y2="439" stroke="#ECECF4" stroke-width="6" stroke-linecap="round"/>
+    <rect x="412" y="434.5" width="24" height="9" rx="2" fill="#FFB454"/>
+    <line x1="400" y1="415" x2="376" y2="391" stroke="#ECECF4" stroke-width="6" stroke-linecap="round"/>
+    <rect x="364" y="386.5" width="24" height="9" rx="2" fill="#FFB454"/>
+    <animateTransform attributeName="transform" type="rotate" from="45 400 415" to="405 400 415" dur="1.6s" repeatCount="indefinite"/>
+  </g>
 
   <!-- 后轮 -->
   <circle cx="255" cy="415" r="66" fill="none" stroke="#ECECF4" stroke-width="8"/>
@@ -66,7 +85,7 @@
     <line x1="207" y1="415" x2="303" y2="415"/>
     <line x1="231" y1="373.4" x2="279" y2="456.6"/>
     <line x1="279" y1="373.4" x2="231" y2="456.6"/>
-    <animateTransform attributeName="transform" type="rotate" from="0 255 415" to="360 255 415" dur="2.2s" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 255 415" to="360 255 415" dur="1.2s" repeatCount="indefinite"/>
   </g>
   <circle cx="255" cy="415" r="8" fill="#6e6eff"/>
 
@@ -77,13 +96,9 @@
     <line x1="517" y1="415" x2="613" y2="415"/>
     <line x1="541" y1="373.4" x2="589" y2="456.6"/>
     <line x1="589" y1="373.4" x2="541" y2="456.6"/>
-    <animateTransform attributeName="transform" type="rotate" from="0 565 415" to="360 565 415" dur="2.2s" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 565 415" to="360 565 415" dur="1.2s" repeatCount="indefinite"/>
   </g>
   <circle cx="565" cy="415" r="8" fill="#6e6eff"/>
-
-  <!-- 远侧腿（暗一点，画在身体后面） -->
-  <path d="M382,286 L362,362 L370,381" fill="none" stroke="#b9b9c9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="364" y1="381" x2="384" y2="381" stroke="#b9b9c9" stroke-width="7" stroke-linecap="round"/>
 
   <!-- 鹈鹕（身体微微起伏） -->
   <g>
@@ -99,9 +114,35 @@
     <!-- 身体 -->
     <ellipse cx="352" cy="232" rx="80" ry="60" fill="#F2F2F7"/>
 
-    <!-- 近侧腿 -->
-    <path d="M398,280 C420,320 428,392 434,440" fill="none" stroke="#F2F2F7" stroke-width="10" stroke-linecap="round"/>
-    <line x1="428" y1="444" x2="454" y2="444" stroke="#FFB454" stroke-width="8" stroke-linecap="round"/>
+    <!-- 近侧腿（8 帧蹬踏，脚跟着曲柄走） -->
+    <path fill="none" stroke="#F2F2F7" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"
+      d="M398,282 L425,358 L424,439 L444,437">
+      <animate attributeName="d" dur="1.6s" repeatCount="indefinite"
+        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
+        values="M398,282 L425,358 L424,439 L444,437;
+                M398,282 L413,365 L400,449 L420,447;
+                M398,282 L401,362 L376,439 L396,437;
+                M398,282 L396,352 L366,415 L386,413;
+                M398,282 L401,339 L376,391 L396,389;
+                M398,282 L413,331 L400,381 L420,379;
+                M398,282 L425,333 L424,391 L444,389;
+                M398,282 L429,345 L434,415 L454,413;
+                M398,282 L425,358 L424,439 L444,437"/>
+    </path>
+    <path fill="none" stroke="#FFB454" stroke-width="8" stroke-linecap="round"
+      d="M424,439 L444,437">
+      <animate attributeName="d" dur="1.6s" repeatCount="indefinite"
+        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
+        values="M424,439 L444,437;
+                M400,449 L420,447;
+                M376,439 L396,437;
+                M366,415 L386,413;
+                M376,391 L396,389;
+                M400,381 L420,379;
+                M424,391 L444,389;
+                M434,415 L454,413;
+                M424,439 L444,437"/>
+    </path>
 
     <!-- 脖子 + 头 -->
     <path d="M414,214 C446,196 452,178 470,158" fill="none" stroke="#F2F2F7" stroke-width="24" stroke-linecap="round"/>
@@ -130,5 +171,5 @@
   </g>
 
   <!-- 底部注释 -->
-  <text x="400" y="536" text-anchor="middle" fill="#55556e" font-size="12" letter-spacing="3">HANDMADE SVG · ONE PELICAN · NO FISH WAS HARMED</text>
+  <text x="400" y="536" text-anchor="middle" fill="#55556e" font-size="12" letter-spacing="3">HANDMADE SVG · ONE PELICAN · NOW ACTUALLY PEDALING</text>
 </svg>
