@@ -76,7 +76,7 @@ const S = {
   px: innerWidth / 2, py: -SKY + 80, vx: 0, vy: 0, onGround: false, face: 1,
   camY: -SKY,
   aimX: innerWidth * 0.6, aimScreenY: 200, aimY: 200,
-  weapon: 0, lastShot: 0, beamAcc: 0, firing: false,
+  weapon: 0, lastShot: 0, beamAcc: 0, firing: false, descendTarget: null,
   bullets: [], parts: [], pops: [], beams: [],
   worldW: innerWidth, worldH: 1000, docH: 600,
   totalTiles: 0, destroyedTiles: 0, totalEls: 0, destroyedEls: 0,
@@ -317,18 +317,19 @@ function iframeOff() {
   return { x: 0, y: 0 };
 }
 
-// S/↓：向下一层——瞬移到脚下更深处的下一个可站立表面
+// S/↓：向下一层——关闭碰撞，真实重力坠落到脚下更深处的下一个可站立表面
 function descendOneLayer() {
+  if (S.descendTarget !== null) return;
   const fy = S.py + HH;
   const footL = S.px - HW + 3, footR = S.px + HW - 3;
   let targetTop = null;
   for (let y = fy + CELL + 2; y < S.worldH - 56; y += CELL / 2) {
     if (solidAt(footL, y + 1) || solidAt(footR, y + 1)) { targetTop = y; break; }
   }
-  const dest = targetTop !== null ? targetTop - HH : S.worldH - 56 - HH;
-  burst(S.px, S.py, 12, "#7ee787");
-  S.py = dest; S.vy = 0;
-  burst(S.px, S.py + HH, 12, "#7ee787");
+  S.descendTarget = targetTop !== null ? targetTop : S.worldH - 56;
+  S.onGround = false;
+  S.vy = -4.2;   // 小跳起手：有明显的跳跃弧线再落下
+  burst(S.px, S.py, 8, "#7ee787");
   sfx("laser");
 }
 
@@ -454,20 +455,34 @@ function loop(t) {
   if (!jet && S.onGround) S.vy = 0;
   else { S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy)); }
 
-  S.py += S.vy;
-  if (S.vy >= 0) {
-    const fy = S.py + HH;
-    if (solidAt(S.px - HW + 3, fy + 1) || solidAt(S.px + HW - 3, fy + 1)) {
-      S.py = Math.floor((fy + 1) / CELL) * CELL - HH;
-      S.vy = 0; S.onGround = true;
-    } else if (fy >= S.worldH - 56) {
-      S.py = S.worldH - 56 - HH; S.vy = 0; S.onGround = true;
-    } else S.onGround = false;
+  if (S.descendTarget !== null) {
+    S.vy = Math.min(S.vy + 0.5, 8.5);
+    S.py += S.vy;
+    if (Math.random() < 0.7 && roomFor(1)) {
+      S.parts.push({ type: "sq", x: S.px + (Math.random() - 0.5) * 22, y: S.py + HH - Math.random() * 14, vx: 0, vy: -1, life: 0.4 + Math.random() * 0.3, max: 0.7, color: "#7ee787", size: 2.5, rot: 0, vr: 0, g: 0 });
+    }
+    if (S.py + HH >= S.descendTarget) {
+      S.py = S.descendTarget - HH; S.vy = 0;
+      S.descendTarget = null; S.onGround = true;
+      burst(S.px, S.py + HH, 12, "#7ee787");
+      sfx("hit");
+    }
   } else {
-    const hy = S.py - HH;
-    if (solidAt(S.px - HW + 3, hy - 1) || solidAt(S.px + HW - 3, hy - 1)) {
-      S.py = Math.floor((hy - 1) / CELL) * CELL + CELL + HH;
-      S.vy = 0;
+    S.py += S.vy;
+    if (S.vy >= 0) {
+      const fy = S.py + HH;
+      if (solidAt(S.px - HW + 3, fy + 1) || solidAt(S.px + HW - 3, fy + 1)) {
+        S.py = Math.floor((fy + 1) / CELL) * CELL - HH;
+        S.vy = 0; S.onGround = true;
+      } else if (fy >= S.worldH - 56) {
+        S.py = S.worldH - 56 - HH; S.vy = 0; S.onGround = true;
+      } else S.onGround = false;
+    } else {
+      const hy = S.py - HH;
+      if (solidAt(S.px - HW + 3, hy - 1) || solidAt(S.px + HW - 3, hy - 1)) {
+        S.py = Math.floor((hy - 1) / CELL) * CELL + CELL + HH;
+        S.vy = 0;
+      }
     }
   }
 
