@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>像素怪物对战 · bt's Arcade</title>
+<style>
+  :root {
+    --line: #0d0d14; --ink: #f2e9d8; --muted: #9a93a8;
+    --panel: #23232f; --bg: #1a1a24;
+    --fire: #e85b3c; --water: #3f8fd2; --grass: #6ecb63; --elec: #ffcd42;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 16px 16px;
+    color: var(--ink);
+    font-family: "Courier New", "SimHei", monospace;
+    min-height: 100vh;
+    padding: 24px 12px 48px;
+    -webkit-user-select: none; user-select: none;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .frame { background: var(--panel); border: 4px solid var(--line); box-shadow: 6px 6px 0 rgba(0,0,0,.45); }
+
+  header.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .back { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .back:hover { color: var(--ink); }
+  h1 { font-size: 26px; color: var(--elec); text-shadow: 3px 3px 0 var(--line); letter-spacing: 2px; }
+  .sub { text-align: center; color: var(--muted); font-size: 12px; margin: 4px 0 24px; }
+
+  /* 选怪界面 */
+  .pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+  .mon-card { padding: 16px; text-align: center; cursor: pointer; transition: transform .1s; }
+  .mon-card:hover { transform: translateY(-3px); border-color: var(--elec); }
+  .mon-card svg { width: 96px; height: 96px; }
+  .mon-card h3 { font-size: 16px; margin: 8px 0 4px; }
+  .mon-card p { font-size: 11px; color: var(--muted); }
+
+  /* 战斗界面 */
+  .stage {
+    position: relative; height: 300px; margin-bottom: 16px;
+    background: linear-gradient(#5b8fbf 0%, #7db3d8 45%, #9fd0a8 72%, #6ecb63 72%);
+    border: 4px solid var(--line); box-shadow: 6px 6px 0 rgba(0,0,0,.45);
+    overflow: hidden;
+  }
+  .stage .sun { position: absolute; top: 16px; right: 20px; width: 28px; height: 28px; background: var(--elec); box-shadow: 0 0 0 4px #e8b93a; }
+  .stage .cloud { position: absolute; background: #f5f2e4; width: 60px; height: 12px; box-shadow: 10px 6px 0 #f5f2e4, 24px 0 0 #efe9d2; }
+  .fighter { position: absolute; bottom: 34px; text-align: center; transition: transform .2s; }
+  .fighter svg { width: 110px; height: 110px; }
+  .fighter.enemy { right: 46px; }
+  .fighter.player { left: 46px; }
+  .fighter .name { font-size: 11px; background: rgba(13,13,20,.75); padding: 2px 8px; border: 2px solid var(--line); color: var(--ink); display: inline-block; margin-top: 4px; }
+  .fighter.hurt { animation: shake .3s; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .atk-efx { position: absolute; width: 40px; height: 40px; background: #fff; opacity: 0; pointer-events: none; animation: flash .35s; }
+  @keyframes flash { 30% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* HP 面板 */
+  .hud { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .hudbox { padding: 12px; font-size: 12px; }
+  .hudbox .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .hudbox .hp { height: 14px; border: 3px solid var(--line); background: #0d0d14; position: relative; }
+  .hudbox .hp i { display: block; height: 100%; transition: width .3s steps(10); }
+  .hp-high { background: #6ecb63; } .hp-mid { background: var(--elec); } .hp-low { background: #e33b3b; }
+
+  /* 消息框 + 菜单 */
+  .msg { padding: 14px; font-size: 14px; line-height: 1.6; min-height: 62px; margin-bottom: 12px; }
+  .menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .mbtn {
+    font-family: inherit; font-size: 14px; font-weight: bold; cursor: pointer;
+    background: var(--panel); color: var(--ink); border: 3px solid var(--line);
+    box-shadow: 3px 3px 0 rgba(0,0,0,.45); padding: 12px; text-align: center;
+  }
+  .mbtn:hover { border-color: var(--elec); color: var(--elec); }
+  .mbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0,0,0,.45); }
+  .mbtn:disabled { opacity: .4; pointer-events: none; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(13,13,20,.8);
+    display: flex; align-items: center; justify-content: center; z-index: 50;
+  }
+  .overlay .frame { padding: 28px 36px; text-align: center; }
+  .overlay h2 { font-size: 24px; margin-bottom: 10px; color: var(--elec); }
+  .overlay p { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.8; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="back" href="/games/">&larr; GAMES</a>
+    <h1>PIXEL MONSTERS</h1>
+    <span style="font-size:12px;color:var(--muted)">v1</span>
+  </header>
+  <p class="sub">像素宝可梦风对战 · 打败 3 只野生怪通关</p>
+
+  <div id="screen-pick">
+    <div class="pick" id="mon-list"></div>
+  </div>
+
+  <div id="screen-battle" class="hidden">
+    <div class="stage">
+      <div class="sun"></div>
+      <div class="cloud" style="top:30px;left:30px"></div>
+      <div class="cloud" style="top:60px;left:200px"></div>
+      <div class="fighter enemy" id="f-enemy"></div>
+      <div class="fighter player" id="f-player"></div>
+    </div>
+    <div class="hud">
+      <div class="hudbox frame">
+        <div class="row"><span id="hud-enemy-name"></span><span id="hud-enemy-lv"></span></div>
+        <div class="hp"><i id="hud-enemy-hp" class="hp-high"></i></div>
+      </div>
+      <div class="hudbox frame">
+        <div class="row"><span id="hud-player-name"></span><span id="hud-player-lv"></span></div>
+        <div class="hp"><i id="hud-player-hp" class="hp-high"></i></div>
+      </div>
+    </div>
+    <div class="msg frame" id="msg">发生了什么？</div>
+    <div class="menu" id="menu">
+      <button class="mbtn" data-m="1">⚔ 撞击</button>
+      <button class="mbtn" data-m="2">⚡ 电击</button>
+      <button class="mbtn" data-m="3" id="btn-heal">💊 治愈</button>
+      <button class="mbtn" data-m="4">🏃 逃跑</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="overlay">
+    <div class="frame">
+      <h2 id="ov-title"></h2>
+      <p id="ov-text"></p>
+      <button class="mbtn" id="ov-btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 像素精灵渲染器 */
+function sprite(map, palette, scale) {
+  scale = scale || 4;
+  var rows = map.trim().split("\n");
+  var h = rows.length, w = Math.max.apply(null, rows.map(function (r) { return r.length; }));
+  var s = '<svg class="pixel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (w * scale) + ' ' + (h * scale) + '" shape-rendering="crispEdges">';
+  for (var y = 0; y < h; y++) for (var x = 0; x < rows[y].length; x++) {
+    var c = rows[y][x];
+    if (c !== "." && palette[c]) s += '<rect x="' + (x * scale) + '" y="' + (y * scale) + '" width="' + scale + '" height="' + scale + '" fill="' + palette[c] + '"/>';
+  }
+  return s + '</svg>';
+}
+var BEAST = [
+  "................",
+  ".....PPPPPP.....",
+  "...PPPPPPPPPP...",
+  "..PPLPPPPPPPLL..",
+  ".PLLLLPPPPLLLLP.",
+  ".PLLPPPPPPPPLLP.",
+  ".PPPPEEPPEEPPPP.",
+  ".PPPEEEEEEEEPPP.",
+  ".PPEEEEEEEEEEPP.",
+  ".PPPPPPMMPPPPPP.",
+  ".PPPPPPPPPPPPPP.",
+  "..PPPPPPPPPPPP..",
+  "...PLLLLLLLLP...",
+  "..PLLLLLLLLLLP..",
+  "..LLLLLLLLLLLL..",
+  "................"
+].join("\n");
+
+var MONSTERS = [
+  { id: "fire",  name: "火苗兽", type: "火", pal: { P: "#e85b3c", L: "#ffb08a", E: "#15151f", M: "#ffd76a" }, desc: "热情的火系小兽" },
+  { id: "water", name: "水泡兽", type: "水", pal: { P: "#3f8fd2", L: "#a8d8ff", E: "#15151f", M: "#ff9f9f" }, desc: "温和的水系小兽" },
+  { id: "grass", name: "草叶兽", type: "草", pal: { P: "#6ecb63", L: "#c8f0a8", E: "#15151f", M: "#ff9f9f" }, desc: "治愈的草系小兽" },
+  { id: "elec",  name: "电光兽", type: "电", pal: { P: "#e8b93a", L: "#fff0b0", E: "#15151f", M: "#ff9f9f" }, desc: "闪电般的神秘小兽" }
+];
+
+var state = { player: null, enemy: null, wins: 0, heals: 3, over: false };
+
+var $ = function (id) { return document.getElementById(id); };
+
+function renderPick() {
+  $("mon-list").innerHTML = MONSTERS.slice(0, 3).map(function (m, i) {
+    return '<div class="mon-card frame" data-i="' + i + '">' + sprite(BEAST, m.pal) +
+      '<h3 style="color:' + m.pal.P + '">' + m.name + '</h3><p>' + m.type + '系 · ' + m.desc + '</p></div>';
+  }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll(".mon-card"), function (c) {
+    c.addEventListener("click", function () { startBattle(+c.dataset.i); });
+  });
+}
+
+function typeMul(atk, def) {
+  var T = { "火": "草", "草": "水", "水": "火" };
+  if (atk === "电" && def === "水") return 2;
+  if (T[atk] === def) return 2;
+  if (T[def] === atk) return 0.5;
+  return 1;
+}
+
+function say(t) { $("msg").textContent = t; }
+
+function updateHud() {
+  var p = state.player, e = state.enemy;
+  var php = Math.max(0, p.hp / p.max * 100), ehp = Math.max(0, e.hp / e.max * 100);
+  var pf = php > 50 ? "hp-high" : php > 25 ? "hp-mid" : "hp-low";
+  var ef = ehp > 50 ? "hp-high" : ehp > 25 ? "hp-mid" : "hp-low";
+  $("hud-player-hp").style.width = php + "%"; $("hud-player-hp").className = pf;
+  $("hud-enemy-hp").style.width = ehp + "%"; $("hud-enemy-hp").className = ef;
+  $("hud-player-name").textContent = p.name + " (你)";
+  $("hud-enemy-name").textContent = e.name;
+  $("hud-player-lv").textContent = "Lv." + (5 + state.wins * 2);
+  $("hud-enemy-lv").textContent = "Lv." + e.lv;
+}
+
+function shake(el) { el.classList.add("hurt"); setTimeout(function () { el.classList.remove("hurt"); }, 350); }
+
+function startBattle(pi) {
+  state.player = { hp: 100, max: 100, mon: MONSTERS[pi] };
+  state.heals = 3; state.over = false;
+  $("screen-pick").classList.add("hidden");
+  $("screen-battle").classList.remove("hidden");
+  $("f-player").innerHTML = sprite(BEAST, state.player.mon.pal) + '<div class="name">' + state.player.mon.name + '</div>';
+  spawnEnemy();
+  enableMenu(true);
+  updateHud();
+  say("野生的 " + state.enemy.name + " 出现了！选择招式（左侧按钮）");
+}
+
+function spawnEnemy() {
+  var pool = MONSTERS.filter(function (m) { return m.id !== state.player.mon.id; });
+  state.enemy = { hp: 55 + state.wins * 25, max: 55 + state.wins * 25, lv: 4 + state.wins * 2, mon: pool[Math.floor(Math.random() * pool.length)] };
+  $("f-enemy").innerHTML = sprite(BEAST, state.enemy.mon.pal) + '<div class="name">' + state.enemy.mon.name + '</div>';
+}
+
+function enableMenu(on) {
+  Array.prototype.forEach.call(document.querySelectorAll(".mbtn"), function (b) { b.disabled = !on; });
+}
+
+function playerAttack(move) {
+  if (state.over) return;
+  var p = state.player, e = state.enemy;
+  enableMenu(false);
+  var mul = move === "thunder" ? typeMul("电", e.mon.type) : typeMul(p.mon.type, e.mon.type);
+  var base = move === "thunder" ? 14 : 12;
+  var dmg = Math.max(1, Math.round((base + Math.random() * 6) * mul));
+  var crit = Math.random() < 0.1;
+  if (crit) dmg = Math.round(dmg * 1.5);
+  e.hp -= dmg;
+  shake($("f-enemy"));
+  updateHud();
+  var mname = move === "thunder" ? "电击" : "撞击";
+  var extra = crit ? " 会心一击！" : (mul > 1 ? " 效果拔群！" : mul < 1 ? " 效果不理想…" : "");
+  say(p.mon.name + " 使用了" + mname + "！造成 " + dmg + " 伤害。" + extra);
+  if (e.hp <= 0) return win();
+  setTimeout(enemyAttack, 900);
+}
+
+function enemyAttack() {
+  if (state.over) return;
+  var p = state.player, e = state.enemy;
+  var dmg = Math.max(1, Math.round(8 + Math.random() * 6));
+  p.hp -= dmg;
+  shake($("f-player"));
+  updateHud();
+  say(e.name + " 反击了！造成 " + dmg + " 伤害。");
+  if (p.hp <= 0) return lose();
+  enableMenu(true);
+}
+
+function heal() {
+  if (state.over) return;
+  if (state.heals <= 0) { say("治愈药剂用完了！"); return; }
+  state.heals--;
+  state.player.hp = Math.min(state.player.max, state.player.hp + 35);
+  updateHud();
+  $("btn-heal").textContent = "💊 治愈 ×" + state.heals;
+  say(state.player.mon.name + " 恢复了体力！剩余药剂 ×" + state.heals);
+  enableMenu(false);
+  setTimeout(enemyAttack, 900);
+}
+
+function win() {
+  state.wins++;
+  if (state.wins >= 3) {
+    showOverlay("🎉 通关！", "你连续击败了 3 只野生怪，成为像素怪物大师！", false);
+  } else {
+    showOverlay("胜利！", "打败了 " + state.enemy.name + "！（第 " + state.wins + "/3 只）", true);
+  }
+}
+
+function lose() {
+  showOverlay("💀 战败…", state.enemy.name + " 太强了。再来一次吧！", false);
+}
+
+function showOverlay(title, text, next) {
+  state.over = true;
+  $("ov-title").textContent = title;
+  $("ov-text").innerHTML = text;
+  $("overlay").classList.remove("hidden");
+  $("ov-btn").onclick = function () {
+    $("overlay").classList.add("hidden");
+    if (next) { state.over = false; spawnEnemy(); updateHud(); enableMenu(true); say("野生的 " + state.enemy.name + " 出现了！"); }
+    else location.reload();
+  };
+}
+
+$("menu").addEventListener("click", function (ev) {
+  var b = ev.target.closest(".mbtn");
+  if (!b || b.disabled) return;
+  var m = b.dataset.m;
+  if (m === "1") playerAttack("tackle");
+  else if (m === "2") playerAttack("thunder");
+  else if (m === "3") heal();
+  else { $("screen-battle").classList.add("hidden"); $("screen-pick").classList.remove("hidden"); say(""); }
+});
+$("btn-heal").textContent = "💊 治愈 ×3";
+renderPick();
+</script>
+</body>
+</html>

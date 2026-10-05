@@ -1,0 +1,88 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+const meta = { description: "About", title: "About" };
+---
+<PageLayout meta={meta}>
+  <div class="glass-card !p-8 md:!p-12">
+    <h1 class="text-3xl font-bold mb-2">About</h1>
+    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">bt 的个人站 —— 随手记点东西，顺便放几个游戏。</p>
+
+    <div class="prose max-w-none space-y-8">
+      <div>
+        <h2 class="text-xl !flex items-center gap-2"><img src="/clawd-icon.svg" alt="" width="22" height="22" />Clawd 桌宠</h2>
+        <p>右下角的螃蟹朋友！你可以：</p>
+        <ul>
+          <li><strong>单击</strong> — 直接进聊天页 <code>/chat/</code></li>
+          <li><strong>双击</strong> — 主动搭话（不跳转）</li>
+          <li><strong>拖拽</strong> — 移动位置（仅电脑端）</li>
+          <li>每隔 2 分钟自动说话，共 25+ 句 bt 主题台词</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">💬 Chat</h2>
+        <p>顶部导航的 <strong>Chat</strong>，或者点右下角的 Clawd，都进同一个页面。</p>
+        <p>回你话的是 bt 自己用 MiniMind 训练的 64M 小模型 —— 人设是 bt 本人：一个来混日子的 INTP。它只有 6400 的词汇量和 6400 万参数，答错常识题是常态，别拿它当搜索引擎用。</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">📮 Mome</h2>
+        <p>顶部导航的 <strong>Mome</strong> 是个外链，指向 <a href="https://mome.bingtao.xyz" target="_blank" rel="noopener">mome.bingtao.xyz</a> —— 我自己在服务器上搭的碎碎念时间线，跑的是开源项目 <a href="https://github.com/lin-snow/Ech0" target="_blank" rel="noopener">Ech0</a>。</p>
+        <ul>
+          <li>想到什么发什么，比写整篇文章门槛低得多</li>
+          <li>不用注册、不用登录就能看，点赞也点得动</li>
+          <li>评论开着，但我会先审一遍再放出来</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🎵 Claude FM & Drone Zone</h2>
+        <p>Gadgets 页面提供两路电台：</p>
+        <ul>
+          <li><strong>Claude FM</strong> — 24/7 Lo-fi & Ambient 在线电台</li>
+          <li><strong>🌑 Drone Zone</strong> — SomaFM 暗黑氛围空间音乐</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">📸 Telegraph 图床</h2>
+        <p>Gadgets 页面底部的 <strong>click it</strong> 按钮链接到自建 Telegraph 图床。</p>
+        <ul>
+          <li>无需注册，上传即用</li>
+          <li>适合给我分享图片、截图、表情包</li>
+          <li>点击直接跳转 → 上传 → 复制链接发给我</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🎮 游戏中心</h2>
+        <p>顶部导航 <strong>Games</strong> 直达游戏中心（/games/），全部开源、免费托管：</p>
+        <ul>
+          <li><strong>飞机大战</strong> — 全民飞机大战风格，手机触屏可玩</li>
+          <li><strong>大球吃小球</strong> — agar.io 单机版，支持触屏</li>
+          <li><strong>合成大西瓜</strong> — 爆火 Suika 玩法</li>
+          <li><strong>运输船 · 穿越火线 3D</strong> — CF 经典地图 3D 还原</li>
+          <li><strong>鹈鹕骑单车</strong> — 3D 休闲小游戏</li>
+          <li><strong>飞车 3D · QQ飞车同人</strong> — 3D 竞速</li>
+          <li><strong>像素怪物对战</strong> — 手搓的像素风 RPG 对战</li>
+          <li><strong>蔚蓝 Celeste</strong> — 原版网页移植（电脑），PICO-8 原版（手机）</li>
+          <li><strong>小游戏合集 ×124</strong> — 开源合集外链</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🌙 暗/亮主题</h2>
+        <p>右上角 🌙/☀️ 按钮一键切换暗色和亮色模式，偏好自动保存，游戏中心同步生效。</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🌐 语言切换</h2>
+        <p>页头右侧的三段式开关：<strong>中</strong> / <strong>EN</strong> / <strong>(´・ω・`)</strong>。</p>
+        <ul>
+          <li><strong>EN</strong> — 真正的英文页面（<code>/en/</code> 路径），文章由 argos-translate 离线翻译，不依赖任何在线翻译接口</li>
+          <li><strong>颜文字</strong> — 在当前语言的页面上给句末标点随机插一个颜文字，纯本地显示效果</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</PageLayout>

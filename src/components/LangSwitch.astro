@@ -1,0 +1,37 @@
+---
+import { localeLabels, type Locale } from "@/i18n/ui";
+import { switchLocalePath } from "@/i18n/utils";
+
+interface Props {
+	lang: Locale;
+	/** 当前路径，用来算另一种语言的同一页地址 */
+	pathname: string;
+	/** 紧凑版（页头用）/ 宽松版（移动端菜单用） */
+	size?: "sm" | "md";
+}
+
+const { lang, pathname, size = "sm" } = Astro.props;
+const zhHref = switchLocalePath(pathname, "zh");
+const enHref = switchLocalePath(pathname, "en");
+---
+
+<div class:list={["lang-switch", size === "md" && "lang-switch-md"]} data-lang={lang} role="group" aria-label="Language / 语言">
+	<a
+		href={zhHref}
+		class:list={["lang-seg", lang === "zh" && "is-active"]}
+		data-seg="zh"
+		onclick="localStorage.setItem('kaomoji','0')"
+		title="中文">{localeLabels.zh}</a>
+	<a
+		href={enHref}
+		class:list={["lang-seg", lang === "en" && "is-active"]}
+		data-seg="en"
+		onclick="localStorage.setItem('kaomoji','0')"
+		title="English">{localeLabels.en}</a>
+	<button
+		type="button"
+		class="lang-seg"
+		data-seg="kaomoji"
+		title="颜文字 / Kaomoji"
+		onclick="window._toggleKaomoji && window._toggleKaomoji()">(´・ω・`)</button>
+</div>
