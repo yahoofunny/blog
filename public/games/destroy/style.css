@@ -21,74 +21,39 @@ body {
 }
 #wrap { position: fixed; inset: 0; }
 
-/* ---- 目标网站舞台 ---- */
-#stage {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 112px;
-  background: #111;
-  border-bottom: 2px solid var(--line);
-}
+/* ---- 舞台：整个世界（页面 + 地面），相机用位移实现 ---- */
+#stage { position: absolute; inset: 0; background: #0d0d13; overflow: hidden; }
+#world { position: absolute; top: 0; left: 0; width: 100%; will-change: transform; }
 #target {
-  width: 100%; height: 100%;
-  border: 0; display: block;
-  pointer-events: none;          /* 输入全归游戏，页面滚动用 ↑/↓ */
-  filter: none;
-  transition: filter .3s;
+  width: 100%; border: 0; display: block;
+  pointer-events: none;
+  background: var(--bg);
+}
+#fx { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 3; }
+#floor {
+  position: absolute; left: 0; right: 0; height: 56px; z-index: 2;
+  background: linear-gradient(#17171f, #0e0e13);
+  border-top: 3px solid var(--line);
+}
+#floor::before {
+  content: ""; position: absolute; top: -34px; left: 0; right: 0; height: 34px;
+  background: repeating-linear-gradient(90deg, #14141b 0 34px, #101018 34px 68px);
+  opacity: .8;
 }
 #loading {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: var(--bg); z-index: 2;
+  background: var(--bg); z-index: 8;
   font-size: 13px; letter-spacing: .2em; color: var(--muted);
 }
 #loading.done { display: none; }
 
-/* ---- 特效画布 ---- */
-#fx { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-
-/* ---- HUD ---- */
-#hud {
-  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-  z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  pointer-events: none;
-}
-#progressWrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-#progressLabel { font-size: 12px; letter-spacing: .12em; color: #cfcfda; }
-#progressLabel b { color: var(--red); font-size: 15px; }
-#progressLabel span { color: var(--muted); font-size: 11px; }
-#progressBar {
-  width: min(420px, 70vw); height: 14px; background: #0009;
-  border: 2px solid var(--line); position: relative;
-}
-#progressFill {
-  position: absolute; inset: 0; width: 0%;
-  background: repeating-linear-gradient(45deg, var(--red) 0 8px, #ff8a8a 8px 16px);
-  transition: width .25s;
-}
-#weapons { display: flex; gap: 8px; pointer-events: auto; }
-.wslot {
-  font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
-  color: var(--muted); background: #0009; border: 2px solid var(--line);
-  padding: 5px 12px; cursor: pointer; transition: all .15s;
-}
-.wslot i { font-style: normal; color: var(--primary); margin-right: 6px; font-weight: 700; }
-.wslot.active { color: #fff; border-color: var(--primary); background: #16162a; }
-.wslot.active i { color: var(--gold); }
-#hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
-@media (max-width: 720px) { #hint { display: none; } }
-
-/* ---- 地面与玩家 ---- */
-#ground { position: absolute; left: 0; right: 0; bottom: 0; height: 112px; z-index: 4; }
-#floor {
-  position: absolute; inset: auto 0 0 0; height: 56px;
-  background: linear-gradient(#17171f, #0e0e13);
-  border-top: 3px solid var(--line);
-}
+/* ---- 玩家（世界坐标内） ---- */
 #player {
-  position: absolute; bottom: 56px; left: 50%;
-  width: 30px; height: 42px; z-index: 2;
+  position: absolute; width: 30px; height: 42px; z-index: 4;
   background:
-    linear-gradient(#ffd9a0, #ffd9a0) 9px 0 / 12px 10px no-repeat,          /* 头 */
-    linear-gradient(var(--primary), var(--primary)) 6px 12px / 18px 16px no-repeat, /* 身体 */
-    linear-gradient(#22223a, #22223a) 6px 30px / 7px 10px no-repeat,        /* 腿 */
+    linear-gradient(#ffd9a0, #ffd9a0) 9px 0 / 12px 10px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 6px 12px / 18px 16px no-repeat,
+    linear-gradient(#22223a, #22223a) 6px 30px / 7px 10px no-repeat,
     linear-gradient(#22223a, #22223a) 17px 30px / 7px 10px no-repeat;
   image-rendering: pixelated;
   filter: drop-shadow(0 2px 0 #000);
@@ -100,25 +65,69 @@ body {
   transform-origin: 2px 3px; border-radius: 1px;
   box-shadow: 0 0 0 1px #0008;
 }
+#jetpack {
+  position: absolute; left: -7px; top: 14px;
+  width: 8px; height: 18px; background: #55556a; border-radius: 2px;
+  opacity: 0; transition: opacity .1s;
+}
+#player.flying #jetpack { opacity: 1; }
+#player.flying::after {
+  content: ""; position: absolute; left: -6px; top: 34px;
+  width: 6px; height: 12px;
+  background: linear-gradient(var(--gold), var(--red));
+  animation: jet .12s infinite alternate;
+}
+@keyframes jet { from { transform: scaleY(1); } to { transform: scaleY(1.6); } }
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none;
+}
+#progressWrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+#progressLabel { font-size: 12px; letter-spacing: .12em; color: #cfcfda; }
+#progressLabel b { color: var(--red); font-size: 15px; }
+#progressLabel span { color: var(--muted); font-size: 11px; }
+#progressBar {
+  width: min(460px, 72vw); height: 14px; background: #0009;
+  border: 2px solid var(--line); position: relative;
+}
+#progressFill {
+  position: absolute; inset: 0; width: 0%;
+  background: repeating-linear-gradient(45deg, var(--red) 0 8px, #ff8a8a 8px 16px);
+  transition: width .25s;
+}
+#weapons { display: flex; gap: 5px; pointer-events: auto; flex-wrap: wrap; justify-content: center; }
+.wslot {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+  color: var(--muted); background: #0009; border: 2px solid var(--line);
+  padding: 4px 8px; cursor: pointer; transition: all .15s;
+}
+.wslot i { font-style: normal; color: var(--primary); margin-right: 4px; font-weight: 700; }
+.wslot.active { color: #fff; border-color: var(--primary); background: #16162a; }
+.wslot.active i { color: var(--gold); }
+#hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
+@media (max-width: 720px) { #hint { display: none; } .wslot { padding: 3px 5px; font-size: 10px; } }
 
 /* ---- 触屏按钮 ---- */
-#touch { position: absolute; inset: 0; display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+#touch { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; align-items: center; gap: 8px; padding: 0 10px 10px; }
 #touch button {
   width: 52px; height: 44px; font-size: 18px; font-family: var(--mono);
   background: #000a; color: #fff; border: 2px solid var(--line);
 }
 #tFire { color: var(--red) !important; border-color: var(--red) !important; }
-#tJump { margin-left: auto; }
+#tJet { margin-left: auto; }
 @media (hover: hover) and (pointer: fine) { #touch { display: none !important; } }
 
-/* ---- 面板（开始/胜利） ---- */
+/* ---- 面板 ---- */
 #intro, #win {
   position: fixed; inset: 0; z-index: 20;
   display: flex; align-items: center; justify-content: center;
   background: rgba(5, 5, 9, .78); backdrop-filter: blur(3px);
 }
 #intro .panel, #win .panel {
-  width: min(560px, 92vw);
+  width: min(580px, 92vw);
   background: var(--panel); border: 2px solid var(--line);
   box-shadow: 8px 8px 0 #000a;
   padding: 28px 30px; text-align: center;
@@ -143,7 +152,6 @@ body {
 #win .ghost:hover { color: #fff; border-color: var(--primary); }
 #winStats { color: var(--gold) !important; font-size: 15px !important; }
 
-/* 屏幕抖动 */
 #wrap.shake { animation: shk .3s; }
 @keyframes shk {
   0%,100% { transform: translate(0, 0); }
@@ -152,17 +160,5 @@ body {
   75% { transform: translate(-3px, -2px); }
 }
 
-/* 目标页内被摧毁元素 */
-.dm-gone {
-  animation: dmCrumble .38s forwards !important;
-  opacity: 0;
-}
-@keyframes dmCrumble {
-  0% { opacity: 1; filter: none; }
-  30% { transform: translate(2px, -2px) rotate(1deg); filter: brightness(2.2) saturate(0); }
-  100% { transform: translate(0, 8px) scale(.55) rotate(3deg); opacity: 0; filter: brightness(3) saturate(0); }
-}
-.dm-shard {
-  position: absolute; z-index: 9999; pointer-events: none;
-  will-change: transform, opacity;
-}
+/* 目标页内被打光的元素（整块碎完才隐藏） */
+.dm-done { visibility: hidden !important; }
