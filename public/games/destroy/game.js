@@ -432,4 +432,9 @@ target.addEventListener("load", () => {
 });
 
 requestAnimationFrame(loop);
+
+// DEBUG: 暴露内部状态供排查（发布版可删）
+window.__S = S;
+window.__destroyEl = destroyEl;
+window.__hitTest = hitTest;
 })();
