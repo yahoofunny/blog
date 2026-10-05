@@ -171,6 +171,7 @@ function buildTiles() {
     if (!isBgSurface(el)) return;
     claim(el, d.defaultView.getComputedStyle(el).color || "#aaa", false);
   });
+  updateProgress();
   } catch (e) { window.__buildErr = e.message + " @ " + (e.stack || "").split("\n")[1]; }
   window.__buildDone = true;
 }
