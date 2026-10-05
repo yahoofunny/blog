@@ -22,4 +22,6 @@ pnpm-debug.log*
 # misc
 *.pem
 .cache
-.astro
+.astro.wrangler/
+.wrangler/
+.astro/
