@@ -22,8 +22,10 @@ const ctx = fx.getContext("2d");
 // ---------- 常量 ----------
 const CELL = 28;              // 瓦片边长
 const GROUND_H = 96;          // 地面高度（世界底部）
+const SKY = 600;              // 页面上方的天空（出生点）
 const WIN_RATIO = 0.55;
 const MAX_PARTS = 600;
+const HW = 13, HH = 20;       // 玩家碰撞半宽/半高
 
 // ---------- 武器 ----------
 const WEAPONS = [
@@ -182,6 +184,14 @@ function tileAt(wx, wy) {
   return t && !t.destroyed ? t : null;
 }
 
+// 实体判定：未摧毁的瓦片 + 页面下方的地面
+function solidAt(wx, wy) {
+  if (wy >= S.worldH - 56) return wy <= S.worldH;
+  if (wy < 0 || wy >= S.docH || wx < 0 || wx >= S.worldW) return false;
+  const t = grid.get(Math.floor(wx / CELL) + "," + Math.floor(wy / CELL));
+  return !!(t && !t.destroyed);
+}
+
 function updateProgress() {
   try {
     const pct = S.totalTiles ? Math.min(100, Math.round((S.destroyedTiles / S.totalTiles) * 100)) : 0;
@@ -326,26 +336,54 @@ function loop(t) {
   lastT = t;
   if (!S.started) { draw(); return; }
 
-  // 玩家：喷气飞行
+  // 玩家：平台跳跃物理（瓦片 = 实体地形）+ 喷气飞行
   const L = S.keys["a"] || S.keys["arrowleft"], R = S.keys["d"] || S.keys["arrowright"];
   S.vx += ((R ? 1 : 0) - (L ? 1 : 0)) * 0.9;
   S.vx *= 0.85;
-  S.px = Math.max(20, Math.min(S.worldW - 20, S.px + S.vx));
-  if (S.face * S.vx < 0 && Math.abs(S.vx) > 0.3) { S.face *= -1; player.classList.toggle("flip", S.face < 0); }
   const jet = S.keys["w"] || S.keys[" "] || S.keys["arrowup"];
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
   if (S.keys["s"] || S.keys["arrowdown"]) S.vy += 0.4;
   S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy));
-  S.py += S.vy;
-  const floorTop = S.worldH - 56 - 21;
-  if (S.py >= floorTop) { S.py = floorTop; S.vy = 0; S.onGround = true; } else S.onGround = false;
-  S.py = Math.max(30, S.py);
-  player.style.left = S.px - 15 + "px";
-  player.style.top = S.py - 21 + "px";
 
-  // 相机跟随
+  // 垂直移动 + 落地/顶头
+  S.py += S.vy;
+  if (S.vy >= 0) {
+    const fy = S.py + HH;
+    if (solidAt(S.px - HW + 3, fy + 1) || solidAt(S.px + HW - 3, fy + 1)) {
+      S.py = Math.floor((fy + 1) / CELL) * CELL - HH;
+      S.vy = 0; S.onGround = true;
+    } else if (fy >= S.worldH - 56) {
+      S.py = S.worldH - 56 - HH; S.vy = 0; S.onGround = true;
+    } else S.onGround = false;
+  } else {
+    const hy = S.py - HH;
+    if (solidAt(S.px - HW + 3, hy - 1) || solidAt(S.px + HW - 3, hy - 1)) {
+      S.py = Math.floor((hy - 1) / CELL) * CELL + CELL + HH;
+      S.vy = 0;
+    }
+  }
+
+  // 水平移动 + 侧向碰撞
+  S.px += S.vx;
+  if (S.vx > 0) {
+    const rx = S.px + HW;
+    if (solidAt(rx, S.py - HH + 5) || solidAt(rx, S.py + HH - 5)) {
+      S.px = Math.floor(rx / CELL) * CELL - HW; S.vx = 0;
+    }
+  } else if (S.vx < 0) {
+    const lx = S.px - HW;
+    if (solidAt(lx, S.py - HH + 5) || solidAt(lx, S.py + HH - 5)) {
+      S.px = Math.floor(lx / CELL) * CELL + CELL + HW; S.vx = 0;
+    }
+  }
+  S.px = Math.max(20, Math.min(S.worldW - 20, S.px));
+  if (S.face * S.vx < 0 && Math.abs(S.vx) > 0.3) { S.face *= -1; player.classList.toggle("flip", S.face < 0); }
+  player.style.left = S.px - 14 + "px";
+  player.style.top = S.py - HH + "px";
+
+  // 相机跟随（允许跟到天空）
   const viewH = innerHeight;
-  const targetCam = Math.max(0, Math.min(S.worldH - viewH, S.py - viewH * 0.5));
+  const targetCam = Math.max(-SKY, Math.min(S.worldH - viewH, S.py - viewH * 0.5));
   S.camY += (targetCam - S.camY) * 0.12;
   world.style.transform = `translateY(${-S.camY}px)`;
 
@@ -422,6 +460,7 @@ function draw() {
   ctx.clearRect(0, 0, fx.width, fx.height);
   ctx.save();
   if (S.shake > 0.5) ctx.translate((Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake);
+  ctx.translate(0, SKY); // 画布位于世界 y=-SKY 处，平移回世界坐标
 
   // 弹坑（只画视口范围内的）
   const camT = S.camY - 40, camB = S.camY + innerHeight + 40;
@@ -488,7 +527,7 @@ function draw() {
 
   // 准星（屏幕坐标 → 世界）
   if (S.started && !S.over) {
-    const cx = S.aimX, cy = S.aimScreenY;
+    const cx = S.aimX, cy = S.aimScreenY + S.camY;
     ctx.strokeStyle = "rgba(255,92,92,.9)"; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.stroke();
     ctx.beginPath();
@@ -590,7 +629,7 @@ againBtn.addEventListener("click", () => {
   target.src = "/?r=" + Date.now();
 });
 
-// iframe 就绪：展开抽屉 → 拉伸为整页高 → 建瓦片世界
+// iframe 就绪：展开抽屉 → 拉伸为整页高 → 建瓦片世界 → 小人从天而降
 target.addEventListener("load", () => {
   setTimeout(() => {
     const d = doc();
@@ -600,13 +639,17 @@ target.addEventListener("load", () => {
       target.style.height = S.docH + "px";
       S.worldH = S.docH + GROUND_H;
       world.style.height = S.worldH + "px";
+      fx.style.top = -SKY + "px";
+      fx.height = S.worldH + SKY;
       floorEl.style.top = (S.docH + 40) + "px";
       buildTiles();
-      fx.width = S.worldW = innerWidth; fx.height = S.worldH;
-      S.camY = S.worldH - innerHeight; // 从底部开始（能看到地面）
-      S.py = S.worldH - 56 - 21;
-      player.style.left = S.px - 15 + "px";
-      player.style.top = S.py - 21 + "px";
+      fx.width = S.worldW = innerWidth;
+      S.camY = -SKY;                 // 相机从天空开始
+      S.px = innerWidth / 2;
+      S.py = -SKY + 80;              // 小人从天而降
+      S.vy = 0; S.onGround = false;
+      player.style.left = S.px - 14 + "px";
+      player.style.top = S.py - HH + "px";
     }
     loading.classList.add("done");
     if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 炸"; }

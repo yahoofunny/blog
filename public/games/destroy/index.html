@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>摧毁本站 · bt's Arcade</title>
 <meta name="description" content="把 bt 的博客首页当靶场：像素小人背着喷气背包飞上真实页面，一格一格把网站炸碎，8 种武器。">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 <div id="wrap">
@@ -14,7 +14,7 @@
       <iframe id="target" src="/" title="目标网站"></iframe>
       <div id="floor"></div>
       <canvas id="fx"></canvas>
-      <div id="player"><div id="jetpack"></div><div id="gun"></div></div>
+      <div id="player"><img id="sprite" src="/clawd/clawd-idle.gif" alt=""><div id="jetpack"></div><div id="gun"></div></div>
     </div>
     <div id="loading"><span>目标网站加载中…</span></div>
   </div>
@@ -38,8 +38,8 @@
   <div id="intro">
     <div class="panel">
       <h1>💥 摧毁本站</h1>
-      <p>上面是 bt's Blog 的<b>真实页面</b>。穿上喷气背包飞上去，把它<b>一格一格</b>炸成碎片——瓦片级破坏，打多少掉多少。破坏率达到 <b>55%</b> 通关。</p>
-      <p class="keys">A/D 移动 · W/空格 喷气飞行 · 鼠标瞄准 · 左键射击 · 滚轮/1-8 换枪 · M 静音</p>
+      <p>clawd 从天而降，落在 bt's Blog 的<b>真实页面</b>上。脚下没打碎的瓦片都能站——一边往下炸一边挖穿整站，破坏率达到 <b>55%</b> 通关。</p>
+      <p class="keys">A/D 移动 · W/空格 跳（按住喷气飞行）· 鼠标瞄准 · 左键射击 · 滚轮/1-8 换枪 · M 静音</p>
       <button id="startBtn" disabled>目标加载中…</button>
       <p class="fine">8 种武器：手枪 · 冲锋枪 · 霰弹枪 · 狙击枪 · 手雷 · 火箭筒 · 激光枪 · BFG。灵感来自 spritefusion 的 destroy 彩蛋与 MIT 开源的 website-breaker。炸的是自己家的站。</p>
     </div>
@@ -57,6 +57,6 @@
     </div>
   </div>
 </div>
-<script src="game.js?v=14"></script>
+<script src="game.js?v=15"></script>
 </body>
 </html>
