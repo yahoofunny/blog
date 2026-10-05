@@ -60,11 +60,11 @@ body {
 }
 #player.flip #sprite { transform: translateX(-50%) scaleX(-1); }
 #gun {
-  position: absolute; left: 24px; top: 10px;
-  width: 30px; height: 6px; background: #3a3a4a;
-  transform-origin: 2px 3px; border-radius: 1px;
-  box-shadow: 0 0 0 1px #0008;
+  position: absolute; left: 10px; top: 2px;
+  transform-origin: 0 12px;
+  line-height: 0;
 }
+#gun svg { display: block; }
 #jetpack {
   position: absolute; left: -6px; top: 8px;
   width: 8px; height: 18px; background: #55556a; border-radius: 2px;

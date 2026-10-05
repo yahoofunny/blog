@@ -1,10 +1,10 @@
-/* 摧毁本站 v11 · Destroy my website
- * 架构：同源 iframe 拉伸为整页高度 → 世界坐标 = 文档坐标 → 相机跟随玩家。
- * 破坏：28px 瓦片网格（打砖块式）——叶子元素与带背景的容器各占若干格，
- * 每发子弹只打掉一格；一格=像素粒子+弹坑；元素的格子全毁才整体隐藏。
- * 参考：ychisbest/destroy-any-website（同源 iframe 方案）、
- *       MIT komlanKodoh/website-breaker（碎裂）、spritefusion destroy（表现）。
- * 无后端，无依赖。
+/* 摧毁本站 v16 · Destroy my website
+ * 架构：同源 iframe 拉伸为整页高 → 世界坐标 = 文档坐标 → 相机跟随 clawd。
+ * 破坏：只有"带文字的元素"和"图片"是靶子/台阶（背景不可破坏、不可踩）。
+ * 28px 瓦片粒度：每发子弹打掉一小格，该格内的字符逐字飞散（保持原色原字体）。
+ * 平台碰撞：未摧毁的瓦片可站立，打掉脚下就往下掉——像走楼梯一样下潜。
+ * 参考：ychisbest/destroy-any-website、MIT komlanKodoh/website-breaker、
+ *       spritefusion destroy（表现）。无后端，无依赖。
  */
 (() => {
 "use strict";
@@ -12,46 +12,42 @@
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const wrap = $("wrap"), stage = $("stage"), world = $("world"), target = $("target"), fx = $("fx"),
-      loading = $("loading"), player = $("player"), gun = $("gun"), jetpack = $("jetpack"),
+      loading = $("loading"), player = $("player"), sprite = $("sprite"), gun = $("gun"), jetpack = $("jetpack"),
       progressFill = $("progressFill"), progressText = $("progressText"), countText = $("countText"),
-      intro = $("intro"), startBtn = $("startBtn"), winScreen = $("win"), winStats = $("winStats"),
-      againBtn = $("againBtn"), touchBox = $("touch"), floorEl = $("floor");
+      intro = $("intro"), startBtn = $("startBtn"), touchBox = $("touch");
 const wslots = () => [...document.querySelectorAll(".wslot")];
 const ctx = fx.getContext("2d");
 
 // ---------- 常量 ----------
-const CELL = 28;              // 瓦片边长
-const GROUND_H = 96;          // 地面高度（世界底部）
-const SKY = 600;              // 页面上方的天空（出生点）
-const WIN_RATIO = 0.55;
-const MAX_PARTS = 600;
-const HW = 13, HH = 20;       // 玩家碰撞半宽/半高
+const CELL = 28;
+const GROUND_H = 96;
+const SKY = 600;
+const MAX_PARTS = 650;
+const HW = 13, HH = 20;       // clawd 碰撞半宽/半高
 
-// ---------- 武器 ----------
+// ---------- 武器（像素枪型在 gunSVG 里定义） ----------
 const WEAPONS = [
-  { id: 1, name: "手枪",   rate: 260, auto: false, kind: "bullet",  speed: 17, color: "#ffd23e", size: 5, trail: 26 },
-  { id: 2, name: "冲锋枪", rate: 85,  auto: true,  kind: "bullet",  speed: 19, color: "#7ee787", size: 4, trail: 30 },
+  { id: 1, name: "手枪",   rate: 260, auto: false, kind: "bullet",  speed: 17, color: "#ffd23e", size: 5,  trail: 26 },
+  { id: 2, name: "冲锋枪", rate: 85,  auto: true,  kind: "bullet",  speed: 19, color: "#7ee787", size: 4,  trail: 30 },
   { id: 3, name: "霰弹枪", rate: 750, auto: false, kind: "shotgun", pellets: 6, spread: 0.2, speed: 15, color: "#ffb14a", size: 4, trail: 18 },
   { id: 4, name: "狙击枪", rate: 950, auto: false, kind: "hitscan", color: "#9fd0ff", pierce: 3 },
   { id: 5, name: "手雷",   rate: 650, auto: false, kind: "lob",     speed: 11, color: "#ff5c5c", size: 8, aoe: 95 },
   { id: 6, name: "火箭筒", rate: 1100, auto: false, kind: "rocket", speed: 13, color: "#ff8a3a", size: 9, aoe: 145 },
-  { id: 7, name: "激光枪", rate: 60,  auto: true,  kind: "beam",    color: "#ff4dd2", range: 900 },
+  { id: 7, name: "激光枪", rate: 0,   auto: true,  kind: "beam",    color: "#ff4dd2", range: 900 },
   { id: 8, name: "BFG",   rate: 1800, auto: false, kind: "bfg",     speed: 9,  color: "#b14bff", size: 14, aoe: 190 },
 ];
 
 // ---------- 状态 ----------
 const S = {
   started: false, over: false,
-  px: innerWidth / 2, py: 0,        // 玩家世界坐标（中心）
-  vx: 0, vy: 0, onGround: true, face: 1,
-  camY: 0,                          // 相机（世界 y 偏移）
-  aimX: innerWidth * 0.6, aimScreenY: 200, aimY: 200, // 瞄准点（世界坐标）
-  weapon: 1, lastShot: 0, firing: false,
+  px: innerWidth / 2, py: -SKY + 80, vx: 0, vy: 0, onGround: false, face: 1,
+  camY: -SKY,
+  aimX: innerWidth * 0.6, aimScreenY: 200, aimY: 200,
+  weapon: 0, lastShot: 0, beamAcc: 0, firing: false,
   bullets: [], parts: [], pops: [], beams: [],
   worldW: innerWidth, worldH: 1000, docH: 600,
   totalTiles: 0, destroyedTiles: 0, totalEls: 0, destroyedEls: 0,
-  shake: 0, muted: false,
-  t0: 0, shots: 0,
+  shake: 0, muted: false, t0: 0, shots: 0,
   keys: {},
 };
 
@@ -87,13 +83,6 @@ function sfx(kind) {
       case "laser":  osc("sawtooth", 980, 900, 0.06, 0.05); break;
       case "bfg":    osc("sine", 90, 45, 0.5, 0.3); noise(0.4, 0.3, 500); break;
       case "hit":    osc("triangle", 260, 90, 0.12, 0.1); break;
-      case "win":    [523, 659, 784, 1046].forEach((fq, i) => {
-        const o = a.createOscillator(), g = a.createGain();
-        o.type = "square"; o.frequency.value = fq;
-        g.gain.setValueAtTime(0.0001, t + i * 0.14); g.gain.linearRampToValueAtTime(0.1, t + i * 0.14 + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.14 + 0.3);
-        o.connect(g).connect(a.destination); o.start(t + i * 0.14); o.stop(t + i * 0.14 + 0.32);
-      }); break;
     }
   } catch (e) { /* 无声也罢 */ }
 }
@@ -103,12 +92,64 @@ const doc = () => { try { return target.contentDocument; } catch (e) { return nu
 
 const SKIP_TAGS = new Set(["html", "body", "head", "script", "style", "link", "meta",
   "noscript", "title", "br", "path", "svg", "template", "input", "textarea", "select", "label", "iframe"]);
-const BLOCK_SEL = "div,main,header,footer,section,article,aside,nav,ul,ol,li,table,thead,tbody,tr,form,fieldset,blockquote,template,details,summary";
+const BLOCK_SEL = "div,main,header,footer,section,article,aside,nav,ul,ol,table,thead,tbody,tr,form,fieldset,blockquote,template,details";
 
-// ---------- 瓦片网格 ----------
-const grid = new Map();     // "c,r" → tile
-const elTiles = new Map();  // element → Set(keys)
-let holes = [];             // {x,y,w,h,color}
+// ---------- 瓦片网格（只有文字/图片是靶子与台阶；背景不可破坏不可踩） ----------
+const grid = new Map();
+const elTiles = new Map();
+let holes = [];
+
+function tileAt(wx, wy) {
+  if (wy < 0 || wy >= S.docH || wx < 0 || wx >= S.worldW) return null;
+  const t = grid.get(Math.floor(wx / CELL) + "," + Math.floor(wy / CELL));
+  return t && !t.destroyed ? t : null;
+}
+function solidAt(wx, wy) {
+  if (wy >= S.worldH - 56) return wy <= S.worldH;   // 世界底部地面
+  if (wy < 0 || wy >= S.docH || wx < 0 || wx >= S.worldW) return false;
+  const t = grid.get(Math.floor(wx / CELL) + "," + Math.floor(wy / CELL));
+  return !!(t && !t.destroyed);
+}
+
+function buildTiles() {
+  try {
+    const d = doc();
+    grid.clear(); elTiles.clear(); holes = [];
+    S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
+    if (!d || !d.body) return;
+    const cols = Math.ceil(S.worldW / CELL), rows = Math.ceil(S.docH / CELL);
+    // 叶子靶子：带文字 或 图片；纯背景元素一律不算
+    const targets = [];
+    d.body.querySelectorAll("*").forEach((el) => {
+      if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) return;
+      if (el.querySelector(BLOCK_SEL)) return;
+      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) return;
+      if (r.width * r.height > S.worldW * S.docH * 0.06) return;
+      const isImg = el.tagName === "IMG";
+      const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+      if (!isImg && !text) return;                      // 没字没图 → 不是靶子
+      targets.push({ el, r, isImg, text, font: `${d.defaultView.getComputedStyle(el).fontWeight} ${d.defaultView.getComputedStyle(el).fontSize} ${d.defaultView.getComputedStyle(el).fontFamily}`, fg: d.defaultView.getComputedStyle(el).color, hole: effBg(d, el.parentElement) });
+    });
+    // 认领格子
+    for (const t of targets) {
+      const r = t.r.getBoundingClientRect ? t.r : t.r; // t.r 已是 rect
+      const rect = t.r;
+      const c0 = Math.max(0, Math.floor(rect.left / CELL)), c1 = Math.min(cols - 1, Math.floor((rect.left + rect.width - 1) / CELL));
+      const r0 = Math.max(0, Math.floor(rect.top / CELL)), r1 = Math.min(rows - 1, Math.floor((rect.top + rect.height - 1) / CELL));
+      const mine = new Set();
+      for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
+        const k = cc + "," + rr;
+        if (grid.has(k)) continue;
+        grid.set(k, { el: t.el, fg: t.fg, hole: t.hole, text: t.text, font: t.font, isImg: t.isImg, destroyed: false, key: k });
+        mine.add(k); S.totalTiles++;
+      }
+      if (mine.size) { elTiles.set(t.el, mine); S.totalEls++; }
+    }
+  } catch (e) { window.__buildErr = e.message; }
+  updateProgress();
+}
 
 function effBg(d, el) {
   let cur = el;
@@ -120,87 +161,13 @@ function effBg(d, el) {
   return d.defaultView.getComputedStyle(d.body).backgroundColor || "#0b0b10";
 }
 
-function isLeafTarget(el) {
-  if (!el || el.nodeType !== 1 || el.__destroyed) return false;
-  if (SKIP_TAGS.has(el.tagName.toLowerCase())) return false;
-  if (el.querySelector(BLOCK_SEL)) return false;
-  if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return false;
-  const r = el.getBoundingClientRect();
-  if (r.width < 6 || r.height < 6) return false;
-  if (r.width * r.height > S.worldW * S.docH * 0.06) return false;
-  return true;
-}
-function isBgSurface(el) {
-  if (!el || el.nodeType !== 1 || el.__destroyed) return false;
-  if (SKIP_TAGS.has(el.tagName.toLowerCase())) return false;
-  const cs = doc().defaultView.getComputedStyle(el);
-  if (!cs.backgroundColor || /rgba?\(\s*\d+,\s*\d+,\s*\d+\s*,\s*0\s*\)/.test(cs.backgroundColor) || cs.backgroundColor === "transparent") return false;
-  const r = el.getBoundingClientRect();
-  if (r.width < CELL || r.height < CELL) return false;
-  if (r.width * r.height > S.worldW * S.docH * 0.5) return false;
-  return true;
-}
-
-function buildTiles() {
-  try {
-  const d = doc();
-  grid.clear(); elTiles.clear(); holes = [];
-  S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
-  if (!d || !d.body) { window.__buildErr = "no doc"; return; }
-  const cols = Math.ceil(S.worldW / CELL), rows = Math.ceil(S.docH / CELL);
-  const claim = (el, fg, isLeaf) => {
-    const r = el.getBoundingClientRect();
-    const c0 = Math.max(0, Math.floor(r.left / CELL)), c1 = Math.min(cols - 1, Math.floor((r.left + r.width - 1) / CELL));
-    const r0 = Math.max(0, Math.floor(r.top / CELL)), r1 = Math.min(rows - 1, Math.floor((r.top + r.height - 1) / CELL));
-    const bg = effBg(d, el.parentElement);
-    const mine = new Set();
-    for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
-      const k = cc + "," + rr;
-      if (grid.has(k)) continue;
-      grid.set(k, { el, fg, bg, destroyed: false, leaf: isLeaf, key: k });
-      mine.add(k); S.totalTiles++;
-    }
-    if (mine.size) { elTiles.set(el, mine); S.totalEls++; }
-  };
-  // 第一轮：叶子元素（后出现的覆盖先出现的）
-  d.body.querySelectorAll("*").forEach((el) => {
-    if (!isLeafTarget(el)) return;
-    const cs = d.defaultView.getComputedStyle(el);
-    claim(el, cs.color || "#ddd", true);
-  });
-  // 第二轮：带可见背景的容器，只认领空格子
-  d.body.querySelectorAll("*").forEach((el) => {
-    if (!isBgSurface(el)) return;
-    claim(el, d.defaultView.getComputedStyle(el).color || "#aaa", false);
-  });
-  updateProgress();
-  } catch (e) { window.__buildErr = e.message + " @ " + (e.stack || "").split("\n")[1]; }
-  window.__buildDone = true;
-}
-
-function tileAt(wx, wy) {
-  if (wy < 0 || wy >= S.docH || wx < 0 || wx >= S.worldW) return null;
-  const t = grid.get(Math.floor(wx / CELL) + "," + Math.floor(wy / CELL));
-  return t && !t.destroyed ? t : null;
-}
-
-// 实体判定：未摧毁的瓦片 + 页面下方的地面
-function solidAt(wx, wy) {
-  if (wy >= S.worldH - 56) return wy <= S.worldH;
-  if (wy < 0 || wy >= S.docH || wx < 0 || wx >= S.worldW) return false;
-  const t = grid.get(Math.floor(wx / CELL) + "," + Math.floor(wy / CELL));
-  return !!(t && !t.destroyed);
-}
-
 function updateProgress() {
   try {
     const pct = S.totalTiles ? Math.min(100, Math.round((S.destroyedTiles / S.totalTiles) * 100)) : 0;
     progressFill.style.width = pct + "%";
     progressText.textContent = pct + "%";
     countText.textContent = S.totalTiles ? `(${S.destroyedTiles}/${S.totalTiles} 块瓦片 · ${S.destroyedEls}/${S.totalEls} 个元素)` : "";
-    if (window.__upLog !== undefined && window.__upLog.length < 30) window.__upLog.push(`up(${S.destroyedTiles}/${S.totalTiles})`);
-  } catch (e) { window.__upErr = e.message; }
-  if (S.started && !S.over && S.totalTiles && S.destroyedTiles / S.totalTiles >= WIN_RATIO) winGame();
+  } catch (e) { /* HUD 无关紧要 */ }
 }
 
 // ---------- 破坏 ----------
@@ -208,23 +175,63 @@ function chipTile(tile, hitX, hitY) {
   if (!tile || tile.destroyed) return false;
   tile.destroyed = true;
   S.destroyedTiles++;
-  const cx = (Math.floor(hitX / CELL)) * CELL + CELL / 2;
-  const cy = (Math.floor(hitY / CELL)) * CELL + CELL / 2;
-  holes.push({ x: tile.key.split(",")[0] * CELL, y: tile.key.split(",")[1] * CELL, w: CELL, h: CELL, color: tile.bg });
-  // 粒子：瓦片自身颜色 + 文字色混合
-  const n = 4 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < n; i++) {
-    if (S.parts.length > MAX_PARTS) break;
-    const a = Math.random() * Math.PI * 2, sp = 1.2 + Math.random() * 4.5;
-    S.parts.push({
-      type: "sq", x: cx + (Math.random() - 0.5) * CELL, y: cy + (Math.random() - 0.5) * CELL,
-      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.2,
-      life: 0.7 + Math.random() * 0.7, max: 1.4,
-      color: Math.random() < 0.55 ? tile.fg : tile.bg,
-      size: 2.5 + Math.random() * 4, rot: 0, vr: 0, g: 0.16,
-    });
+  const cxx = Math.floor(hitX / CELL) * CELL, cyy = Math.floor(hitY / CELL) * CELL;
+  holes.push({ x: cxx, y: cyy, w: CELL, h: CELL, color: tile.hole });
+  // 文字：该格内的字符逐字飞散
+  if (!tile.isImg && tile.text && roomFor(14)) {
+    const d = doc();
+    const r = tile.el.getBoundingClientRect();
+    ctx.save();
+    ctx.font = tile.font;
+    const chars = [...tile.text];
+    const widths = chars.map((c) => ctx.measureText(c).width);
+    ctx.restore();
+    const total = widths.reduce((a, b) => a + b, 0) || 1;
+    const scale = Math.min(1, r.width / total);
+    let x = r.left + Math.max(0, (r.width - total * scale) / 2);
+    for (let i = 0; i < chars.length; i++) {
+      const w = widths[i] * scale;
+      const chx = x + w / 2, chy = r.top + r.height / 2;
+      if (chx >= cxx && chx < cxx + CELL && chy >= cyy && chy < cyy + CELL && roomFor(1)) {
+        S.parts.push({
+          type: "char", ch: chars[i], x: chx - iframeOff().x, y: chy - iframeOff().y,
+          vx: (Math.random() - 0.5) * 5.5, vy: -1.5 - Math.random() * 4,
+          rot: 0, vr: (Math.random() - 0.5) * 0.3, life: 1.2 + Math.random() * 0.8, max: 2,
+          size: parseFloat(tile.font) || 14, color: tile.fg, font: tile.font, g: 0.16,
+        });
+      }
+      x += w;
+    }
   }
-  // 元素所有瓦片毁完 → 整体隐藏 + 大爆发
+  // 图片：该格内的纹理块飞散
+  if (tile.isImg && tile.el.complete && tile.el.naturalWidth && roomFor(6)) {
+    const r = tile.el.getBoundingClientRect();
+    const cols = r.width > r.height ? 4 : 3, rows = 3;
+    const cw = r.width / cols, chh = r.height / rows;
+    const c0 = Math.floor(cxx / CELL), r0 = Math.floor(cyy / CELL);
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const px = r.left + i * cw + cw / 2, py = r.top + j * chh + chh / 2;
+      if (px < cxx || px >= cxx + CELL || py < cyy || py >= cyy + CELL) continue;
+      if (!roomFor(1)) break;
+      S.parts.push({
+        type: "img", img: tile.el,
+        sx: (i / cols) * tile.el.naturalWidth, sy: (j / rows) * tile.el.naturalHeight,
+        sw: tile.el.naturalWidth / cols, sh: tile.el.naturalHeight / rows,
+        w: cw, h: chh,
+        x: px - iframeOff().x, y: py - iframeOff().y,
+        vx: (Math.random() - 0.5) * 6, vy: -1 - Math.random() * 4,
+        rot: 0, vr: (Math.random() - 0.5) * 0.3, life: 1 + Math.random() * 0.7, max: 1.7, g: 0.2,
+      });
+    }
+  }
+  // 火花
+  for (let i = 0; i < 5; i++) {
+    if (!roomFor(1)) break;
+    const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 4;
+    S.parts.push({ type: "sq", x: hitX, y: hitY, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.2, life: 0.5 + Math.random() * 0.4, max: 0.9, color: "#ffb14a", size: 2 + Math.random() * 3, rot: 0, vr: 0, g: 0.14 });
+  }
+  sfx("hit");
+  // 元素所有格子毁完 → 彻底隐藏
   const set = elTiles.get(tile.el);
   if (set) {
     set.delete(tile.key);
@@ -232,13 +239,62 @@ function chipTile(tile, hitX, hitY) {
       tile.el.__done = 1;
       tile.el.classList.add("dm-done");
       S.destroyedEls++;
-      const r = tile.el.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height / 2, 16, tile.fg);
     }
   }
-  sfx("hit");
-  updateProgress();
   return true;
+}
+
+function iframeOff() {
+  // iframe 世界原点即文档 (0,0)，相机位移不影响世界坐标
+  return { x: 0, y: 0 };
+}
+
+function burst(x, y, n, color) {
+  for (let i = 0; i < n; i++) {
+    if (!roomFor(1)) return;
+    const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 5.5;
+    S.parts.push({ type: "sq", x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.6, life: 0.6 + Math.random() * 0.5, max: 1.1, color, size: 2 + Math.random() * 3.5, rot: 0, vr: 0, g: 0.14 });
+  }
+}
+
+// ---------- 武器 / 射击 ----------
+function shoot() {
+  if (S.over || !S.started) return;
+  const w = WEAPONS[S.weapon - 1], now = performance.now();
+  if (w.kind === "beam") return;                 // 激光在 loop 里持续处理
+  if (now - S.lastShot < w.rate) return;
+  S.lastShot = now;
+  S.shots++;
+  const m = { x: S.px + S.face * 14, y: S.py - 6 };
+  const ang = Math.atan2(S.aimY - m.y, S.aimX - m.x);
+  if (w.kind === "bullet") {
+    S.bullets.push({ x: m.x + Math.cos(ang) * 14, y: m.y + Math.sin(ang) * 14, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, size: w.size, color: w.color, trail: w.trail });
+    sfx("shoot");
+  } else if (w.kind === "shotgun") {
+    for (let i = 0; i < w.pellets; i++) {
+      const a = ang + (Math.random() - 0.5) * w.spread;
+      S.bullets.push({ x: m.x, y: m.y, vx: Math.cos(a) * w.speed * (0.85 + Math.random() * 0.3), vy: Math.sin(a) * w.speed * (0.85 + Math.random() * 0.3), size: w.size, color: w.color, trail: w.trail });
+    }
+    sfx("shotgun"); S.shake = 6;
+  } else if (w.kind === "hitscan") {
+    const dx = Math.cos(ang), dy = Math.sin(ang);
+    let hit = null, chipped = 0;
+    for (let d = 10; d <= 1400 && chipped < w.pierce; d += 10) {
+      const t = tileAt(m.x + dx * d, m.y + dy * d);
+      if (t) { chipTile(t, m.x + dx * d, m.y + dy * d); chipped++; burst(m.x + dx * d, m.y + dy * d, 8, w.color); }
+    }
+    S.beams.push({ x1: m.x, y1: m.y, x2: m.x + dx * 1400, y2: m.y + dy * 1400, life: 0.12, color: w.color, width: 3 });
+    S.shake = 5; sfx("sniper");
+  } else if (w.kind === "lob") {
+    S.bullets.push({ grenade: true, x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed - 5.5, r: w.size, t: 0, aoe: w.aoe, color: w.color });
+    sfx("shoot");
+  } else if (w.kind === "rocket") {
+    S.bullets.push({ rocket: true, x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, size: w.size, aoe: w.aoe, color: w.color, t: 0 });
+    sfx("rocket");
+  } else if (w.kind === "bfg") {
+    S.bullets.push({ bfg: true, x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, size: w.size, aoe: w.aoe, color: w.color, t: 0 });
+    sfx("bfg");
+  }
 }
 
 function chipArea(cx, cy, radius) {
@@ -248,84 +304,53 @@ function chipArea(cx, cy, radius) {
     const t = grid.get(cc + "," + rr);
     if (!t || t.destroyed) continue;
     const dx = cc * CELL + CELL / 2 - cx, dy = rr * CELL + CELL / 2 - cy;
-    if (dx * dx + dy * dy <= radius * radius) chipTile(t, cc * CELL + CELL / 2, rr * CELL + CELL / 2);
+    if (dx * dx + dy * dy <= radius * radius) {
+      chipTile(t, cc * CELL + CELL / 2, rr * CELL + CELL / 2);
+      if (S.parts.length > MAX_PARTS - 30) return;
+    }
   }
 }
 
-function burst(x, y, n, color) {
-  for (let i = 0; i < n; i++) {
-    if (S.parts.length > MAX_PARTS) return;
-    const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 5.5;
-    S.parts.push({ type: "sq", x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.6, life: 0.6 + Math.random() * 0.5, max: 1.1, color, size: 2 + Math.random() * 3.5, rot: 0, vr: 0, g: 0.14 });
-  }
-}
-
-// ---------- 武器 / 射击 ----------
-function muzzle() { return { x: S.px + S.face * 20, y: S.py - 6 }; }
-function setWeapon(w) {
-  S.weapon = w;
-  wslots().forEach((b) => b.classList.toggle("active", +b.dataset.w === w));
-}
-function shoot() {
-  if (S.over || !S.started) return;
-  const w = WEAPONS[S.weapon - 1], now = performance.now();
-  if (now - S.lastShot < w.rate) return;
-  S.lastShot = now;
-  S.shots++;
-  const m = muzzle();
-  const ang = Math.atan2(S.aimY - m.y, S.aimX - m.x);
-  if (w.kind === "bullet") {
-    S.bullets.push({ x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, size: w.size, color: w.color, trail: w.trail, chip: 1 });
-    sfx("shoot");
-  } else if (w.kind === "shotgun") {
-    for (let i = 0; i < w.pellets; i++) {
-      const a = ang + (Math.random() - 0.5) * w.spread;
-      S.bullets.push({ x: m.x, y: m.y, vx: Math.cos(a) * w.speed * (0.85 + Math.random() * 0.3), vy: Math.sin(a) * w.speed * (0.85 + Math.random() * 0.3), size: w.size, color: w.color, trail: w.trail, chip: 1 });
-    }
-    sfx("shotgun"); S.shake = 6;
-  } else if (w.kind === "hitscan") {
-    const dx = Math.cos(ang), dy = Math.sin(ang);
-    let hit = null, d = 0;
-    for (d = 0; d <= 1400 && !hit; d += 10) {
-      const t = tileAt(m.x + dx * d, m.y + dy * d);
-      if (t) hit = { x: m.x + dx * d, y: m.y + dy * d, tile: t };
-    }
-    S.beams.push({ x1: m.x, y1: m.y, x2: hit ? hit.x : m.x + dx * 1400, y2: hit ? hit.y : m.y + dy * 1400, life: 0.12, color: w.color, width: 3 });
-    if (hit) {
-      chipTile(hit.tile, hit.x, hit.y);
-      const c0 = Math.floor(hit.x / CELL), r0 = Math.floor(hit.y / CELL);
-      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
-        if (!a && !b) continue;
-        const t = grid.get((c0 + a) + "," + (r0 + b));
-        if (t && !t.destroyed && Math.random() < 0.6) chipTile(t, c0 * CELL + CELL / 2, r0 * CELL + CELL / 2);
-      }
-      burst(hit.x, hit.y, 10, w.color);
-    }
-    S.shake = 5; sfx("sniper");
-  } else if (w.kind === "lob") {
-    S.bullets.push({ grenade: true, x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed - 5.5, r: w.size, t: 0, aoe: w.aoe, color: w.color });
-    sfx("shoot");
-  } else if (w.kind === "rocket") {
-    S.bullets.push({ rocket: true, x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, size: w.size, aoe: w.aoe, color: w.color, t: 0 });
-    sfx("rocket");
-  } else if (w.kind === "beam") {
-    // 持续光束在 loop 里处理（每帧融化一格）
-  } else if (w.kind === "bfg") {
-    S.bullets.push({ bfg: true, x: m.x, y: m.y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, size: w.size, aoe: w.aoe, color: w.color, t: 0 });
-    sfx("bfg");
-  }
-}
-
-// 光束/穿透弹的瓦片处理
-function chipAlong(b) {
-  const t = tileAt(b.x, b.y);
-  if (t) { chipTile(t, b.x, b.y); burst(b.x, b.y, 5, b.color); return true; }
-  return false;
-}
 function explode(x, y, radius, color) {
   sfx("boom"); S.shake = Math.max(S.shake, 16);
   burst(x, y, 34, "#ff8a3a"); burst(x, y, 16, "#ffe08a"); burst(x, y, 12, color);
   chipArea(x, y, radius);
+}
+
+function burst(x, y, n, color) {
+  for (let i = 0; i < n; i++) {
+    if (!roomFor(1)) return;
+    const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 5.5;
+    S.parts.push({ type: "sq", x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.6, life: 0.6 + Math.random() * 0.5, max: 1.1, color, size: 2 + Math.random() * 3.5, rot: 0, vr: 0, g: 0.14 });
+  }
+}
+function roomFor(n) { return S.parts.length + n <= MAX_PARTS; }
+
+// ---------- 像素枪模型（每把枪一个小像素图） ----------
+const GUN_ART = {
+  1: { w: 10, px: ["2,1,6,2,#3a3a4a", "6,3,2,3,#2a2a35", "1,1,1,1,#ffd23e"] },                       // 手枪
+  2: { w: 12, px: ["0,1,8,2,#3a3a4a", "4,3,2,4,#2a2a35", "8,1,3,1,#7ee787", "0,0,1,1,#7ee787"] },    // 冲锋枪
+  3: { w: 14, px: ["0,1,10,2,#4a3a3a", "0,2,10,1,#2a2a35", "10,1,3,2,#ffb14a", "3,3,2,2,#2a2a35"] }, // 霰弹枪
+  4: { w: 16, px: ["0,2,12,1,#3a3a4a", "4,0,3,2,#22223a", "12,2,3,1,#9fd0ff", "5,3,2,3,#2a2a35"] },  // 狙击枪
+  5: { w: 8,  px: ["2,1,4,4,#3a3a4a", "3,5,2,2,#ff5c5c"] },                                          // 手雷
+  6: { w: 16, px: ["0,2,13,4,#3a3a4a", "13,2,3,4,#ff8a3a", "2,6,3,2,#2a2a35", "0,1,2,1,#ff5c5c"] },  // 火箭筒
+  7: { w: 14, px: ["0,2,10,2,#3a3a4a", "10,1,2,4,#ff4dd2", "4,4,2,2,#2a2a35", "12,2,2,2,#ff4dd2"] }, // 激光枪
+  8: { w: 18, px: ["0,1,14,6,#2f2f3f", "14,2,4,4,#b14bff", "2,7,4,2,#2a2a35", "0,2,2,4,#b14bff"] },  // BFG
+};
+function gunSVG(id) {
+  const art = GUN_ART[id];
+  if (!art) return "";
+  const rects = art.px.map((p) => {
+    const [x, y, w, h, c] = p.split(",");
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
+  }).join("");
+  return `<svg width="${art.w * 3}" height="24" viewBox="0 0 ${art.w} 8" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
+}
+
+function setWeapon(w) {
+  S.weapon = w;
+  wslots().forEach((b) => b.classList.toggle("active", +b.dataset.w === w));
+  gun.innerHTML = gunSVG(w.id);
 }
 
 // ---------- 主循环 ----------
@@ -336,7 +361,7 @@ function loop(t) {
   lastT = t;
   if (!S.started) { draw(); return; }
 
-  // 玩家：平台跳跃物理（瓦片 = 实体地形）+ 喷气飞行
+  // clawd：平台物理（瓦片 = 台阶）
   const L = S.keys["a"] || S.keys["arrowleft"], R = S.keys["d"] || S.keys["arrowright"];
   S.vx += ((R ? 1 : 0) - (L ? 1 : 0)) * 0.9;
   S.vx *= 0.85;
@@ -345,7 +370,6 @@ function loop(t) {
   if (S.keys["s"] || S.keys["arrowdown"]) S.vy += 0.4;
   S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy));
 
-  // 垂直移动 + 落地/顶头
   S.py += S.vy;
   if (S.vy >= 0) {
     const fy = S.py + HH;
@@ -363,7 +387,6 @@ function loop(t) {
     }
   }
 
-  // 水平移动 + 侧向碰撞
   S.px += S.vx;
   if (S.vx > 0) {
     const rx = S.px + HW;
@@ -377,36 +400,50 @@ function loop(t) {
     }
   }
   S.px = Math.max(20, Math.min(S.worldW - 20, S.px));
-  if (S.face * S.vx < 0 && Math.abs(S.vx) > 0.3) { S.face *= -1; player.classList.toggle("flip", S.face < 0); }
   player.style.left = S.px - 14 + "px";
   player.style.top = S.py - HH + "px";
 
-  // 相机跟随（允许跟到天空）
+  // 朝向跟随鼠标；枪臂指向鼠标
+  S.aimY = S.aimScreenY + S.camY;
+  const adx = S.aimX - S.px, ady = S.aimY - S.py;
+  const ang = Math.atan2(ady, adx);
+  S.face = Math.cos(ang) >= 0 ? 1 : -1;
+  player.classList.toggle("flip", S.face < 0);
+  const flipV = Math.abs(ang) > Math.PI / 2 ? " scaleY(-1)" : "";
+  gun.style.transform = `rotate(${ang}rad)${flipV}`;
+  gun.style.left = "10px";
+  gun.style.top = "8px";
+
+  // 相机跟随
   const viewH = innerHeight;
   const targetCam = Math.max(-SKY, Math.min(S.worldH - viewH, S.py - viewH * 0.5));
   S.camY += (targetCam - S.camY) * 0.12;
   world.style.transform = `translateY(${-S.camY}px)`;
 
-  // 瞄准（屏幕 → 世界）
-  S.aimY = S.aimScreenY + S.camY;
-  const m = muzzle();
-  gun.style.transform = `rotate(${Math.atan2(S.aimY - m.y, S.aimX - m.x)}rad)`;
-
-  // 连发 / 光束
   const w = WEAPONS[S.weapon - 1];
-  if (S.firing && w.auto) shoot();
+  if (S.firing && w.auto && w.kind !== "beam") shoot();
+
+  // 激光：按住持续融化（独立计时器，每 80ms 融一格）
   if (w.kind === "beam" && S.firing) {
-    const ang = Math.atan2(S.aimY - m.y, S.aimX - m.x);
-    const dx = Math.cos(ang), dy = Math.sin(ang);
+    S.beamAcc += dt;
+    const m = { x: S.px + S.face * 14, y: S.py - 6 };
+    const ang2 = Math.atan2(S.aimY - m.y, S.aimX - m.x);
+    const dx = Math.cos(ang2), dy = Math.sin(ang2);
     let hit = null;
-    for (let d = 10; d <= w.range && !hit; d += 12) {
+    for (let d = 12; d <= w.range && !hit; d += 12) {
       const tt = tileAt(m.x + dx * d, m.y + dy * d);
       if (tt) hit = { x: m.x + dx * d, y: m.y + dy * d, tile: tt };
     }
     const ex = hit ? hit.x : m.x + dx * w.range, ey = hit ? hit.y : m.y + dy * w.range;
-    S.beams.push({ x1: m.x, y1: m.y, x2: ex, y2: ey, life: 0.06, color: w.color, width: 2.5 });
-    if (hit && t - S.lastShot > 70) { S.lastShot = t; chipTile(hit.tile, hit.x, hit.y); burst(hit.x, hit.y, 4, w.color); S.shots++; }
-    if (Math.random() < 0.3) sfx("laser");
+    S.beams.push({ x1: m.x, y1: m.y, x2: ex, y2: ey, life: 0.07, color: w.color, width: 2.5 });
+    S.beamAcc = S.beamAcc || 0;
+    if (hit && S.beamAcc >= 0.08) {
+      S.beamAcc = 0;
+      chipTile(hit.tile, hit.x, hit.y);
+      burst(hit.x, hit.y, 4, w.color);
+      S.shots++;
+      if (Math.random() < 0.35) sfx("laser");
+    }
   }
 
   // 子弹
@@ -414,30 +451,33 @@ function loop(t) {
     const b = S.bullets[i];
     if (b.grenade) {
       b.t += dt; b.vy += 0.3; b.x += b.vx; b.y += b.vy;
-      if (b.y >= S.worldH - 56 - 6 || b.y < -4 || b.x < -30 || b.x > S.worldW + 30 || b.t > 3) {
+      if (b.y >= S.worldH - 56 - 6 || b.y < -30 || b.x < -30 || b.x > S.worldW + 30 || b.t > 3) {
         S.bullets.splice(i, 1); explode(b.x, Math.min(b.y, S.worldH - 56 - 6), b.aoe, b.color); continue;
       }
-    } else if (b.rocket || b.bfg) {
-      b.t += dt; if (b.rocket) b.vy += 0.04;
-      b.x += b.vx; b.y += b.vy;
-      const hitTile = chipAlong(b);
-      const out = b.y < -30 || b.y > S.worldH + 30 || b.x < -30 || b.x > S.worldW + 30;
-      if (hitTile && b.rocket) { S.bullets.splice(i, 1); explode(b.x, b.y, b.aoe, b.color); continue; }
-      if (out || b.t > 4) {
-        S.bullets.splice(i, 1);
-        explode(Math.min(Math.max(b.x, 0), S.worldW), Math.min(Math.max(b.y, 0), S.worldH), b.aoe, b.color);
-        continue;
+    } else if (b.rocket) {
+      b.t += dt; b.vy += 0.04; b.x += b.vx; b.y += b.vy;
+      if (b.t > 4 || b.x < -30 || b.x > S.worldW + 30 || b.y < -30 || b.y > S.worldH + 30) {
+        S.bullets.splice(i, 1); explode(b.x, b.y, b.aoe, b.color); continue;
       }
-      if (b.bfg && Math.random() < 0.6) burst(b.x, b.y, 3, b.color);
+      const t = tileAt(b.x, b.y);
+      if (t) { chipTile(t, b.x, b.y); S.bullets.splice(i, 1); explode(b.x, b.y, b.aoe, b.color); continue; }
+      if (Math.random() < 0.5) burst(b.x, b.y, 2, b.color);
+    } else if (b.bfg) {
+      b.t += dt; b.x += b.vx; b.y += b.vy;
+      const t = tileAt(b.x, b.y);
+      if (t) chipTile(t, b.x, b.y);   // BFG 沿途持续融化
+      if (Math.random() < 0.7) burst(b.x, b.y, 3, b.color);
+      if (b.t > 4 || b.x < -40 || b.x > S.worldW + 40 || b.y < -40 || b.y > S.worldH + 40) {
+        S.bullets.splice(i, 1); explode(b.x, b.y, b.aoe, b.color); continue;
+      }
     } else {
       b.x += b.vx; b.y += b.vy;
       const t = tileAt(b.x, b.y);
       if (t) { chipTile(t, b.x, b.y); S.bullets.splice(i, 1); continue; }
-      if (b.y < -20 || b.y > S.worldH + 20 || b.x < -20 || b.x > S.worldW + 20) { S.bullets.splice(i, 1); continue; }
+      if (b.y < -40 || b.y > S.worldH + 40 || b.x < -40 || b.x > S.worldW + 40) { S.bullets.splice(i, 1); continue; }
     }
   }
 
-  // 粒子 / 飘字 / 光束
   for (let i = S.parts.length - 1; i >= 0; i--) {
     const p = S.parts[i];
     p.x += p.vx; p.y += p.vy; p.vy += (p.g ?? 0.16); if (p.vr) p.rot += p.vr; p.life -= dt;
@@ -460,9 +500,9 @@ function draw() {
   ctx.clearRect(0, 0, fx.width, fx.height);
   ctx.save();
   if (S.shake > 0.5) ctx.translate((Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake);
-  ctx.translate(0, SKY); // 画布位于世界 y=-SKY 处，平移回世界坐标
+  ctx.translate(0, SKY); // 画布顶端在世界 y=-SKY
 
-  // 弹坑（只画视口范围内的）
+  // 弹坑（只有被炸掉的字/图区域）
   const camT = S.camY - 40, camB = S.camY + innerHeight + 40;
   for (const h of holes) {
     if (h.y + h.h < camT || h.y > camB) continue;
@@ -475,24 +515,37 @@ function draw() {
     ctx.globalAlpha = Math.max(0, b.life / 0.12);
     ctx.strokeStyle = b.color; ctx.lineWidth = b.width;
     ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
-    ctx.globalAlpha = Math.max(0, b.life / 0.12) * 0.4; ctx.lineWidth = b.width * 2.4;
+    ctx.globalAlpha = Math.max(0, b.life / 0.12) * 0.4; ctx.lineWidth = b.width * 2.6;
     ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
     ctx.globalAlpha = 1;
   }
 
-  // 粒子
+  // 粒子（字符 / 图片块 / 方块）
   for (const p of S.parts) {
     const a = Math.max(0, Math.min(1, p.life / (p.max || 1)));
     ctx.save();
     ctx.globalAlpha = a;
     ctx.translate(p.x, p.y);
     if (p.rot) ctx.rotate(p.rot);
-    ctx.fillStyle = p.color;
-    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    if (p.type === "char") {
+      ctx.fillStyle = p.color;
+      ctx.font = p.font;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(p.ch, 0, 0);
+    } else if (p.type === "img") {
+      try {
+        ctx.drawImage(p.img, p.sx, p.sy, p.sw, p.sh, -p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.strokeStyle = "rgba(0,0,0,.3)"; ctx.strokeRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      } catch (e) { /* 跨域图片：跳过 */ }
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    }
     ctx.restore();
   }
 
-  // 子弹（带曳光）
+  // 子弹（曳光）
   for (const b of S.bullets) {
     if (b.grenade) {
       ctx.fillStyle = b.color; ctx.fillRect(b.x - 5, b.y - 5, 10, 10);
@@ -504,7 +557,6 @@ function draw() {
       ctx.fillRect(-b.vx * 1.6 - b.size / 2, -b.vy * 1.6 - b.size / 2, b.size, b.size);
       ctx.restore(); ctx.globalAlpha = 1;
     } else {
-      // 曳光：渐隐尾巴 + 亮头
       const tx = b.x - b.vx * (b.trail / 18), ty = b.y - b.vy * (b.trail / 18);
       const grad = ctx.createLinearGradient(tx, ty, b.x, b.y);
       grad.addColorStop(0, "rgba(255,255,255,0)");
@@ -525,7 +577,7 @@ function draw() {
   }
   ctx.globalAlpha = 1;
 
-  // 准星（屏幕坐标 → 世界）
+  // 准星
   if (S.started && !S.over) {
     const cx = S.aimX, cy = S.aimScreenY + S.camY;
     ctx.strokeStyle = "rgba(255,92,92,.9)"; ctx.lineWidth = 1.5;
@@ -545,7 +597,7 @@ addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
   S.keys[k] = true;
-  if (!S.started || S.over) return;
+  if (!S.started) return;
   const num = parseInt(k, 10);
   if (num >= 1 && num <= WEAPONS.length) setWeapon(num);
   if (k === "m") S.muted = !S.muted;
@@ -555,7 +607,7 @@ addEventListener("mousemove", (e) => { S.aimX = e.clientX; S.aimScreenY = e.clie
 addEventListener("mousedown", (e) => {
   if (!S.started || S.over) return;
   const t = e.target;
-  if (t && t.closest && t.closest("#hud, #touch, #win")) return;
+  if (t && t.closest && t.closest("#hud, #touch")) return;
   S.aimX = e.clientX; S.aimScreenY = e.clientY;
   S.firing = true;
   const w = WEAPONS[S.weapon - 1];
@@ -563,16 +615,17 @@ addEventListener("mousedown", (e) => {
 });
 addEventListener("mouseup", () => { S.firing = false; });
 addEventListener("contextmenu", (e) => {
-  if (!S.started || S.over) return;
+  if (!S.started) return;
   const t = e.target;
-  if (t && t.closest && t.closest("#hud, #win")) return;
+  if (t && t.closest && t.closest("#hud")) return;
   e.preventDefault();
 });
 addEventListener("wheel", (e) => {
-  if (!S.started || S.over) return;
+  if (!S.started) return;
   setWeapon(((S.weapon - 1 + (e.deltaY > 0 ? 1 : WEAPONS.length - 1)) % WEAPONS.length) + 1);
 }, { passive: true });
 addEventListener("resize", () => { fx.width = S.worldW = innerWidth; });
+fx.width = innerWidth; fx.height = S.worldH + SKY; fx.style.top = -SKY + "px";
 
 // 触屏
 if ("ontouchstart" in window) touchBox.hidden = false;
@@ -590,7 +643,7 @@ hold($("tFire"), () => {
   touchTimer = setInterval(shoot, 160);
 }, () => { S.firing = false; clearInterval(touchTimer); });
 
-// 武器槽
+// 武器栏
 function buildWeaponBar() {
   const bar = document.getElementById("weapons");
   bar.innerHTML = "";
@@ -604,7 +657,7 @@ function buildWeaponBar() {
   });
 }
 
-// ---------- 开局 / 胜利 ----------
+// ---------- 开局 ----------
 function startGame() {
   if (startBtn.disabled) return;
   S.started = true; S.t0 = performance.now();
@@ -614,22 +667,7 @@ function startGame() {
 }
 startBtn.addEventListener("click", startGame);
 
-function winGame() {
-  S.over = true;
-  const secs = Math.round((performance.now() - S.t0) / 1000);
-  winStats.textContent = `耗时 ${secs} 秒 · ${S.shots} 发弹药 · ${S.destroyedTiles}/${S.totalTiles} 块瓦片 · ${S.destroyedEls}/${S.totalEls} 个元素化为粒子`;
-  winScreen.hidden = false;
-  sfx("win");
-  burst(S.px, S.py - 40, 60, "#ffd23e");
-}
-againBtn.addEventListener("click", () => {
-  winScreen.hidden = true;
-  S.over = false; S.destroyedTiles = 0; S.destroyedEls = 0; S.shots = 0; S.t0 = performance.now();
-  loading.classList.remove("done");
-  target.src = "/?r=" + Date.now();
-});
-
-// iframe 就绪：展开抽屉 → 拉伸为整页高 → 建瓦片世界 → 小人从天而降
+// iframe 就绪：展开抽屉 → 拉伸为整页高 → 建瓦片（只算文字/图片） → clawd 从天而降
 target.addEventListener("load", () => {
   setTimeout(() => {
     const d = doc();
@@ -644,10 +682,9 @@ target.addEventListener("load", () => {
       floorEl.style.top = (S.docH + 40) + "px";
       buildTiles();
       fx.width = S.worldW = innerWidth;
-      S.camY = -SKY;                 // 相机从天空开始
+      S.camY = -SKY;
       S.px = innerWidth / 2;
-      S.py = -SKY + 80;              // 小人从天而降
-      S.vy = 0; S.onGround = false;
+      S.py = -SKY + 80; S.vy = 0; S.onGround = false;
       player.style.left = S.px - 14 + "px";
       player.style.top = S.py - HH + "px";
     }
@@ -656,16 +693,10 @@ target.addEventListener("load", () => {
   }, 400);
 });
 
-// 武器栏初始化
+// 武器栏 + 状态钩子
 buildWeaponBar();
 setWeapon(1);
 requestAnimationFrame(loop);
-
-// 调试/状态钩子（控制台可用）
 window.__S = S;
-window.__hitTest = hitTest;
-window.__destroyEl = destroyEl;
-window.__chipTile = chipTile;
-window.__tileAt = tileAt;
-window.__upLog = [];
+window.__hitTile = tileAt;
 })();
