@@ -140,10 +140,11 @@ function isBgSurface(el) {
 }
 
 function buildTiles() {
+  try {
   const d = doc();
   grid.clear(); elTiles.clear(); holes = [];
   S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
-  if (!d || !d.body) return;
+  if (!d || !d.body) { window.__buildErr = "no doc"; return; }
   const cols = Math.ceil(S.worldW / CELL), rows = Math.ceil(S.docH / CELL);
   const claim = (el, fg, isLeaf) => {
     const r = el.getBoundingClientRect();
@@ -170,6 +171,8 @@ function buildTiles() {
     if (!isBgSurface(el)) return;
     claim(el, d.defaultView.getComputedStyle(el).color || "#aaa", false);
   });
+  } catch (e) { window.__buildErr = e.message + " @ " + (e.stack || "").split("\n")[1]; }
+  window.__buildDone = true;
 }
 
 function tileAt(wx, wy) {
@@ -179,10 +182,13 @@ function tileAt(wx, wy) {
 }
 
 function updateProgress() {
-  const pct = S.totalTiles ? Math.min(100, Math.round((S.destroyedTiles / S.totalTiles) * 100)) : 0;
-  progressFill.style.width = pct + "%";
-  progressText.textContent = pct + "%";
-  countText.textContent = S.totalTiles ? `(${S.destroyedTiles}/${S.totalTiles} 块瓦片 · ${S.destroyedEls}/${S.totalEls} 个元素)` : "";
+  try {
+    const pct = S.totalTiles ? Math.min(100, Math.round((S.destroyedTiles / S.totalTiles) * 100)) : 0;
+    progressFill.style.width = pct + "%";
+    progressText.textContent = pct + "%";
+    countText.textContent = S.totalTiles ? `(${S.destroyedTiles}/${S.totalTiles} 块瓦片 · ${S.destroyedEls}/${S.totalEls} 个元素)` : "";
+    if (window.__upLog !== undefined && window.__upLog.length < 30) window.__upLog.push(`up(${S.destroyedTiles}/${S.totalTiles})`);
+  } catch (e) { window.__upErr = e.message; }
   if (S.started && !S.over && S.totalTiles && S.destroyedTiles / S.totalTiles >= WIN_RATIO) winGame();
 }
 
@@ -614,5 +620,8 @@ requestAnimationFrame(loop);
 // 调试/状态钩子（控制台可用）
 window.__S = S;
 window.__hitTest = hitTest;
-window.__destroyEl = null;
+window.__destroyEl = destroyEl;
+window.__chipTile = chipTile;
+window.__tileAt = tileAt;
+window.__upLog = [];
 })();
