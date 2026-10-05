@@ -105,7 +105,7 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
 <div id="wrap">
   <div id="stage">
     <div id="world">
-      <iframe id="target" src="/" title="目标网站"></iframe>
+      <iframe id="target" title="目标网站"></iframe>
       <canvas id="fx"></canvas>
       <div id="ball"><div id="spin"><img id="ballImg" src="/clawd/clawd-idle.gif" alt=""><div id="clutter"></div></div></div>
     </div>
@@ -172,6 +172,7 @@ function targetSrc() {
   }
   return "/";
 }
+target.src = targetSrc();
 
 const S = {
   started: false, over: false,
@@ -242,7 +243,7 @@ function blankBig(e) {
     const span = document.createElement("span");
     span.className = "mask";
     span.style.cssText = "position:absolute;left:" + (e.x + Math.random() * e.w) + "px;top:" + (e.y + Math.random() * e.h) +
-      "px;width:8px;height:8px;background:#fff;z-index:10000;pointer-events:none;";
+      "px;width:8px;height:8px;background:#fff;z-index:3;pointer-events:none;";
     world.appendChild(span);   // 挂进 #world，跟着页面一起滚动
   }
   const d = doc();
@@ -348,7 +349,7 @@ function addParticles(e, n) {
     if (!e.text && cs === "#fff") continue;
     const p = document.createElement("div");
     p.className = "pix";
-    p.style.cssText = "position:absolute;left:" + px + "px;top:" + py + "px;width:4px;height:4px;background:" + cs + ";z-index:9999;pointer-events:none;";
+    p.style.cssText = "position:absolute;left:" + px + "px;top:" + py + "px;width:4px;height:4px;background:" + cs + ";z-index:3;pointer-events:none;";
     world.appendChild(p);
     S.clutter.push({ el: p, x: px, y: py, vx: (Math.random() - 0.5) * 2, vy: -Math.random() * 2.2, life: 0.4 + Math.random() * 0.6 });
   }
