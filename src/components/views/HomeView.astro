@@ -21,7 +21,7 @@ const allPosts = (await getLocalizedPosts(lang)).sort(
 const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "8086", "电路", "模电", "期末复习", "考试"];
 const isIelts = (p: LocalizedPost) => p.tags.includes("雅思");
 const isCS = (p: LocalizedPost) => p.tags.some((tag) => CS_TAGS.includes(tag));
-const isTest = (p: LocalizedPost) => p.tags.includes("壁纸") || p.title.includes("壁纸测试");
+const isTest = (p: LocalizedPost) => p.tags.includes("壁纸") || p.tags.includes("测试") || p.title.includes("壁纸测试");
 
 const groups = [
 	{ key: "ielts", label: t("groupIelts"), items: allPosts.filter(isIelts) },

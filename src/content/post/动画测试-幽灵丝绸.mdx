@@ -1,0 +1,26 @@
+---
+title: "动画测试 · 幽灵丝绸"
+description: "p5.js 一行代码艺术复现：@yuruyurau 的幽灵丝绸，附逐公式对应的 Python 翻译版。"
+publishDate: "2026-10-06"
+tags: ["测试"]
+---
+
+<div style="border:4px solid #111;box-shadow:6px 6px 0 rgba(0,0,0,.25);padding:10px 14px;margin:1rem 0 1.5rem;background:var(--wm-card);font-family:var(--font-mono);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--wm-primary);display:inline-block;">✪ Animation Test · Ghost Silk</div>
+
+推特上的"一行代码艺术"：**@yuruyurau** 用一行 p5.js 画出的飘动幽灵。每帧画 2 万个半透明白点，点的位置由一组正弦公式决定，时间 `t` 每帧推进一点，于是整块"丝绸"缓慢流动。下面是原代码跑起来的实时效果（不是录屏）：
+
+<div style="border:4px solid #111;box-shadow:6px 6px 0 rgba(0,0,0,.25);padding:6px;background:var(--wm-card);width:fit-content;margin:1.5rem 0;">
+  <iframe src="/test/p5-ghost/" width="400" height="540" loading="lazy" style="display:block;border:0;background:#000;"></iframe>
+  <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--wm-muted);margin-top:6px;">LIVE · 实时渲染，等 10 秒形态浮现</div>
+</div>
+
+**原理（直觉版）**：`y` 是沿"身体"的参数（0→22.6 均匀取样），`cos(i/7)` 高频摆动产生细丝纹理；`d` 是带时间波动的半径项，`q` 是幅度调制——三者合起来把每个点撒成一匹布的形状；最后 `(q, c)` 做极坐标展开 + `30*cos(c)` 抖动，布就飘起来了。半透明点（alpha 46/255）叠出明暗，`background(9)` 每帧擦干净重来——`background()` 不是"画背景"，是"擦黑板"。
+
+**原代码**（一行，压进推文字数限制的那种）：
+
+```js
+a=(y,d=mag(k=(5+3*sin(y+4))*cos(i/7),e=y/5-9)-2.8+sin(t*3-k*k/8))=>point((q=3*sin(k*2)+k*y/25*(9+2*sin(e*6-d*5+t*6)))+30*cos(c=d-t)+200,q*sin(c)+d*39)
+t=0,draw=$=>{t||createCanvas(w=400,w);background(9).stroke(w,46);for(t+=PI/480,i=2e4;i--;)a(i/885)}
+```
+
+**Python 版**：这代码是 JavaScript，粘进 Python 必然 `NameError`。我用 numpy + pygame 逐公式翻译了一份（向量化后比 JS 逐点画还快），仓库 `p5-ghost/ghost_py.py`，`python ghost_py.py` 直接开窗口。独立页在 [/test/p5-ghost/](/test/p5-ghost/)。
