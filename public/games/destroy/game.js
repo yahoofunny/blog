@@ -176,20 +176,58 @@ function buildTiles() {
       const text = (el.textContent || "").replace(/\s+/g, " ").trim();
       targets.push({ el, r, isImg, text, font: `${d.defaultView.getComputedStyle(el).fontWeight} ${d.defaultView.getComputedStyle(el).fontSize} ${d.defaultView.getComputedStyle(el).fontFamily}`, fg: d.defaultView.getComputedStyle(el).color, hole: effBg(d, el.parentElement) });
     }
-    // 认领格子
-    for (const t of targets) {
-      const r = t.r.getBoundingClientRect ? t.r : t.r; // t.r 已是 rect
-      const rect = t.r;
-      const c0 = Math.max(0, Math.floor(rect.left / CELL)), c1 = Math.min(cols - 1, Math.floor((rect.left + rect.width - 1) / CELL));
-      const r0 = Math.max(0, Math.floor(rect.top / CELL)), r1 = Math.min(rows - 1, Math.floor((rect.top + rect.height - 1) / CELL));
-      const mine = new Set();
-      for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
-        const k = cc + "," + rr;
-        if (grid.has(k)) continue;
-        grid.set(k, { el: t.el, fg: t.fg, hole: t.hole, text: t.text, font: t.font, isImg: t.isImg, destroyed: false, key: k });
-        mine.add(k); S.totalTiles++;
+    // 认领格子：文字元素用 Range API 逐字符测量真实位置，
+    // 只有字符实际占据的格子才算瓦片（空白处是空气，不会悬浮）。
+    const claimCell = (cc, rr, data) => {
+      if (cc < 0 || cc >= cols || rr < 0 || rr >= rows) return;
+      const k = cc + "," + rr;
+      let t = grid.get(k);
+      if (!t) {
+        t = { el: data.el, fg: data.fg, hole: data.hole, isImg: data.isImg, destroyed: false, key: k, chars: [] };
+        grid.set(k, t);
+        S.totalTiles++;
       }
-      if (mine.size) { elTiles.set(t.el, mine); S.totalEls++; }
+      if (data.ch) t.chars.push(data.ch);
+      let set = elTiles.get(data.el);
+      if (!set) { set = new Set(); elTiles.set(data.el, set); }
+      set.add(k);
+    };
+    for (const t of targets) {
+      if (t.isImg) {
+        const rect = t.r;
+        const c0 = Math.max(0, Math.floor(rect.left / CELL)), c1 = Math.min(cols - 1, Math.floor((rect.left + rect.width - 1) / CELL));
+        const r0 = Math.max(0, Math.floor(rect.top / CELL)), r1 = Math.min(rows - 1, Math.floor((rect.top + rect.height - 1) / CELL));
+        for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
+          claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, isImg: true });
+        }
+        S.totalEls++;
+        continue;
+      }
+      // 逐字符矩形（Range API，精确含换行）
+      const walker = d.createTreeWalker(t.el, NodeFilter.SHOW_TEXT);
+      let node;
+      const ranges = [];
+      while ((node = walker.nextNode())) {
+        const len = node.data.length;
+        for (let i = 0; i < len; i++) {
+          const ch = node.data[i];
+          if (/\s/.test(ch)) continue;
+          const rg = d.createRange();
+          rg.setStart(node, i); rg.setEnd(node, i + 1);
+          const rr = rg.getBoundingClientRect();
+          if (rr.width <= 0 || rr.height <= 0) continue;
+          ranges.push({ ch, x: rr.x, y: rr.y, w: rr.width, h: rr.height });
+        }
+      }
+      if (!ranges.length) continue;
+      for (const cr of ranges) {
+        const c0 = Math.max(0, Math.floor(cr.x / CELL)), c1 = Math.min(cols - 1, Math.floor((cr.x + cr.w - 1) / CELL));
+        const r0 = Math.max(0, Math.floor(cr.y / CELL)), r1 = Math.min(rows - 1, Math.floor((cr.y + cr.h - 1) / CELL));
+        for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
+          claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, ch: { ch: cr.ch, x: cr.x, y: cr.y, w: cr.w, h: cr.h } });
+        }
+      }
+      S.totalEls++;
     }
   } catch (e) { window.__buildErr = e.message; }
   updateProgress();
@@ -221,38 +259,23 @@ function chipTile(tile, hitX, hitY) {
   S.destroyedTiles++;
   const cxx = Math.floor(hitX / CELL) * CELL, cyy = Math.floor(hitY / CELL) * CELL;
   holes.push({ x: cxx, y: cyy, w: CELL, h: CELL, color: tile.hole });
-  // 文字：该格内的字符逐字飞散
-  if (!tile.isImg && tile.text && roomFor(14)) {
-    const d = doc();
-    const r = tile.el.getBoundingClientRect();
-    ctx.save();
-    ctx.font = tile.font;
-    const chars = [...tile.text];
-    const widths = chars.map((c) => ctx.measureText(c).width);
-    ctx.restore();
-    const total = widths.reduce((a, b) => a + b, 0) || 1;
-    const scale = Math.min(1, r.width / total);
-    let x = r.left + Math.max(0, (r.width - total * scale) / 2);
-    for (let i = 0; i < chars.length; i++) {
-      const w = widths[i] * scale;
-      const chx = x + w / 2, chy = r.top + r.height / 2;
-      if (chx >= cxx && chx < cxx + CELL && chy >= cyy && chy < cyy + CELL && roomFor(1)) {
-        S.parts.push({
-          type: "char", ch: chars[i], x: chx - iframeOff().x, y: chy - iframeOff().y,
-          vx: (Math.random() - 0.5) * 5.5, vy: -1.5 - Math.random() * 4,
-          rot: 0, vr: (Math.random() - 0.5) * 0.3, life: 1.2 + Math.random() * 0.8, max: 2,
-          size: parseFloat(tile.font) || 14, color: tile.fg, font: tile.font, g: 0.16,
-        });
-      }
-      x += w;
+  // 文字：该格缓存的字符逐字飞散（真实位置/真实字体）
+  if (!tile.isImg && tile.chars && tile.chars.length) {
+    for (const cr of tile.chars) {
+      if (!roomFor(1)) break;
+      S.parts.push({
+        type: "char", ch: cr.ch, x: cr.x, y: cr.y + cr.h / 2,
+        vx: (Math.random() - 0.5) * 5.5, vy: -1.5 - Math.random() * 4,
+        rot: 0, vr: (Math.random() - 0.5) * 0.3, life: 1.2 + Math.random() * 0.8, max: 2,
+        size: cr.h * 0.9, color: tile.fg, font: tile.font, g: 0.16,
+      });
     }
   }
-  // 图片：该格内的纹理块飞散
+  // 图片：该格的纹理块飞散
   if (tile.isImg && tile.el.complete && tile.el.naturalWidth && roomFor(6)) {
     const r = tile.el.getBoundingClientRect();
     const cols = r.width > r.height ? 4 : 3, rows = 3;
     const cw = r.width / cols, chh = r.height / rows;
-    const c0 = Math.floor(cxx / CELL), r0 = Math.floor(cyy / CELL);
     for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
       const px = r.left + i * cw + cw / 2, py = r.top + j * chh + chh / 2;
       if (px < cxx || px >= cxx + CELL || py < cyy || py >= cyy + CELL) continue;
@@ -262,13 +285,13 @@ function chipTile(tile, hitX, hitY) {
         sx: (i / cols) * tile.el.naturalWidth, sy: (j / rows) * tile.el.naturalHeight,
         sw: tile.el.naturalWidth / cols, sh: tile.el.naturalHeight / rows,
         w: cw, h: chh,
-        x: px - iframeOff().x, y: py - iframeOff().y,
+        x: px, y: py,
         vx: (Math.random() - 0.5) * 6, vy: -1 - Math.random() * 4,
         rot: 0, vr: (Math.random() - 0.5) * 0.3, life: 1 + Math.random() * 0.7, max: 1.7, g: 0.2,
       });
     }
   }
-  // 火花
+    // 火花
   for (let i = 0; i < 5; i++) {
     if (!roomFor(1)) break;
     const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 4;
