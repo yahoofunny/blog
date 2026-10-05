@@ -18,6 +18,36 @@ const wrap = $("wrap"), stage = $("stage"), world = $("world"), target = $("targ
 const wslots = () => [...document.querySelectorAll(".wslot")];
 const ctx = fx.getContext("2d");
 
+// ---------- 目标就绪（load 监听 + 轮询双保险，防竞态） ----------
+let targetInited = false;
+function initTarget() {
+  if (targetInited) return true;
+  const d = doc();
+  if (!d || !d.body || d.readyState !== "complete") return false;
+  if (d.location.href === "about:blank") return false;
+  targetInited = true;
+  d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
+  S.docH = Math.max(600, d.documentElement.scrollHeight);
+  target.style.height = S.docH + "px";
+  S.worldH = S.docH + GROUND_H;
+  world.style.height = S.worldH + "px";
+  fx.style.top = -SKY + "px";
+  fx.height = S.worldH + SKY;
+  floorEl.style.top = (S.docH + 40) + "px";
+  buildTiles();
+  fx.width = S.worldW = innerWidth;
+  S.camY = -SKY;
+  S.px = innerWidth / 2;
+  S.py = -SKY + 80; S.vy = 0; S.onGround = false;
+  player.style.left = S.px - 14 + "px";
+  player.style.top = S.py - HH + "px";
+  loading.classList.add("done");
+  if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 炸"; }
+  return true;
+}
+target.addEventListener("load", () => setTimeout(initTarget, 300));
+const readyPoll = setInterval(() => { if (initTarget()) clearInterval(readyPoll); }, 150);
+
 // ---------- 常量 ----------
 const CELL = 28;
 const GROUND_H = 96;
@@ -666,32 +696,6 @@ function startGame() {
   setWeapon(1);
 }
 startBtn.addEventListener("click", startGame);
-
-// iframe 就绪：展开抽屉 → 拉伸为整页高 → 建瓦片（只算文字/图片） → clawd 从天而降
-target.addEventListener("load", () => {
-  setTimeout(() => {
-    const d = doc();
-    if (d) {
-      d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
-      S.docH = Math.max(600, d.documentElement.scrollHeight);
-      target.style.height = S.docH + "px";
-      S.worldH = S.docH + GROUND_H;
-      world.style.height = S.worldH + "px";
-      fx.style.top = -SKY + "px";
-      fx.height = S.worldH + SKY;
-      floorEl.style.top = (S.docH + 40) + "px";
-      buildTiles();
-      fx.width = S.worldW = innerWidth;
-      S.camY = -SKY;
-      S.px = innerWidth / 2;
-      S.py = -SKY + 80; S.vy = 0; S.onGround = false;
-      player.style.left = S.px - 14 + "px";
-      player.style.top = S.py - HH + "px";
-    }
-    loading.classList.add("done");
-    if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 炸"; }
-  }, 400);
-});
 
 // 武器栏 + 状态钩子
 buildWeaponBar();
