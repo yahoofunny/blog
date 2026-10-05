@@ -214,7 +214,7 @@ function destroyEl(el, hitX, hitY) {
   // 原地隐身，布局不塌（跟 spritefusion 一样留"弹孔"）
   el.style.visibility = "hidden";
   S.destroyed++;
-  pops.push({ x: hitX, y: hitY, txt: "+1", life: 1 });
+  S.pops.push({ x: hitX, y: hitY, txt: "+1", life: 1 });
   sfx("hit");
   updateProgress();
   return true;
@@ -494,9 +494,4 @@ target.addEventListener("load", () => {
 });
 
 requestAnimationFrame(loop);
-
-// DEBUG: 暴露内部状态供排查（发布版可删）
-window.__S = S;
-window.__destroyEl = destroyEl;
-window.__hitTest = hitTest;
 })();
