@@ -1,0 +1,167 @@
+:root {
+  --bg: #0b0b10;
+  --panel: #15151c;
+  --line: #2a2a35;
+  --primary: #7c6cff;
+  --red: #ff5c5c;
+  --gold: #ffd23e;
+  --green: #7ee787;
+  --muted: #9a9aa8;
+  --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: #e8e8ee;
+  font-family: var(--mono);
+  user-select: none;
+  -webkit-user-select: none;
+}
+#wrap { position: fixed; inset: 0; }
+
+/* ---- 目标网站舞台 ---- */
+#stage {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 112px;
+  background: #111;
+  border-bottom: 2px solid var(--line);
+}
+#target {
+  width: 100%; height: 100%;
+  border: 0; display: block;
+  pointer-events: none;          /* 输入全归游戏，页面滚动用 ↑/↓ */
+  filter: none;
+  transition: filter .3s;
+}
+#loading {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); z-index: 2;
+  font-size: 13px; letter-spacing: .2em; color: var(--muted);
+}
+#loading.done { display: none; }
+
+/* ---- 特效画布 ---- */
+#fx { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none;
+}
+#progressWrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+#progressLabel { font-size: 12px; letter-spacing: .12em; color: #cfcfda; }
+#progressLabel b { color: var(--red); font-size: 15px; }
+#progressLabel span { color: var(--muted); font-size: 11px; }
+#progressBar {
+  width: min(420px, 70vw); height: 14px; background: #0009;
+  border: 2px solid var(--line); position: relative;
+}
+#progressFill {
+  position: absolute; inset: 0; width: 0%;
+  background: repeating-linear-gradient(45deg, var(--red) 0 8px, #ff8a8a 8px 16px);
+  transition: width .25s;
+}
+#weapons { display: flex; gap: 8px; pointer-events: auto; }
+.wslot {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+  color: var(--muted); background: #0009; border: 2px solid var(--line);
+  padding: 5px 12px; cursor: pointer; transition: all .15s;
+}
+.wslot i { font-style: normal; color: var(--primary); margin-right: 6px; font-weight: 700; }
+.wslot.active { color: #fff; border-color: var(--primary); background: #16162a; }
+.wslot.active i { color: var(--gold); }
+#hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
+@media (max-width: 720px) { #hint { display: none; } }
+
+/* ---- 地面与玩家 ---- */
+#ground { position: absolute; left: 0; right: 0; bottom: 0; height: 112px; z-index: 4; }
+#floor {
+  position: absolute; inset: auto 0 0 0; height: 56px;
+  background: linear-gradient(#17171f, #0e0e13);
+  border-top: 3px solid var(--line);
+}
+#player {
+  position: absolute; bottom: 56px; left: 50%;
+  width: 30px; height: 42px; z-index: 2;
+  background:
+    linear-gradient(#ffd9a0, #ffd9a0) 9px 0 / 12px 10px no-repeat,          /* 头 */
+    linear-gradient(var(--primary), var(--primary)) 6px 12px / 18px 16px no-repeat, /* 身体 */
+    linear-gradient(#22223a, #22223a) 6px 30px / 7px 10px no-repeat,        /* 腿 */
+    linear-gradient(#22223a, #22223a) 17px 30px / 7px 10px no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 0 #000);
+}
+#player.flip { transform: scaleX(-1); }
+#gun {
+  position: absolute; left: 22px; top: 16px;
+  width: 30px; height: 6px; background: #3a3a4a;
+  transform-origin: 2px 3px; border-radius: 1px;
+  box-shadow: 0 0 0 1px #0008;
+}
+
+/* ---- 触屏按钮 ---- */
+#touch { position: absolute; inset: 0; display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+#touch button {
+  width: 52px; height: 44px; font-size: 18px; font-family: var(--mono);
+  background: #000a; color: #fff; border: 2px solid var(--line);
+}
+#tFire { color: var(--red) !important; border-color: var(--red) !important; }
+#tJump { margin-left: auto; }
+@media (hover: hover) and (pointer: fine) { #touch { display: none !important; } }
+
+/* ---- 面板（开始/胜利） ---- */
+#intro, #win {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5, 5, 9, .78); backdrop-filter: blur(3px);
+}
+#intro .panel, #win .panel {
+  width: min(560px, 92vw);
+  background: var(--panel); border: 2px solid var(--line);
+  box-shadow: 8px 8px 0 #000a;
+  padding: 28px 30px; text-align: center;
+}
+#intro h1, #win h1 { font-size: 26px; letter-spacing: .06em; margin-bottom: 14px; }
+#intro p, #win p { font-size: 13px; line-height: 1.9; color: #c9c9d6; }
+#intro .keys { color: var(--muted); font-size: 12px; margin: 10px 0 18px; }
+#intro .fine { color: var(--muted); font-size: 11px; margin-top: 16px; line-height: 1.7; }
+#intro b { color: var(--gold); }
+#startBtn, #againBtn {
+  font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: .15em;
+  background: var(--red); color: #fff; border: 0; padding: 12px 34px;
+  cursor: pointer; box-shadow: 4px 4px 0 #000a; transition: transform .1s;
+}
+#startBtn:disabled { background: #3a3a4a; color: #888; cursor: wait; }
+#startBtn:not(:disabled):hover, #againBtn:hover { transform: translate(-1px, -1px); }
+#win .row { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+#win .ghost {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-decoration: none;
+  color: var(--muted); border: 2px solid var(--line); padding: 11px 16px;
+}
+#win .ghost:hover { color: #fff; border-color: var(--primary); }
+#winStats { color: var(--gold) !important; font-size: 15px !important; }
+
+/* 屏幕抖动 */
+#wrap.shake { animation: shk .3s; }
+@keyframes shk {
+  0%,100% { transform: translate(0, 0); }
+  25% { transform: translate(-5px, 3px); }
+  50% { transform: translate(4px, -4px); }
+  75% { transform: translate(-3px, -2px); }
+}
+
+/* 目标页内被摧毁元素 */
+.dm-gone {
+  animation: dmCrumble .38s forwards !important;
+  opacity: 0;
+}
+@keyframes dmCrumble {
+  0% { opacity: 1; filter: none; }
+  30% { transform: translate(2px, -2px) rotate(1deg); filter: brightness(2.2) saturate(0); }
+  100% { transform: translate(0, 8px) scale(.55) rotate(3deg); opacity: 0; filter: brightness(3) saturate(0); }
+}
+.dm-shard {
+  position: absolute; z-index: 9999; pointer-events: none;
+  will-change: transform, opacity;
+}

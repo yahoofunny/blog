@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>摧毁本站 · bt's Arcade</title>
+<meta name="description" content="把 bt 的博客首页当靶场：像素小人持枪扫射真实页面，元素碎裂掉落，炸到 65% 通关。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <iframe id="target" src="/" title="目标网站"></iframe>
+    <div id="loading"><span>目标网站加载中…</span></div>
+  </div>
+
+  <canvas id="fx"></canvas>
+
+  <div id="hud">
+    <div id="progressWrap">
+      <div id="progressLabel">破坏率 <b id="progressText">0%</b> <span id="countText"></span></div>
+      <div id="progressBar"><div id="progressFill"></div></div>
+    </div>
+    <div id="weapons">
+      <button class="wslot active" data-w="1"><i>1</i>手枪</button>
+      <button class="wslot" data-w="2"><i>2</i>冲锋枪</button>
+      <button class="wslot" data-w="3"><i>3</i>手雷</button>
+    </div>
+    <div id="hint">A/D 移动 · W 跳 · 鼠标瞄准射击 · 1/2/3 换枪 · ↑↓ 滚动目标 · M 静音</div>
+  </div>
+
+  <div id="ground">
+    <div id="floor"></div>
+    <div id="player">
+      <div id="gun"></div>
+    </div>
+    <div id="touch" hidden>
+      <button id="tLeft">◀</button>
+      <button id="tRight">▶</button>
+      <button id="tJump">跳</button>
+      <button id="tFire">🔥</button>
+    </div>
+  </div>
+
+  <div id="intro">
+    <div class="panel">
+      <h1>💥 摧毁本站</h1>
+      <p>上面那个就是 bt's Blog 的<b>真实页面</b>——不是截图。拿起武器把它炸个稀巴烂，破坏率达到 <b>65%</b> 即通关。</p>
+      <p class="keys">A/D 移动 · W/空格 跳 · 鼠标瞄准 · 左键射击 · 1/2/3 换枪 · ↑↓ 滚动目标 · M 静音</p>
+      <button id="startBtn" disabled>目标加载中…</button>
+      <p class="fine">灵感来自 spritefusion 的 destroy 彩蛋，破坏效果参考 MIT 开源的 website-breaker。炸的只是自己家的站。</p>
+    </div>
+  </div>
+
+  <div id="win" hidden>
+    <div class="panel">
+      <h1>🏆 网站已摧毁</h1>
+      <p id="winStats"></p>
+      <div class="row">
+        <button id="againBtn">再炸一次</button>
+        <a href="/games/" class="ghost">回游戏厅</a>
+        <a href="/" class="ghost">看看幸存的首页</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
