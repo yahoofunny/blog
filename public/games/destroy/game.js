@@ -8,11 +8,14 @@
  */
 (() => {
 "use strict";
+window.addEventListener("error", (e) => {
+  window.__fatal = (e.message || "") + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno;
+});
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const wrap = $("wrap"), stage = $("stage"), world = $("world"), target = $("target"), fx = $("fx"),
-      loading = $("loading"), player = $("player"), sprite = $("sprite"), gun = $("gun"), jetpack = $("jetpack"),
+      loading = $("loading"), player = $("player"), sprite = $("sprite"), gun = $("gun"), jetpack = $("jetpack"), floorEl = $("floor"),
       progressFill = $("progressFill"), progressText = $("progressText"), countText = $("countText"),
       intro = $("intro"), startBtn = $("startBtn"), touchBox = $("touch");
 const wslots = () => [...document.querySelectorAll(".wslot")];
@@ -148,20 +151,31 @@ function buildTiles() {
     S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
     if (!d || !d.body) return;
     const cols = Math.ceil(S.worldW / CELL), rows = Math.ceil(S.docH / CELL);
-    // 叶子靶子：带文字 或 图片；纯背景元素一律不算
-    const targets = [];
-    d.body.querySelectorAll("*").forEach((el) => {
-      if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) return;
-      if (el.querySelector(BLOCK_SEL)) return;
-      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return;
-      const r = el.getBoundingClientRect();
-      if (r.width < 8 || r.height < 8) return;
-      if (r.width * r.height > S.worldW * S.docH * 0.06) return;
+    // 叶子靶子：自底向上判定——孩子已是靶子的元素视为容器（不算靶子）。
+    // 这样"包着多个 span 的外层 div"不会变成隐形平台，clawd 只能站在真正的文字/图片上。
+    const allEls = [...d.body.querySelectorAll("*")];
+    const candSet = new Set();
+    for (let i = allEls.length - 1; i >= 0; i--) {
+      const el = allEls[i];
+      if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
       const isImg = el.tagName === "IMG";
       const text = (el.textContent || "").replace(/\s+/g, " ").trim();
-      if (!isImg && !text) return;                      // 没字没图 → 不是靶子
+      if (!isImg && !text) continue;
+      let childCand = false;
+      for (const c of el.children) { if (candSet.has(c)) { childCand = true; break; } }
+      if (childCand) continue;
+      candSet.add(el);
+    }
+    const targets = [];
+    for (const el of candSet) {
+      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) continue;
+      if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
+      const isImg = el.tagName === "IMG";
+      const text = (el.textContent || "").replace(/\s+/g, " ").trim();
       targets.push({ el, r, isImg, text, font: `${d.defaultView.getComputedStyle(el).fontWeight} ${d.defaultView.getComputedStyle(el).fontSize} ${d.defaultView.getComputedStyle(el).fontFamily}`, fg: d.defaultView.getComputedStyle(el).color, hole: effBg(d, el.parentElement) });
-    });
+    }
     // 认领格子
     for (const t of targets) {
       const r = t.r.getBoundingClientRect ? t.r : t.r; // t.r 已是 rect
@@ -380,7 +394,7 @@ function gunSVG(id) {
 function setWeapon(w) {
   S.weapon = w;
   wslots().forEach((b) => b.classList.toggle("active", +b.dataset.w === w));
-  gun.innerHTML = gunSVG(w.id);
+  gun.innerHTML = gunSVG(w);
 }
 
 // ---------- 主循环 ----------
@@ -398,7 +412,9 @@ function loop(t) {
   const jet = S.keys["w"] || S.keys[" "] || S.keys["arrowup"];
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
   if (S.keys["s"] || S.keys["arrowdown"]) S.vy += 0.4;
-  S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy));
+  // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
+  if (!jet && S.onGround) S.vy = 0;
+  else { S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy)); }
 
   S.py += S.vy;
   if (S.vy >= 0) {
