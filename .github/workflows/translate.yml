@@ -17,9 +17,9 @@ jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -28,7 +28,7 @@ jobs:
           pip install --quiet argostranslate
           python scripts/translate-posts.py
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -46,7 +46,7 @@ jobs:
         run: |
           ls -la src/content/post-en/ | head -25
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v7
         id: commit
         if: steps.verify.outcome == 'success' || inputs.force
         with:
@@ -54,7 +54,7 @@ jobs:
           file_pattern: "src/content/post-en/*"
 
       # 没提交成功就把译文传上来，省得为了看一眼产物重跑十几分钟
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && steps.commit.outcome != 'success'
         with:
           name: post-en-unverified
