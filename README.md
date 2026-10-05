@@ -30,8 +30,8 @@
 | 像素怪物对战 | 像素 RPG 对战 | ✅ |
 | 蔚蓝 Celeste | 平台跳跃（网页移植） | 🖥 电脑；手机走 PICO-8 原版外链 |
 | 小游戏合集 ×124 | 合集外链 | ✅ |
-| 摧毁本站 | 破坏沙盒（真实页面） | 🖥 电脑 |
-| clawd 滚球 | Katamari 测试版（真实页面） | 🖥 电脑 |
+| 摧毁本站 | 破坏沙盒（真实页面） | ✅ 手机有摇杆 + 开火键 |
+| clawd 滚球 | 橡皮擦（真实页面） | ✅ 手机有虚拟摇杆 |
 
 新增游戏：把静态文件放进 `public/games/<name>/`，在 `public/games/index.html` 加卡片即可。
 
@@ -40,9 +40,11 @@
 这两个游戏不开新关卡——**直接把博客首页（真实 DOM）当游戏世界**，同源 iframe 拉伸为整页高度，相机跟着角色跑：
 
 - **[摧毁本站](public/games/destroy/)（`/games/destroy/`）** — clawd 从天而降踩上首页：**带文字的元素既是台阶也是靶子**，28px 瓦片粒度一格一格炸，字符逐字飞散；S/↓ 沿文字行下潜一层，空格跳，W/↑ 火箭推进，8 种像素武器（手枪/冲锋枪/霰弹/狙击/手雷/火箭/激光/BFG）。纯拆，没有通关。
-- **[clawd 滚球](public/games/katamari/)（`/games/katamari/`，测试版）** — Katamari 玩法：clawd 变成球在页面上 360° 滚动，碰到比球小的元素就粘到球面上（碎片凸出球缘随球转圈），球越滚越大能卷的越多，覆盖率 80% 卷完全站。
+- **[clawd 滚球](public/games/katamari/)（`/games/katamari/`，橡皮擦版）** — clawd 变成球在页面上 360° 滚动，滚过哪里哪里的字和图就变成空白（小球**不再变大**，纯擦除）；小元素直接擦掉，比球大的块用网格整块擦空。
 
-技术要点：`Range API` 逐字符测量真实位置生成瓦片（空白处是空气，人物不会悬浮在空白上）；元素吸收 = `visibility: hidden` + 粒子/碎片表现；无后端、无依赖，全部逻辑在这两个目录的 `index.html` + `game.js` 里。灵感：spritefusion 的 destroy 彩蛋、MIT 的 [website-breaker](https://github.com/komlanKodoh/website-breaker)、Katamari Damacy。
+**任意网页模式**：两个游戏都支持 `?url=<绝对地址>` 书签——但浏览器禁止跨源读写 iframe，所以游戏会经 `functions/api/mirror/[[path]].js`（Cloudflare Pages Function）把目标页"搬"成同源镜像（注入 `<base>` + 重写绝对地址 + 剥掉 XFO/CSP frame 限制 + 拦截 iframe 内点击改走镜像导航），这样擦/炸的就是你指定的那个网页。内网和回环地址被拒绝（防 SSRF）；不接受访客 Cookie。也可以直接在游戏开局面板输入网址跳转。
+
+技术要点：`Range API` 逐字符测量真实位置生成瓦片（空白处是空气，人物不会悬浮在空白上）；元素吸收 = `visibility: hidden` + 粒子/碎片表现；站内模式无后端、无依赖，全部逻辑在这两个目录的 `index.html` + `game.js` 里，镜像代理在 `functions/api/mirror/`。灵感：spritefusion 的 destroy 彩蛋、MIT 的 [website-breaker](https://github.com/komlanKodoh/website-breaker)、Katamari Damacy。
 
 ### 📮 Mome（mome.bingtao.xyz）
 顶栏 **Mome** 是个外链，指向自托管的碎碎念时间线 —— [Ech0](https://github.com/lin-snow/Ech0)（Go + Vue，AGPL-3.0），跑在自己的服务器上，数据和上传的媒体都在自己手里。

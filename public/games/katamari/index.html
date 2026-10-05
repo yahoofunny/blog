@@ -2,9 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Katamari 测试版 · clawd 滚球</title>
-<meta name="description" content="测试版：clawd 变成球在真实页面上滚，把元素一个个粘进来，球越滚越大。">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>clawd 橡皮擦 · 擦除本站</title>
+<meta name="description" content="clawd 变成橡皮擦，在真实页面上滚一圈，文字和图片就被擦成空白，留下一个个白色的洞。支持书签擦任意网页。">
 <style>
 :root {
   --bg: #0b0b10; --panel: #15151c; --line: #2a2a35;
@@ -83,12 +83,22 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
 }
 #startBtn:disabled { background: #3a3a4a; color: #888; cursor: wait; }
 #done .row { margin-top: 18px; }
-#done a {
+#done a, #againBtn {
   font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-decoration: none;
   color: var(--muted); border: 2px solid var(--line); padding: 11px 16px; margin: 0 5px; display: inline-block;
+  background: transparent; cursor: pointer;
 }
-#done a:hover { color: #fff; border-color: var(--primary); }
-.dm-done { visibility: hidden !important; }
+#done a:hover, #againBtn:hover { color: #fff; border-color: var(--primary); }
+.urlrow { display: flex; gap: 8px; margin: 0 0 18px; }
+.urlrow input {
+  flex: 1; min-width: 0; font-family: var(--mono); font-size: 12px; color: #e8e8ee;
+  background: #0b0b10; border: 2px solid var(--line); padding: 10px 12px; outline: none;
+}
+.urlrow input:focus { border-color: var(--primary); }
+.urlrow button {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em; white-space: nowrap;
+  background: var(--primary); color: #fff; border: 0; padding: 10px 14px; cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -103,29 +113,33 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
   </div>
 
   <div id="hud">
-    <div id="hudTitle">已收集 <b id="cnt">0</b>/<span id="tot">?</span> 个元素 · 覆盖率 <b id="cov">0%</b> · 球径 <span id="diam">52</span>px</div>
+    <div id="hudTitle">已擦除 <b id="cnt">0</b>/<span id="tot">?</span> 个元素 · 覆盖率 <b id="cov">0%</b></div>
     <div id="hudBar"><div id="hudFill"></div></div>
-    <div id="hint">方向键 / WASD 滚动 · 手机用左下角摇杆 · 碰到比自己小的元素就会粘上来 · 球越大能卷的越多</div>
+    <div id="hint">方向键 / WASD 滚动 · 手机用左下角摇杆 · 橡皮擦滚过哪里，哪里就变成空白 · 大块内容会被整块擦掉</div>
   </div>
 
   <div id="intro">
     <div class="panel">
-      <h1>🟠 Katamari 测试版</h1>
-      <p>clawd 变成一个球，在 bt's Blog 的<b>真实页面</b>上滚动。碰到<b>比球小</b>的元素就会粘到球上——<b>文字原字体原颜色、图片原样</b>贴在球面，球越滚越大，最后把整个首页卷进怀里。</p>
-      <p class="keys">方向键 / WASD 滚动 · 手机左下角有虚拟摇杆 · 无重力 · 球只会越变越大</p>
+      <h1>🧽 clawd 橡皮擦</h1>
+      <p>clawd 变成一块<b>不会变大的橡皮擦</b>，在<b>真实页面</b>上滚一圈——滚过哪里，哪里的字和图片就被擦成空白，留下一个个白色的洞。小元素直接擦掉，<b>大块内容用网格整块擦除</b>。转圈照旧，只是不再越滚越大。</p>
+      <p class="keys">方向键 / WASD 滚动 · 手机左下角有虚拟摇杆 · 无重力</p>
+      <div class="urlrow">
+        <input id="urlInput" type="url" placeholder="输入任意网页地址…" autocomplete="off">
+        <button id="urlBtn" type="button">擦这个网页</button>
+      </div>
       <button id="startBtn" disabled>目标加载中…</button>
-      <p class="fine">测试版原型 · 灵感来自 Katamari Damacy 与"把网站卷起来"的推文。卷的是自己家的站。</p>
+      <p class="fine">橡皮擦灵感来自 Katamari Damacy 与"把网站卷起来"的推文。默认擦的是自己家的首页，用书签（见 README）可以擦任意网页。</p>
     </div>
   </div>
 
   <div id="done" hidden>
     <div class="panel">
-      <h1>🌀 整站已卷完</h1>
+      <h1>🕳 页面擦完了</h1>
       <p id="doneStats"></p>
       <div class="row">
-        <button id="againBtn">再卷一次</button>
+        <button id="againBtn">再擦一次</button>
         <a href="/games/" class="ghost">回游戏厅</a>
-        <a href="/" class="ghost">看看被卷空的首页</a>
+        <a href="/" class="ghost">看看被擦空的首页</a>
       </div>
     </div>
   </div>
@@ -134,17 +148,34 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
 (() => {
 "use strict";
 const $ = (id) => document.getElementById(id);
-const stage = $("stage"), world = $("world"), target = $("target"), fx = $("fx"),
-      loading = $("loading"), ballEl = $("ball"), ballImg = $("ballImg"),
+const world = $("world"), target = $("target"), fx = $("fx"),
+      loading = $("loading"), ballEl = $("ball"),
       intro = $("intro"), startBtn = $("startBtn"), doneScreen = $("done"), doneStats = $("doneStats"),
       againBtn = $("againBtn");
 const ctx = fx.getContext("2d");
 
-const CELL_MARGIN = 6;          // 吸收判定额外余量
-const WIN_COVER = 0.8;
+const ERASER_WIN = 0.8;              // 覆盖率 80% 通关
+const isCoarse = matchMedia("(pointer: coarse)").matches;
+const MAX_FRAGS = isCoarse ? 40 : 90;        // 球面碎片上限：触屏更省
+const MAX_PARTICLES = isCoarse ? 200 : 600;  // 像素粒子上限（destroy 同款预算）
+
+// 书签模式：?url=<绝对地址> → 页面经 /api/mirror/ 同源镜像（点 iframe 内链接也不会离开游戏）
+// 站内模式（默认）：直接嵌入站内页面，最快。
+function targetSrc() {
+  const p = new URLSearchParams(location.search);
+  const u = p.get("url");
+  if (u && /^https?:\/\//i.test(u)) {
+    try {
+      const b = btoa(unescape(encodeURIComponent(u))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      return "/api/mirror/" + b;
+    } catch (e) {}
+  }
+  return "/";
+}
+
 const S = {
   started: false, over: false,
-  bx: 300, by: 60, vx: 0, vy: 0, r: 26, angle: 0,
+  bx: 300, by: 60, vx: 0, vy: 0, r: 26, angle: 0,   // r 固定：橡皮擦不长大
   camX: 0, camY: 0,
   worldW: innerWidth, worldH: 1000, docH: 600,
   els: [], total: 0, collected: 0, totalArea: 1, collectedArea: 0,
@@ -154,7 +185,7 @@ const S = {
 // ---------- 音效 ----------
 let actx = null;
 const ac = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
-function sfx(kind) {
+function sfx() {
   if (S.muted) return;
   try {
     const a = ac(), t = a.currentTime;
@@ -172,26 +203,31 @@ const doc = () => { try { return target.contentDocument; } catch (e) { return nu
 const SKIP_TAGS = new Set(["html", "body", "head", "script", "style", "link", "meta",
   "noscript", "title", "br", "template", "iframe"]);
 
+function isVisibleEl(el) {
+  if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return false;
+  return true;
+}
+
+function isTransparent(c) {
+  return !c || c === "transparent" || /rgba?\([^)]*,\s*0\)/.test(c);
+}
+
 function buildEls() {
   const d = doc();
   if (!d || !d.body) return;
-  S.els = []; S.total = 0; S.totalArea = 1;
+  S.els = []; S.total = 0; S.totalArea = 1; S.collected = 0; S.collectedArea = 0;
   d.body.querySelectorAll("*").forEach((el) => {
     if (SKIP_TAGS.has(el.tagName.toLowerCase()) || el.__absorbed) return;
-    if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return;
+    if (!isVisibleEl(el)) return;
     const r = el.getBoundingClientRect();
     if (r.width < 8 || r.height < 8) return;
-    if (r.width * r.height > S.worldW * S.docH * 0.5) return;
     const cs = d.defaultView.getComputedStyle(el);
-    let bg = cs.backgroundColor;
-    if (!bg || bg === "transparent" || /rgba?\([^)]*,\s*0\)/.test(bg)) bg = "";
-    let fg = cs.color;
-    if (!fg || fg === "transparent") fg = "#e8e8ee";
-    const color = bg || fg;
+    const bg = isTransparent(cs.backgroundColor) ? "" : cs.backgroundColor;
+    const fg = isTransparent(cs.color) ? "#e8e8ee" : cs.color;
     const txt = (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 20);
     S.els.push({
       el, x: r.x, y: r.y, w: r.width, h: r.height, area: r.width * r.height,
-      color, bg, fg, text: txt,
+      color: bg || fg, bg, fg, text: txt,
       fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontSize: parseFloat(cs.fontSize) || 14,
       isImg: el.tagName === "IMG", absorbed: false,
     });
@@ -199,55 +235,132 @@ function buildEls() {
   });
 }
 
-// ---------- 吸收 ----------
+// ---------- 大块内容：整块擦掉（网格白点 + 文字替换 + 图片清空 + 子树隐藏） ----------
+function blankBig(e) {
+  const D = 20, N = Math.max(2, Math.min(40, Math.round((e.w / D) * (e.h / D))));
+  for (let i = 0; i < N; i++) {
+    const span = document.createElement("span");
+    span.className = "mask";
+    span.style.cssText = "position:absolute;left:" + (e.x + Math.random() * e.w) + "px;top:" + (e.y + Math.random() * e.h) +
+      "px;width:8px;height:8px;background:#fff;z-index:10000;pointer-events:none;";
+    world.appendChild(span);   // 挂进 #world，跟着页面一起滚动
+  }
+  const d = doc();
+  const root = e.el;
+  // 把可见子树清干净：文字换成不换行空格（保持布局、肉眼全空）
+  const lines = d.evaluate(".//text()", root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+  for (let i = 0; i < lines.snapshotLength; i++) {
+    const tx = lines.snapshotItem(i);
+    if (tx.parentNode && /^(SCRIPT|STYLE)$/.test(tx.parentNode.nodeName)) continue;
+    const orig = tx.textContent;
+    if (orig.trim() && !/^\s*$/.test(orig)) tx.textContent = orig.replace(/\S/g, " ");
+  }
+  // 图片换成同尺寸空白画布
+  const imgs = root.tagName === "IMG" ? [root] : [...root.querySelectorAll("img")];
+  imgs.forEach((im) => {
+    try {
+      const c = d.createElement("canvas");
+      c.width = Math.max(4, Math.min(240, im.naturalWidth || im.clientWidth || 40));
+      c.height = Math.max(4, Math.min(240, im.naturalHeight || im.clientHeight || 40));
+      c.style.maxWidth = "100%";
+      c.style.maxHeight = "100%";
+      if (im.parentNode) im.parentNode.replaceChild(c, im);
+      im.__absorbed = true;
+    } catch (ex) {}
+  });
+  root.__absorbed = true;
+  e.el.__blanking = true;
+}
+
+// ---------- 吸收（球径固定，纯橡皮擦） ----------
 function tryAbsorb() {
   for (const e of S.els) {
     if (e.absorbed) continue;
-    // 球与矩形相交 + 元素比球小
     const nx = Math.max(e.x, Math.min(S.bx, e.x + e.w));
     const ny = Math.max(e.y, Math.min(S.by, e.y + e.h));
     const dx = nx - S.bx, dy = ny - S.by;
     if (dx * dx + dy * dy > S.r * S.r) continue;
-    if (Math.max(e.w, e.h) > S.r * 2 + CELL_MARGIN) continue;
-    // 吸收！
+    if (Math.max(e.w, e.h) > S.r * 2 + 6) {
+      // 大块内容：不再"比球大就跳过"——整块擦掉
+      if (!e.el.__blanking) blankBig(e);
+      e.absorbed = true;
+      S.collected++; S.collectedArea += e.area;
+      // 子孙元素一并标记已擦除（不再单独计数，也不留在分母里）
+      S.els.forEach((x) => {
+        if (x !== e && !x.absorbed && (e.el.contains(x.el) || x.el.__absorbed)) {
+          x.absorbed = true;
+          S.totalArea -= x.area;
+        }
+      });
+      addParticles(e, 10);
+      sfx();
+      updateHUD();
+      continue;
+    }
+    // 小元素：直接擦掉，文字/图片碎片贴球（视觉），球不再长大
     e.absorbed = true;
     e.el.classList.add("dm-done");
+    e.el.__absorbed = true;
     S.collected++; S.collectedArea += e.area;
-    // 球长大（面积守恒近似）
-    S.r = Math.sqrt(S.r * S.r + e.area / Math.PI);
-    // 碎片真粘到球面上（凸出球缘，随滚动旋转）
-    // 图片元素贴真实缩略图；带字的元素贴真实文字（原字体原颜色）；纯色块兜底
-    const clutterLayer = document.getElementById("clutter");
-    const d = doc();
-    const frag = d.createElement("div");
-    frag.className = "frag";
-    const fw = Math.max(10, Math.min(Math.max(e.w, e.h) / 1.4, S.r * 1.05));
-    const fh = Math.max(8, Math.min(fw * (e.h / Math.max(e.w, 1)), S.r * 0.75));
-    const a = Math.random() * Math.PI * 2;
-    const dist = S.r * (0.82 + Math.random() * 0.3) + fh / 2;
-    const tpos = "width:" + fw + "px;height:" + fh + "px;left:" + (50 + Math.cos(a) * dist / (S.r * 2) * 100) + "%;top:" + (50 + Math.sin(a) * dist / (S.r * 2) * 100) + "%;transform:translate(-50%,-50%) rotate(" + (a + Math.PI / 2) + "rad);";
-    if (e.isImg && e.el.complete && e.el.naturalWidth) {
-      // 图片：真实缩略图（同源可绘制）
-      const c = frag.appendChild(d.createElement("canvas"));
-      const maxW = 56, maxH = 56;
-      const iw = e.el.naturalWidth, ih = e.el.naturalHeight;
-      const sc = Math.min(1, maxW / iw, maxH / ih);
-      c.width = Math.max(8, iw * sc); c.height = Math.max(8, ih * sc);
-      try { c.getContext("2d").drawImage(e.el, 0, 0, c.width, c.height); } catch (ex) { frag.style.background = e.color; }
-      frag.style.cssText = tpos;
-    } else if (e.text) {
-      // 文字：原字体原颜色，字随碎片尺寸缩放
-      const fs = Math.max(8, Math.min(e.fontSize * (fh / Math.max(12, e.h)), fh * 0.9));
-      frag.textContent = e.text;
-      frag.style.cssText = tpos + "background:" + (e.bg || "transparent") + ";color:" + e.fg + ";font-family:" + e.fontFamily + ";font-weight:" + e.fontWeight + ";font-size:" + fs + "px;line-height:1.15;";
-    } else {
-      frag.style.cssText = tpos + "background:" + e.color + ";";
-    }
-    clutterLayer.appendChild(frag);
-    while (clutterLayer.children.length > 110) clutterLayer.firstElementChild.remove();
+    addFrag(e);
+    addParticles(e, 6);
     ballEl.classList.remove("pop"); void ballEl.offsetWidth; ballEl.classList.add("pop");
-    sfx("absorb");
+    sfx();
     updateHUD();
+  }
+}
+
+function addFrag(e) {
+  const clutterLayer = document.getElementById("clutter");
+  const d = doc();
+  const frag = d.createElement("div");
+  frag.className = "frag";
+  const fw = Math.max(10, Math.min(Math.max(e.w, e.h) / 1.4, S.r * 1.05));
+  const fh = Math.max(8, Math.min(fw * (e.h / Math.max(e.w, 1)), S.r * 0.75));
+  const a = Math.random() * Math.PI * 2;
+  const dist = S.r * (0.82 + Math.random() * 0.3) + fh / 2;
+  const tpos = "width:" + fw + "px;height:" + fh + "px;left:" + (50 + Math.cos(a) * dist / (S.r * 2) * 100) + "%;top:" + (50 + Math.sin(a) * dist / (S.r * 2) * 100) + "%;transform:translate(-50%,-50%) rotate(" + (a + Math.PI / 2) + "rad);";
+  if (e.isImg && e.el.complete && e.el.naturalWidth) {
+    const c = frag.appendChild(d.createElement("canvas"));
+    const maxW = 56, maxH = 56;
+    const iw = e.el.naturalWidth, ih = e.el.naturalHeight;
+    const sc = Math.min(1, maxW / iw, maxH / ih);
+    c.width = Math.max(8, iw * sc); c.height = Math.max(8, ih * sc);
+    try { c.getContext("2d").drawImage(e.el, 0, 0, c.width, c.height); } catch (ex) { frag.style.background = e.color; }
+    frag.style.cssText = tpos;
+  } else if (e.text) {
+    const fs = Math.max(8, Math.min(e.fontSize * (fh / Math.max(12, e.h)), fh * 0.9));
+    frag.textContent = e.text;
+    frag.style.cssText = tpos + "background:" + (e.bg || "transparent") + ";color:" + e.fg + ";font-family:" + e.fontFamily + ";font-weight:" + e.fontWeight + ";font-size:" + fs + "px;line-height:1.15;";
+  } else {
+    frag.style.cssText = tpos + "background:" + e.color + ";";
+  }
+  clutterLayer.appendChild(frag);
+  while (clutterLayer.children.length > MAX_FRAGS) clutterLayer.firstElementChild.remove();
+}
+
+// ---------- 像素粒子（DOM 元素，挂进 #world 随页面滚动） ----------
+function addParticles(e, n) {
+  for (let i = 0; i < n; i++) {
+    if (S.clutter.length >= MAX_PARTICLES) break;
+    const px = e.x + Math.random() * e.w, py = e.y + Math.random() * e.h;
+    const cs = (e.text && Math.random() < 0.5) ? e.fg : e.color;
+    if (!e.text && cs === "#fff") continue;
+    const p = document.createElement("div");
+    p.className = "pix";
+    p.style.cssText = "position:absolute;left:" + px + "px;top:" + py + "px;width:4px;height:4px;background:" + cs + ";z-index:9999;pointer-events:none;";
+    world.appendChild(p);
+    S.clutter.push({ el: p, x: px, y: py, vx: (Math.random() - 0.5) * 2, vy: -Math.random() * 2.2, life: 0.4 + Math.random() * 0.6 });
+  }
+}
+
+function stepParticles(dt) {
+  for (let i = S.clutter.length - 1; i >= 0; i--) {
+    const p = S.clutter[i];
+    p.life -= dt;
+    if (p.life <= 0) { if (p.el.parentNode) p.el.remove(); S.clutter.splice(i, 1); continue; }
+    p.x += p.vx; p.y += p.vy; p.vy += 0.6 * dt * 60;
+    p.el.style.left = p.x + "px"; p.el.style.top = p.y + "px";
   }
 }
 
@@ -255,15 +368,14 @@ function updateHUD() {
   const cover = Math.min(100, Math.round((S.collectedArea / S.totalArea) * 100));
   $("cnt").textContent = S.collected;
   $("cov").textContent = cover + "%";
-  $("diam").textContent = Math.round(S.r * 2);
   $("hudFill").style.width = cover + "%";
-  if (S.started && !S.over && cover >= WIN_COVER * 100) finish();
+  if (S.started && !S.over && cover >= ERASER_WIN * 100) finish();
 }
 
 function finish() {
   S.over = true;
   const secs = Math.round((performance.now() - S.t0) / 1000);
-  doneStats.textContent = `${secs} 秒卷完全站 · ${S.collected}/${S.total} 个元素 · 最终球径 ${Math.round(S.r * 2)}px`;
+  doneStats.textContent = `${secs} 秒擦完全站 · ${S.collected}/${S.total} 个元素 · 球还是那么大，只负责擦`;
   doneScreen.hidden = false;
   try {
     const a = ac(), t = a.currentTime;
@@ -283,62 +395,42 @@ function loop(t) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
   lastT = t;
-  // 摇杆只在游戏进行中显示（开局前 / 结算后隐藏）
   if (joyEl) {
     const show = S.started && !S.over;
     if (show !== joyShown) { joyEl.style.display = show ? "block" : "none"; joyShown = show; }
   }
-  if (!S.started) { draw(); return; }
+  if (!S.started) return;
 
-  // 滚动输入
   let ax = 0, ay = 0;
   if (S.keys["arrowleft"] || S.keys["a"]) ax -= 1;
   if (S.keys["arrowright"] || S.keys["d"]) ax += 1;
   if (S.keys["arrowup"] || S.keys["w"]) ay -= 1;
   if (S.keys["arrowdown"] || S.keys["s"]) ay += 1;
-  if (joy.id !== -1 && !S.over) { ax += joy.dx; ay += joy.dy; }  // 摇杆与键盘合并
+  if (joy.id !== -1 && !S.over) { ax += joy.dx; ay += joy.dy; }
   const acc = 0.55;
   S.vx += ax * acc; S.vy += ay * acc;
-  const sp = Math.hypot(S.vx, S.vy), maxSp = 7 + Math.min(6, S.r / 40);
+  const sp = Math.hypot(S.vx, S.vy), maxSp = 8;  // 球径固定，速度也固定
   if (sp > maxSp) { S.vx *= maxSp / sp; S.vy *= maxSp / sp; }
   S.vx *= 0.985; S.vy *= 0.985;
   S.bx = Math.max(S.r, Math.min(S.worldW - S.r, S.bx + S.vx));
   S.by = Math.max(S.r, Math.min(S.worldH - S.r, S.by + S.vy));
   const dist = Math.hypot(S.vx, S.vy);
-  S.angle += dist / Math.max(8, S.r);
+  S.angle += dist / Math.max(8, S.r);  // 转圈照旧
   const spinLayer = document.getElementById("spin");
   if (spinLayer) spinLayer.style.transform = "rotate(" + S.angle + "rad)";
 
   tryAbsorb();
 
-  // 相机跟随
   const viewH = innerHeight;
-  const tx = Math.max(0, Math.min(S.worldW - viewH, 0)); // 页宽=视宽，只纵向跟
   const ty = Math.max(0, Math.min(S.worldH - viewH, S.by - viewH / 2));
-  S.camX = tx; S.camY += (ty - S.camY) * 0.14;
+  S.camY += (ty - S.camY) * 0.14;
   world.style.transform = `translateY(${-S.camY}px)`;
   ballEl.style.left = S.bx - S.r + "px";
   ballEl.style.top = S.by - S.r + "px";
   ballEl.style.width = S.r * 2 + "px";
   ballEl.style.height = S.r * 2 + "px";
 
-  draw();
-}
-
-function draw() {
-  ctx.clearRect(0, 0, fx.width, fx.height);
-  ctx.save();
-  // 粘上的碎片（跟着球转；clawd 球体由 DOM #ball 渲染）
-  ctx.save();
-  ctx.translate(S.bx, S.by);
-  ctx.rotate(S.angle);
-  for (const c of S.clutter) {
-    ctx.save();
-    ctx.translate(c.dx, c.dy); ctx.rotate(c.rot);
-    ctx.fillStyle = c.color; ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
-    ctx.restore();
-  }
-  ctx.restore();
+  stepParticles(dt);
 }
 
 // ---------- 输入 ----------
@@ -349,10 +441,9 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("keyup", (e) => { S.keys[e.key.toLowerCase()] = false; });
 addEventListener("resize", () => { fx.width = S.worldW = innerWidth; });
-// 全局防 iOS 橡皮筋 / 页面滚动（页面本身 overflow:hidden，这里兜底）
 addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
 
-// ---------- 虚拟摇杆（仅触屏设备，桌面端不创建、不参与输入） ----------
+// ---------- 虚拟摇杆（仅触屏设备） ----------
 const joy = { id: -1, dx: 0, dy: 0 };
 let joyShown = false;
 const joyEl = matchMedia("(pointer: coarse)").matches ? document.createElement("div") : null;
@@ -368,9 +459,8 @@ if (joyEl) {
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2;
     let vx = (e.clientX - cx) / R, vy = (e.clientY - cy) / R;
     const len = Math.hypot(vx, vy);
-    if (len > 1) { vx /= len; vy /= len; }  // 方向向量截断到 1，力度随偏移 0~1
+    if (len > 1) { vx /= len; vy /= len; }
     joy.dx = vx; joy.dy = vy;
-    // 圆头跟随手指，可拖出底圈（不夹住）
     knob.style.transform = "translate(" + (e.clientX - cx) + "px," + (e.clientY - cy) + "px)";
   };
   const joyEnd = (e) => {
@@ -379,7 +469,7 @@ if (joyEl) {
     knob.style.transform = "translate(0,0)";
   };
   joyEl.addEventListener("pointerdown", (e) => {
-    if (joy.id !== -1) return;  // 多指：只跟踪起始的那根手指
+    if (joy.id !== -1) return;
     e.preventDefault();
     joy.id = e.pointerId;
     joyEl.setPointerCapture(e.pointerId);
@@ -394,22 +484,32 @@ if (joyEl) {
 // ---------- 开局 ----------
 function startGame() {
   if (startBtn.disabled) return;
-  if (innerWidth < 700) S.bx = innerWidth / 2;  // 窄屏：球出生在屏幕中央，避免偏出屏幕
+  if (innerWidth < 700) S.bx = innerWidth / 2;
   S.started = true; S.t0 = performance.now();
   try { ac().resume(); } catch (e) {}
   intro.style.display = "none";
 }
 startBtn.addEventListener("click", startGame);
+$("urlBtn").addEventListener("click", () => {
+  let u = $("urlInput").value.trim();
+  if (!u) return;
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  location.href = location.pathname + "?url=" + encodeURIComponent(u);
+});
+$("urlInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); $("urlBtn").click(); }
+});
 againBtn.addEventListener("click", () => {
   doneScreen.hidden = true;
-  S.over = false; S.collected = 0; S.collectedArea = 0; S.r = 26;
+  S.over = false; S.collected = 0; S.collectedArea = 0; S.totalArea = 1; S.r = 26;
   const cl = document.getElementById("clutter");
   if (cl) cl.innerHTML = "";
   const sp = document.getElementById("spin");
   if (sp) sp.style.transform = "rotate(0rad)";
+  S.clutter = [];
   loading.classList.remove("done");
   inited = false;   // 重玩：允许 initTarget 对新 iframe 重新构建元素与注入样式
-  target.src = "/?r=" + Date.now();
+  target.src = targetSrc() + (targetSrc().includes("?") ? "&" : "?") + "r=" + Date.now();
 });
 
 // iframe 就绪
@@ -420,7 +520,7 @@ function initTarget() {
   if (!d || !d.body || d.readyState !== "complete" || d.location.href === "about:blank") return false;
   inited = true;
   // 关键：.dm-done 的样式定义在游戏页（外层文档），不会穿透进 iframe——
-  // 不注入的话，被吸收的元素加了 class 但页面上的字根本不会消失。
+  // 不注入的话，被擦除的元素加了 class 但页面上的字根本不会消失。
   // 同源 iframe，直接把样式标签打进目标文档。
   if (!d.getElementById("dm-style")) {
     const st = d.createElement("style");
@@ -442,7 +542,7 @@ function initTarget() {
   $("tot").textContent = S.total;
   updateHUD();
   loading.classList.add("done");
-  if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 卷"; }
+  if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 擦"; }
   return true;
 }
 target.addEventListener("load", () => setTimeout(initTarget, 300));

@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>摧毁本站 · bt's Arcade</title>
 <meta name="description" content="把 bt 的博客首页当靶场：像素小人背着喷气背包飞上真实页面，一格一格把网站炸碎，8 种武器。">
-<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 <div id="wrap">
   <div id="stage">
     <div id="world">
-      <iframe id="target" src="/" title="目标网站"></iframe>
+      <iframe id="target" title="目标网站"></iframe>
       <div id="floor"></div>
     </div>
     <canvas id="fx"></canvas>
@@ -41,6 +41,10 @@
       <h1>💥 摧毁本站</h1>
       <p>clawd 从天而降，落在 bt's Blog 的<b>真实页面</b>上。带字的元素才是台阶和靶子——踩着文字往下走，把它们一格一格炸掉。纯破坏沙盒，没有通关。</p>
       <p class="keys">A/D 移动 · 空格 跳 · W/↑ 火箭推进（按住）· 鼠标瞄准 · 左键射击 · 滚轮/1-8 换枪 · M 静音</p>
+      <div class="urlrow">
+        <input id="urlInput" type="url" placeholder="输入任意网页地址…" autocomplete="off">
+        <button id="urlBtn" type="button">炸这个网页</button>
+      </div>
       <button id="startBtn" disabled>目标加载中…</button>
       <p class="fine">8 种武器：手枪 · 冲锋枪 · 霰弹枪 · 狙击枪 · 手雷 · 火箭筒 · 激光枪 · BFG。灵感来自 spritefusion 的 destroy 彩蛋与 MIT 开源的 website-breaker。炸的是自己家的站。</p>
     </div>
@@ -58,6 +62,6 @@
     </div>
   </div>
 </div>
-<script src="game.js?v=29"></script>
+<script src="game.js?v=30"></script>
 </body>
 </html>

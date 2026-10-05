@@ -23,6 +23,21 @@ const ctx = fx.getContext("2d");
 gun.style.top = "8px";   // 旧版每帧重写，这里一次到位（保持与旧视觉一致）
 const POPS_FONT = "700 13px " + getComputedStyle(document.body).fontFamily; // 飘字字体只取一次，避免每帧强制样式计算
 
+// 书签模式：?url=<绝对地址> → 页面经 /api/mirror/ 同源镜像（点 iframe 内链接也不会离开游戏）
+// 站内模式（默认）：直接嵌入站内页面，最快。
+function targetSrc() {
+  const p = new URLSearchParams(location.search);
+  const u = p.get("url");
+  if (u && /^https?:\/\//i.test(u)) {
+    try {
+      const b = btoa(unescape(encodeURIComponent(u))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      return "/api/mirror/" + b;
+    } catch (e) {}
+  }
+  return "/";
+}
+target.src = targetSrc();
+
 // ---------- 目标就绪（load 监听 + 轮询双保险，防竞态） ----------
 let targetInited = false;
 function initTarget() {
@@ -32,6 +47,13 @@ function initTarget() {
   if (d.location.href === "about:blank") return false;
   targetInited = true;
   d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
+  // 同源 iframe 才能把隐藏样式打进目标文档（game.js 是外层脚本，样式规则不会自动穿透）
+  if (!d.getElementById("dm-style")) {
+    const st = d.createElement("style");
+    st.id = "dm-style";
+    st.textContent = ".dm-done{visibility:hidden !important;}";
+    (d.head || d.documentElement).appendChild(st);
+  }
   S.docH = Math.max(600, d.documentElement.scrollHeight);
   target.style.height = S.docH + "px";
   S.worldH = S.docH + GROUND_H;
@@ -1028,6 +1050,17 @@ function startGame() {
   setWeapon(1);
 }
 startBtn.addEventListener("click", startGame);
+
+// 任意网页：intro 里的输入框 + 按钮
+$("urlBtn").addEventListener("click", () => {
+  let u = $("urlInput").value.trim();
+  if (!u) return;
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  location.href = location.pathname + "?url=" + encodeURIComponent(u);
+});
+$("urlInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); $("urlBtn").click(); }
+});
 
 // 武器栏 + 状态钩子
 buildWeaponBar();

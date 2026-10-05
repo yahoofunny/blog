@@ -207,6 +207,16 @@ html.has-touch #hint { display: none; }
 }
 #startBtn:disabled { background: #3a3a4a; color: #888; cursor: wait; }
 #startBtn:not(:disabled):hover, #againBtn:hover { transform: translate(-1px, -1px); }
+.urlrow { display: flex; gap: 8px; margin: 0 0 18px; }
+.urlrow input {
+  flex: 1; min-width: 0; font-family: var(--mono); font-size: 12px; color: #e8e8ee;
+  background: #0b0b10; border: 2px solid var(--line); padding: 10px 12px; outline: none;
+}
+.urlrow input:focus { border-color: var(--primary); }
+.urlrow button {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em; white-space: nowrap;
+  background: var(--red); color: #fff; border: 0; padding: 10px 14px; cursor: pointer;
+}
 #win .row { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
 #win .ghost {
   font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-decoration: none;
