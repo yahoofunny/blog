@@ -349,13 +349,19 @@ addEventListener("keyup", (e) => {
 addEventListener("mousemove", (e) => { S.aimX = e.clientX; S.aimY = e.clientY; });
 addEventListener("mousedown", (e) => {
   if (!S.started || S.over) return;
-  if (e.target.closest("#hud, #touch, #win")) return;
+  const t = e.target;
+  if (t && t.closest && t.closest("#hud, #touch, #win")) return;
   S.aimX = e.clientX; S.aimY = e.clientY;
   S.firing = true;
   if (!WEAPONS[S.weapon].auto) shoot();
 });
 addEventListener("mouseup", () => { S.firing = false; });
-addEventListener("contextmenu", (e) => { if (S.started && !e.target.closest("#hud, #win")) e.preventDefault(); });
+addEventListener("contextmenu", (e) => {
+  if (!S.started || S.over) return;
+  const t = e.target;
+  if (t && t.closest && t.closest("#hud, #win")) return;
+  e.preventDefault();
+});
 addEventListener("wheel", (e) => {
   if (!S.started || S.over) return;
   setWeapon(((S.weapon - 1 + (e.deltaY > 0 ? 1 : 2)) % 3) + 1);
