@@ -24,7 +24,7 @@ const WEAPONS = {
   2: { name: "冲锋枪", rate: 95,  speed: 19, auto: true,  color: "#7ee787", size: 4 },
   3: { name: "手雷",   rate: 650, speed: 11, auto: false, color: "#ff5c5c", size: 8, lob: true },
 };
-const WIN_RATIO = 0.6;
+const WIN_RATIO = 0.55;
 const S = {
   started: false, over: false,
   px: innerWidth / 2, py: 0, vx: 0, vy: 0, onGround: true, face: 1,
@@ -86,6 +86,8 @@ function isTarget(el) {
   if (!el || el.nodeType !== 1 || el.__destroyed) return false;
   if (SKIP_TAGS.has(el.tagName.toLowerCase())) return false;
   if (el.querySelector(BLOCK_SEL)) return false;           // 有结构子元素 → 是容器
+  // 不可见元素（如折叠抽屉里的内容）不参与命中
+  if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return false;
   const d = doc();
   const vw = d.documentElement.clientWidth, vh = d.documentElement.clientHeight;
   const r = el.getBoundingClientRect();
@@ -417,6 +419,9 @@ againBtn.addEventListener("click", () => {
 // iframe 就绪
 target.addEventListener("load", () => {
   setTimeout(() => {
+    const d = doc();
+    // 把折叠抽屉全部展开——整页铺开当靶场
+    if (d) d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
     enumerate();
     loading.classList.add("done");
     if (startBtn.disabled) {
