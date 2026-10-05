@@ -191,10 +191,23 @@ function drawEnd() { ctx.restore(); }
 // 完成后才开始游戏（平台碰撞依赖瓦片，必须等它建完——loading 挡住、开始按钮禁用，无破坏性变化）。
 const CHUNK_MS = 5, CHUNK_CHARS = 1500;
 let buildTargets = null, buildCursor = 0, buildTotal = 0, buildDone = 0;
+let candElSet = new Set();   // 本局候选元素集合：认领文字时跳过"别的靶子"身上的字，防重复认领
 function buildProgress() {
   return buildTargets
     ? Math.min(99, Math.round((buildDone / Math.max(1, buildTotal)) * 100))
     : 100;
+}
+
+// 直接子文本节点里的非空白字符数（不含子孙元素里的文字）。
+// 候选判定用：只有"自己身上"直接挂着文字的才是靶子——纯容器（文字全在子孙里）
+// 不是靶子，否则整块 header/侧栏会被当成一个靶子、打光瓦片就整块消失（背景不该被摧毁）。
+function ownChars(el) {
+  let n = 0;
+  for (const nd of el.childNodes) {
+    if (nd.nodeType !== 3) continue;
+    for (let i = 0; i < nd.data.length; i++) if (!/\s/.test(nd.data[i])) n++;
+  }
+  return n;
 }
 
 function buildTiles() {
@@ -218,14 +231,14 @@ function buildTiles() {
     const el = allEls[i];
     if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
     const isImg = el.tagName === "IMG";
-    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
-    if (!isImg && !text) continue;
-    let childCand = false;
-    for (const c of el.children) { if (candSet.has(c)) { childCand = true; break; } }
-    if (childCand) continue;
+    // 纯容器（文字全在子孙里）不入选：靶子只能是"自己身上"直接带文字的元素或图片。
+    // 否则断链容器（子元素里有 script/包装层）会把整棵子树的文字都认领成自己的瓦片，
+    // 打光后整块 header/侧栏一起消失——背景不该被摧毁。
+    if (!isImg && !ownChars(el)) continue;
     candSet.add(el);
   }
   buildTargets = [];
+  candElSet = candSet;
   for (const el of candSet) {
     if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
     const r = el.getBoundingClientRect();
@@ -233,7 +246,7 @@ function buildTiles() {
     if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
     const isImg = el.tagName === "IMG";
     const cs = d.defaultView.getComputedStyle(el);
-    buildTargets.push({ el, r, isImg, total: isImg ? 1 : Math.max(1, (el.textContent || "").replace(/\s/g, "").length), chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
+    buildTargets.push({ el, r, isImg, total: isImg ? 1 : Math.max(1, ownChars(el)), chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
   }
   buildCursor = 0; buildDone = 0;
   buildTotal = buildTargets.reduce((a, t) => a + t.total, 0);
@@ -291,6 +304,10 @@ function claimTarget(t) {
   const walker = d.createTreeWalker(t.el, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
+    let p = node.parentElement;
+    let inCand = false;
+    while (p && p !== t.el) { if (candElSet.has(p)) { inCand = true; break; } p = p.parentElement; }
+    if (inCand) continue;   // 这段文字属于另一个靶子，别重复认领
     const rg = d.createRange();
     rg.selectNodeContents(node);
     const rects = rg.getClientRects();
@@ -336,15 +353,12 @@ function buildFast(d) {
     const el = allEls[i];
     if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
     if (el.tagName === "IMG") { candSet.add(el); continue; }
-    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
-    if (!text) continue;
-    let childCand = false;
-    for (const c of el.children) { if (candSet.has(c)) { childCand = true; break; } }
-    if (childCand) continue;
+    if (!ownChars(el)) continue;
     candSet.add(el);
   }
   const targets = [];
   const elCs = new Map();   // 元素 → computedStyle 缓存（量取一次）
+  candElSet = candSet;
   for (const el of candSet) {
     if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
     const r = el.getBoundingClientRect();
@@ -355,13 +369,14 @@ function buildFast(d) {
     elCs.set(el, cs);
     targets.push({ el, r, isImg, chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
   }
-  // 文本节点 → 所属靶子元素
+  // 文本节点 → 所属靶子元素（只挂"最近候选就是自己父元素"的节点：
+  // 候选只含直接带文字的元素，纯容器已排除，不会再出现"离容器近被容器抢字"）
   const walker = d.createTreeWalker(d.body, NodeFilter.SHOW_TEXT);
   let node;
   const m = new Map();
   while ((node = walker.nextNode())) {
     let p = node.parentElement;
-    while (p) { if (candSet.has(p)) { m.set(node, p); break; } p = p.parentElement; }
+    while (p && p !== d.body) { if (candSet.has(p)) { if (p === node.parentElement) m.set(node, p); break; } p = p.parentElement; }
   }
   // 节点级批量测量：一个 Range 覆盖整段文本，getClientRects() 一次返回所有行 rect，
   // 行内字符按行宽占比均分。多行折行段落也走这里——逐字符 getBoundingClientRect
@@ -398,6 +413,7 @@ function buildFast(d) {
     }
   };
   for (const [nd, t] of m) {
+    if (candElSet.has(nd.parentElement) && nd.parentElement !== t.el) continue;   // 属于兄弟靶子，别重复认领
     if (nd.data.includes("\n")) { measureNode(nd, t); continue; }
     const rg = d.createRange();
     rg.selectNodeContents(nd);
