@@ -308,6 +308,7 @@ function chipTile(tile, hitX, hitY) {
       S.destroyedEls++;
     }
   }
+  updateProgress();
   return true;
 }
 
