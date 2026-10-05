@@ -287,9 +287,6 @@ function draw() {
     ctx.fillStyle = c.color; ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
     ctx.restore();
   }
-  // 球描边
-  ctx.beginPath(); ctx.arc(0, 0, S.r, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,210,62,.85)"; ctx.lineWidth = 3; ctx.stroke();
   ctx.restore();
 }
 
