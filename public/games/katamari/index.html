@@ -97,7 +97,7 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
     <div id="world">
       <iframe id="target" src="/" title="目标网站"></iframe>
       <canvas id="fx"></canvas>
-      <div id="ball"><div id="spin"><div id="clutter"></div><img id="ballImg" src="/clawd/clawd-idle.gif" alt=""></div></div>
+      <div id="ball"><div id="spin"><img id="ballImg" src="/clawd/clawd-idle.gif" alt=""><div id="clutter"></div></div></div>
     </div>
     <div id="loading"><span>目标网站加载中…</span></div>
   </div>
@@ -221,8 +221,8 @@ function tryAbsorb() {
     const d = doc();
     const frag = d.createElement("div");
     frag.className = "frag";
-    const fw = Math.max(8, Math.min(Math.max(e.w, e.h) / 1.6, S.r * 0.9));
-    const fh = Math.max(6, Math.min(fw * (e.h / Math.max(e.w, 1)), S.r * 0.7));
+    const fw = Math.max(10, Math.min(Math.max(e.w, e.h) / 1.4, S.r * 1.05));
+    const fh = Math.max(8, Math.min(fw * (e.h / Math.max(e.w, 1)), S.r * 0.75));
     const a = Math.random() * Math.PI * 2;
     const dist = S.r * (0.82 + Math.random() * 0.3) + fh / 2;
     const tpos = "width:" + fw + "px;height:" + fh + "px;left:" + (50 + Math.cos(a) * dist / (S.r * 2) * 100) + "%;top:" + (50 + Math.sin(a) * dist / (S.r * 2) * 100) + "%;transform:translate(-50%,-50%) rotate(" + (a + Math.PI / 2) + "rad);";
@@ -237,7 +237,7 @@ function tryAbsorb() {
       frag.style.cssText = tpos;
     } else if (e.text) {
       // 文字：原字体原颜色，字随碎片尺寸缩放
-      const fs = Math.max(7, Math.min(e.fontSize * (fh / Math.max(14, e.h)), fh * 0.8));
+      const fs = Math.max(8, Math.min(e.fontSize * (fh / Math.max(12, e.h)), fh * 0.9));
       frag.textContent = e.text;
       frag.style.cssText = tpos + "background:" + (e.bg || "transparent") + ";color:" + e.fg + ";font-family:" + e.fontFamily + ";font-weight:" + e.fontWeight + ";font-size:" + fs + "px;line-height:1.15;";
     } else {
@@ -408,6 +408,7 @@ againBtn.addEventListener("click", () => {
   const sp = document.getElementById("spin");
   if (sp) sp.style.transform = "rotate(0rad)";
   loading.classList.remove("done");
+  inited = false;   // 重玩：允许 initTarget 对新 iframe 重新构建元素与注入样式
   target.src = "/?r=" + Date.now();
 });
 
@@ -418,6 +419,15 @@ function initTarget() {
   const d = doc();
   if (!d || !d.body || d.readyState !== "complete" || d.location.href === "about:blank") return false;
   inited = true;
+  // 关键：.dm-done 的样式定义在游戏页（外层文档），不会穿透进 iframe——
+  // 不注入的话，被吸收的元素加了 class 但页面上的字根本不会消失。
+  // 同源 iframe，直接把样式标签打进目标文档。
+  if (!d.getElementById("dm-style")) {
+    const st = d.createElement("style");
+    st.id = "dm-style";
+    st.textContent = ".dm-done{visibility:hidden !important;}";
+    (d.head || d.documentElement).appendChild(st);
+  }
   d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
   S.docH = Math.max(600, d.documentElement.scrollHeight);
   target.style.height = S.docH + "px";
