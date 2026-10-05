@@ -449,7 +449,7 @@ function loop(t) {
   const L = S.keys["a"] || S.keys["arrowleft"], R = S.keys["d"] || S.keys["arrowright"];
   S.vx += ((R ? 1 : 0) - (L ? 1 : 0)) * 0.9;
   S.vx *= 0.85;
-  const jet = S.keys["w"] || S.keys[" "] || S.keys["arrowup"];
+  const jet = S.keys["w"] || S.keys["arrowup"];
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
   // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
   if (!jet && S.onGround) S.vy = 0;
@@ -697,6 +697,7 @@ addEventListener("keydown", (e) => {
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
   S.keys[k] = true;
   if (!S.started || S.over) return;
+  if (k === " " && !e.repeat && S.onGround) { S.vy = -9; S.onGround = false; sfx("hit"); }
   if ((k === "s" || k === "arrowdown" || e.code === "Numpad2") && !e.repeat) descendOneLayer();
   const num = parseInt(k, 10);
   if (num >= 1 && num <= WEAPONS.length) setWeapon(num);
