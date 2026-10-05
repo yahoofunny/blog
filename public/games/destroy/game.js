@@ -264,19 +264,37 @@ function claimTarget(t) {
     S.totalEls++;
     return;
   }
-  // 逐字符矩形（Range API，精确含换行）——分帧路径里按 5ms 预算切片执行
+  // 节点级批量测量（getClientRects 一次拿所有行 rect，行内按行宽均分）——分帧路径里
+  // 也绝不逐字符 getBoundingClientRect，否则每帧 5ms 预算根本不够切一个长段落
   const walker = d.createTreeWalker(t.el, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
-    const len = node.data.length;
-    for (let i = 0; i < len; i++) {
-      const ch = node.data[i];
-      if (/\s/.test(ch)) continue;
-      const rg = d.createRange();
-      rg.setStart(node, i); rg.setEnd(node, i + 1);
-      const rr = rg.getBoundingClientRect();
-      if (rr.width <= 0 || rr.height <= 0) continue;
-      t.chars.push({ ch, x: rr.x, y: rr.y, w: rr.width, h: rr.height });
+    const rg = d.createRange();
+    rg.selectNodeContents(node);
+    const rects = rg.getClientRects();
+    if (!rects || !rects.length) continue;
+    const lines = [];
+    for (let i = 0; i < rects.length; i++) {
+      const r = rects[i];
+      if (r.width > 0 && r.height > 0) lines.push({ x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+    if (!lines.length) continue;
+    const chars = [];
+    for (let i = 0; i < node.data.length; i++) { const ch = node.data[i]; if (!/\s/.test(ch)) chars.push(ch); }
+    const n = chars.length;
+    if (!n) continue;
+    const totalW = lines.reduce((a, l) => a + l.w, 0);
+    let ci = 0;
+    for (let li = 0; li < lines.length && ci < n; li++) {
+      const line = lines[li];
+      const cnt = li === lines.length - 1 ? n - ci : Math.max(1, Math.round(n * line.w / totalW));
+      const cw = line.w / cnt;
+      for (let j = 0; j < cnt && ci < n; j++, ci++) {
+        t.chars.push({ ch: chars[ci], x: line.x + j * cw, y: line.y, w: cw, h: line.h });
+      }
+    }
+    for (; ci < n; ci++) {
+      t.chars.push({ ch: chars[ci], x: lines[lines.length - 1].x + lines[lines.length - 1].w, y: lines[lines.length - 1].y, w: 4, h: lines[lines.length - 1].h });
     }
   }
   for (const cr of t.chars) {
@@ -323,19 +341,42 @@ function buildFast(d) {
     let p = node.parentElement;
     while (p) { if (candSet.has(p)) { m.set(node, p); break; } p = p.parentElement; }
   }
-  const perChar = (nd, t) => {   // 多行/含换行节点：保持逐字符精确测量
-    const len = nd.data.length;
-    for (let i = 0; i < len; i++) {
-      const ch = nd.data[i];
-      if (/\s/.test(ch)) continue;
-      const rg = d.createRange();
-      rg.setStart(nd, i); rg.setEnd(nd, i + 1);
-      const rr = rg.getBoundingClientRect();
-      if (rr.width > 0 && rr.height > 0) t.chars.push({ ch, x: rr.x, y: rr.y, w: rr.width, h: rr.height });
+  // 节点级批量测量：一个 Range 覆盖整段文本，getClientRects() 一次返回所有行 rect，
+  // 行内字符按行宽占比均分。多行折行段落也走这里——逐字符 getBoundingClientRect
+  // 才是移动端首帧卡死的主凶（整页几千次同步 reflow），行 rect 本身就是浏览器
+  // 真实排版结果，均分误差 ≤ 一个字宽，对 28px 瓦片网格无感。
+  const measureNode = (nd, t) => {
+    const rg = d.createRange();
+    rg.selectNodeContents(nd);
+    const rects = rg.getClientRects();
+    if (!rects || !rects.length) return;
+    let lines = [];
+    for (let i = 0; i < rects.length; i++) {
+      const r = rects[i];
+      if (r.width > 0 && r.height > 0) lines.push({ x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+    if (!lines.length) return;
+    const chars = [];
+    for (let i = 0; i < nd.data.length; i++) { const ch = nd.data[i]; if (!/\s/.test(ch)) chars.push(ch); }
+    const n = chars.length;
+    if (!n) return;
+    const totalW = lines.reduce((a, l) => a + l.w, 0);
+    let ci = 0;
+    for (let li = 0; li < lines.length && ci < n; li++) {
+      const line = lines[li];
+      // 该行应得字符数按行宽占比分配，最后一行拿走剩余
+      const cnt = li === lines.length - 1 ? n - ci : Math.max(1, Math.round(n * line.w / totalW));
+      const cw = line.w / cnt;
+      for (let j = 0; j < cnt && ci < n; j++, ci++) {
+        t.chars.push({ ch: chars[ci], x: line.x + j * cw, y: line.y, w: cw, h: line.h });
+      }
+    }
+    for (; ci < n; ci++) {  // 兜底：行宽分配有余量的字符挂到末行尾
+      t.chars.push({ ch: chars[ci], x: lines[lines.length - 1].x + lines[lines.length - 1].w, y: lines[lines.length - 1].y, w: 4, h: lines[lines.length - 1].h });
     }
   };
   for (const [nd, t] of m) {
-    if (nd.data.includes("\n")) { perChar(nd, t); continue; }
+    if (nd.data.includes("\n")) { measureNode(nd, t); continue; }
     const rg = d.createRange();
     rg.selectNodeContents(nd);
     const rr = rg.getBoundingClientRect();
@@ -344,7 +385,7 @@ function buildFast(d) {
     const cs = elCs.get(t.el);
     let lh = parseFloat(cs.lineHeight) || fsz * 1.2;
     if (cs.lineHeight && !/[a-z%]/i.test(cs.lineHeight)) lh *= fsz;   // 无单位行高（如 1.5）= 字号倍数
-    if (rr.height > lh * 1.4) { perChar(nd, t); continue; }   // 折行的多行段落：退回逐字符
+    if (rr.height > lh * 1.4) { measureNode(nd, t); continue; }      // 折行的多行段落：节点级批量测量
     const chars = [];
     for (let i = 0; i < nd.data.length; i++) { const ch = nd.data[i]; if (!/\s/.test(ch)) chars.push(ch); }
     const n = chars.length;
