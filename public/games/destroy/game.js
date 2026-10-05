@@ -610,4 +610,9 @@ target.addEventListener("load", () => {
 buildWeaponBar();
 setWeapon(1);
 requestAnimationFrame(loop);
+
+// 调试/状态钩子（控制台可用）
+window.__S = S;
+window.__hitTest = hitTest;
+window.__destroyEl = null;
 })();
