@@ -20,6 +20,8 @@ const wrap = $("wrap"), stage = $("stage"), world = $("world"), target = $("targ
       intro = $("intro"), startBtn = $("startBtn"), touchBox = $("touch");
 const wslots = () => [...document.querySelectorAll(".wslot")];
 const ctx = fx.getContext("2d");
+gun.style.top = "8px";   // 旧版每帧重写，这里一次到位（保持与旧视觉一致）
+const POPS_FONT = "700 13px " + getComputedStyle(document.body).fontFamily; // 飘字字体只取一次，避免每帧强制样式计算
 
 // ---------- 目标就绪（load 监听 + 轮询双保险，防竞态） ----------
 let targetInited = false;
@@ -34,18 +36,14 @@ function initTarget() {
   target.style.height = S.docH + "px";
   S.worldH = S.docH + GROUND_H;
   world.style.height = S.worldH + "px";
-  fx.style.top = -SKY + "px";
-  fx.height = S.worldH + SKY;
   floorEl.style.top = (S.docH + 40) + "px";
-  buildTiles();
-  fx.width = S.worldW = innerWidth;
+  sizeFx();
+  buildTiles();            // 异步分帧构建（"拆解中…"），完成时才隐藏 loading、启用开始按钮
   S.camY = -SKY;
   S.px = innerWidth / 2;
   S.py = -SKY + 80; S.vy = 0; S.onGround = false;
   player.style.left = S.px - 14 + "px";
-  player.style.top = S.py - HH + "px";
-  loading.classList.add("done");
-  if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 炸"; }
+  player.style.top = S.py - HH - S.camY + "px";   // player 已移入 #stage，屏幕坐标 = 世界坐标 - camY
   return true;
 }
 target.addEventListener("load", () => setTimeout(initTarget, 300));
@@ -55,7 +53,8 @@ const readyPoll = setInterval(() => { if (initTarget()) clearInterval(readyPoll)
 const CELL = 28;
 const GROUND_H = 96;
 const SKY = 600;
-const MAX_PARTS = 650;
+const isCoarse = matchMedia("(pointer: coarse)").matches;  // 触屏判断：粒子预算、DPR 上限都靠它
+let MAX_PARTS = isCoarse ? 250 : 650;                       // 触屏收紧粒子上限，桌面保持 650
 const HW = 13, HH = 20;       // clawd 碰撞半宽/半高
 
 // ---------- 武器（像素枪型在 gunSVG 里定义） ----------
@@ -76,12 +75,13 @@ const S = {
   px: innerWidth / 2, py: -SKY + 80, vx: 0, vy: 0, onGround: false, face: 1,
   camY: -SKY,
   aimX: innerWidth * 0.6, aimScreenY: 200, aimY: 200,
-  weapon: 0, lastShot: 0, beamAcc: 0, firing: false, descendTarget: null,
+  weapon: 0, lastShot: 0, beamAcc: 0, firing: false, touchFire: false, descendTarget: null,
   bullets: [], parts: [], pops: [], beams: [],
   worldW: innerWidth, worldH: 1000, docH: 600,
   totalTiles: 0, destroyedTiles: 0, totalEls: 0, destroyedEls: 0,
   shake: 0, muted: false, t0: 0, shots: 0,
   keys: {},
+  stick: { on: false, x: 0, y: 0 },   // 虚拟摇杆归一化向量，与键盘合并
 };
 
 // ---------- 音效 ----------
@@ -144,92 +144,222 @@ function solidAt(wx, wy) {
   return !!(t && !t.destroyed);
 }
 
+function sizeFx() {
+  // 效果画布只盖"视口"，不覆盖整个世界高度（世界高 = 整页文档 + 600，
+  // 移动端会是大几万像素高的画布，每帧 clear 与合成都会爆显存带宽）。
+  // 相机偏移在绘制时以 translate 抵消：世界坐标 = 屏幕坐标 + (S.camY - SKY)。
+  const dpr = Math.min(devicePixelRatio || 1, isCoarse ? 1.5 : 2);   // 移动端 DPR 上限 1.5，桌面 2
+  const W = innerWidth, H = innerHeight;
+  S.dpr = dpr; S.vw = W; S.vh = H;
+  fx.style.width = W + "px"; fx.style.height = H + "px";
+  fx.width = Math.round(W * dpr); fx.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // 之后所有绘制坐标都是 CSS 像素（屏幕系）
+  S.worldW = W;                             // 世界宽度 = 视口宽度（原逻辑）
+}
+
+function drawBegin() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);           // 清屏用物理像素，一步清零
+  ctx.clearRect(0, 0, fx.width, fx.height);
+  ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);  // 恢复 DPR 变换
+}
+function drawEnd() { ctx.restore(); }
+
+// ---------- 瓦片构建（分帧） ----------
+// 每帧限时 ~5ms / 每段限字数：瓦片构建绝不阻塞首帧。期间 loading 显示"拆解中 x%"，
+// 完成后才开始游戏（平台碰撞依赖瓦片，必须等它建完——loading 挡住、开始按钮禁用，无破坏性变化）。
+const CHUNK_MS = 5, CHUNK_CHARS = 1500;
+let buildTargets = null, buildCursor = 0, buildTotal = 0, buildDone = 0;
+function buildProgress() {
+  return buildTargets
+    ? Math.min(99, Math.round((buildDone / Math.max(1, buildTotal)) * 100))
+    : 100;
+}
+
 function buildTiles() {
-  try {
-    const d = doc();
-    grid.clear(); elTiles.clear(); holes = [];
-    S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
-    if (!d || !d.body) return;
-    const cols = Math.ceil(S.worldW / CELL), rows = Math.ceil(S.docH / CELL);
-    // 叶子靶子：自底向上判定——孩子已是靶子的元素视为容器（不算靶子）。
-    // 这样"包着多个 span 的外层 div"不会变成隐形平台，clawd 只能站在真正的文字/图片上。
-    const allEls = [...d.body.querySelectorAll("*")];
-    const candSet = new Set();
-    for (let i = allEls.length - 1; i >= 0; i--) {
-      const el = allEls[i];
-      if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
-      const isImg = el.tagName === "IMG";
-      const text = (el.textContent || "").replace(/\s+/g, " ").trim();
-      if (!isImg && !text) continue;
-      let childCand = false;
-      for (const c of el.children) { if (candSet.has(c)) { childCand = true; break; } }
-      if (childCand) continue;
-      candSet.add(el);
+  // 快速路径（首选）：页面规模不大时，单行文本节点用"整段一个 Range"量一次再均分
+  // （本任务指定的按行/词批量测量，无换行的标题/链接/导航几乎全是单行节点，Range
+  // 调用量从每字符一次降到每节点一次）；多行段落与含 \n 的节点保持逐字符精确测量。
+  // 语义不变：非空白字符仍是独立粒子，占据同一批 28px 格子。
+  // 分帧路径（兜底）：大页面逐目标元素推进，每帧 5ms 预算 + rAF 续跑，绝不卡首帧。
+  const d = doc();
+  grid.clear(); elTiles.clear(); holes = [];
+  S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
+  if (!d || !d.body) { buildTargets = null; loading.classList.add("done"); return; }
+  S.cols = Math.ceil(S.worldW / CELL); S.rows = Math.ceil(S.docH / CELL);
+  if (S.docH < 8000 && S.worldW <= 1500) {
+    try { if (buildFast(d)) { buildFinish(); return; } } catch (e) { /* 快路径失败 → 回退分帧 */ }
+  }
+  // 分帧路径：先按元素逐字符推进（字符是主要工作量），游标每帧必前进，不会死等
+  const allEls = [...d.body.querySelectorAll("*")];
+  const candSet = new Set();
+  for (let i = allEls.length - 1; i >= 0; i--) {
+    const el = allEls[i];
+    if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
+    const isImg = el.tagName === "IMG";
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (!isImg && !text) continue;
+    let childCand = false;
+    for (const c of el.children) { if (candSet.has(c)) { childCand = true; break; } }
+    if (childCand) continue;
+    candSet.add(el);
+  }
+  buildTargets = [];
+  for (const el of candSet) {
+    if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) continue;
+    if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
+    const isImg = el.tagName === "IMG";
+    const cs = d.defaultView.getComputedStyle(el);
+    buildTargets.push({ el, r, isImg, total: isImg ? 1 : Math.max(1, (el.textContent || "").replace(/\s/g, "").length), chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
+  }
+  buildCursor = 0; buildDone = 0;
+  buildTotal = buildTargets.reduce((a, t) => a + t.total, 0);
+  loading.classList.remove("done");
+  loading.firstElementChild.textContent = "拆解中 0%";
+  buildStep();   // 立即处理一小段，剩余由 buildStep 自驱 rAF 续跑
+}
+
+function buildStep() {
+  if (!buildTargets) return;
+  const t0 = performance.now();
+  let chars = 0;
+  while (buildCursor < buildTargets.length && performance.now() - t0 < CHUNK_MS) {
+    const t = buildTargets[buildCursor];
+    if (!t.isImg) chars += t.total;
+    claimTarget(t);
+    buildDone += t.total;
+    buildCursor++;
+    if (chars >= CHUNK_CHARS) break;
+  }
+  if (buildCursor >= buildTargets.length) buildFinish();
+  else {
+    loading.firstElementChild.textContent = "拆解中 " + buildProgress() + "%";
+    requestAnimationFrame(buildStep);
+  }
+}
+
+function claimTarget(t) {
+  const d = doc();
+  const claimCell = (cc, rr, data) => {
+    const k = cc + "," + rr;
+    let tile = grid.get(k);
+    if (!tile) {
+      tile = { el: data.el, fg: data.fg, hole: data.hole, isImg: data.isImg, destroyed: false, key: k, chars: [] };
+      grid.set(k, tile);
+      S.totalTiles++;
     }
-    const targets = [];
-    for (const el of candSet) {
-      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
-      const r = el.getBoundingClientRect();
-      if (r.width < 8 || r.height < 8) continue;
-      if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
-      const isImg = el.tagName === "IMG";
-      const text = (el.textContent || "").replace(/\s+/g, " ").trim();
-      targets.push({ el, r, isImg, text, font: `${d.defaultView.getComputedStyle(el).fontWeight} ${d.defaultView.getComputedStyle(el).fontSize} ${d.defaultView.getComputedStyle(el).fontFamily}`, fg: d.defaultView.getComputedStyle(el).color, hole: effBg(d, el.parentElement) });
+    if (data.ch) tile.chars.push(data.ch);
+    let set = elTiles.get(data.el);
+    if (!set) { set = new Set(); elTiles.set(data.el, set); }
+    set.add(k);
+  };
+  if (t.isImg) {
+    const rect = t.r;
+    const c0 = Math.max(0, Math.floor(rect.left / CELL)), c1 = Math.min(S.cols - 1, Math.floor((rect.left + rect.width - 1) / CELL));
+    const r0 = Math.max(0, Math.floor(rect.top / CELL)), r1 = Math.min(S.rows - 1, Math.floor((rect.top + rect.height - 1) / CELL));
+    for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
+      claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, isImg: true });
     }
-    // 认领格子：文字元素用 Range API 逐字符测量真实位置，
-    // 只有字符实际占据的格子才算瓦片（空白处是空气，不会悬浮）。
-    const claimCell = (cc, rr, data) => {
-      if (cc < 0 || cc >= cols || rr < 0 || rr >= rows) return;
-      const k = cc + "," + rr;
-      let t = grid.get(k);
-      if (!t) {
-        t = { el: data.el, fg: data.fg, hole: data.hole, isImg: data.isImg, destroyed: false, key: k, chars: [] };
-        grid.set(k, t);
-        S.totalTiles++;
-      }
-      if (data.ch) t.chars.push(data.ch);
-      let set = elTiles.get(data.el);
-      if (!set) { set = new Set(); elTiles.set(data.el, set); }
-      set.add(k);
-    };
-    for (const t of targets) {
-      if (t.isImg) {
-        const rect = t.r;
-        const c0 = Math.max(0, Math.floor(rect.left / CELL)), c1 = Math.min(cols - 1, Math.floor((rect.left + rect.width - 1) / CELL));
-        const r0 = Math.max(0, Math.floor(rect.top / CELL)), r1 = Math.min(rows - 1, Math.floor((rect.top + rect.height - 1) / CELL));
-        for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
-          claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, isImg: true });
-        }
-        S.totalEls++;
-        continue;
-      }
-      // 逐字符矩形（Range API，精确含换行）
-      const walker = d.createTreeWalker(t.el, NodeFilter.SHOW_TEXT);
-      let node;
-      const ranges = [];
-      while ((node = walker.nextNode())) {
-        const len = node.data.length;
-        for (let i = 0; i < len; i++) {
-          const ch = node.data[i];
-          if (/\s/.test(ch)) continue;
-          const rg = d.createRange();
-          rg.setStart(node, i); rg.setEnd(node, i + 1);
-          const rr = rg.getBoundingClientRect();
-          if (rr.width <= 0 || rr.height <= 0) continue;
-          ranges.push({ ch, x: rr.x, y: rr.y, w: rr.width, h: rr.height });
-        }
-      }
-      if (!ranges.length) continue;
-      for (const cr of ranges) {
-        const c0 = Math.max(0, Math.floor(cr.x / CELL)), c1 = Math.min(cols - 1, Math.floor((cr.x + cr.w - 1) / CELL));
-        const r0 = Math.max(0, Math.floor(cr.y / CELL)), r1 = Math.min(rows - 1, Math.floor((cr.y + cr.h - 1) / CELL));
-        for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
-          claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, ch: { ch: cr.ch, x: cr.x, y: cr.y, w: cr.w, h: cr.h } });
-        }
-      }
-      S.totalEls++;
+    S.totalEls++;
+    return;
+  }
+  // 逐字符矩形（Range API，精确含换行）——分帧路径里按 5ms 预算切片执行
+  const walker = d.createTreeWalker(t.el, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const len = node.data.length;
+    for (let i = 0; i < len; i++) {
+      const ch = node.data[i];
+      if (/\s/.test(ch)) continue;
+      const rg = d.createRange();
+      rg.setStart(node, i); rg.setEnd(node, i + 1);
+      const rr = rg.getBoundingClientRect();
+      if (rr.width <= 0 || rr.height <= 0) continue;
+      t.chars.push({ ch, x: rr.x, y: rr.y, w: rr.width, h: rr.height });
     }
-  } catch (e) { window.__buildErr = e.message; }
+  }
+  for (const cr of t.chars) {
+    const c0 = Math.max(0, Math.floor(cr.x / CELL)), c1 = Math.min(S.cols - 1, Math.floor((cr.x + cr.w - 1) / CELL));
+    const r0 = Math.max(0, Math.floor(cr.y / CELL)), r1 = Math.min(S.rows - 1, Math.floor((cr.y + cr.h - 1) / CELL));
+    for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
+      claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, ch: cr });
+    }
+  }
+  if (t.chars.length) S.totalEls++;
+}
+
+function buildFast(d) {
+  const allEls = [...d.body.querySelectorAll("*")];
+  const candSet = new Set();
+  for (let i = allEls.length - 1; i >= 0; i--) {
+    const el = allEls[i];
+    if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
+    if (el.tagName === "IMG") { candSet.add(el); continue; }
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) continue;
+    let childCand = false;
+    for (const c of el.children) { if (candSet.has(c)) { childCand = true; break; } }
+    if (childCand) continue;
+    candSet.add(el);
+  }
+  const targets = [];
+  const elCs = new Map();   // 元素 → computedStyle 缓存（量取一次）
+  for (const el of candSet) {
+    if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) continue;
+    if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
+    const isImg = el.tagName === "IMG";
+    const cs = d.defaultView.getComputedStyle(el);
+    elCs.set(el, cs);
+    targets.push({ el, r, isImg, chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
+  }
+  // 文本节点 → 所属靶子元素
+  const walker = d.createTreeWalker(d.body, NodeFilter.SHOW_TEXT);
+  let node;
+  const m = new Map();
+  while ((node = walker.nextNode())) {
+    let p = node.parentElement;
+    while (p) { if (candSet.has(p)) { m.set(node, p); break; } p = p.parentElement; }
+  }
+  const perChar = (nd, t) => {   // 多行/含换行节点：保持逐字符精确测量
+    const len = nd.data.length;
+    for (let i = 0; i < len; i++) {
+      const ch = nd.data[i];
+      if (/\s/.test(ch)) continue;
+      const rg = d.createRange();
+      rg.setStart(nd, i); rg.setEnd(nd, i + 1);
+      const rr = rg.getBoundingClientRect();
+      if (rr.width > 0 && rr.height > 0) t.chars.push({ ch, x: rr.x, y: rr.y, w: rr.width, h: rr.height });
+    }
+  };
+  for (const [nd, t] of m) {
+    if (nd.data.includes("\n")) { perChar(nd, t); continue; }
+    const rg = d.createRange();
+    rg.selectNodeContents(nd);
+    const rr = rg.getBoundingClientRect();
+    if (rr.width <= 0 || rr.height <= 0) continue;
+    const fsz = parseFloat((t.font.match(/([\d.]+)px/) || ["", "16"])[1]);
+    const cs = elCs.get(t.el);
+    let lh = parseFloat(cs.lineHeight) || fsz * 1.2;
+    if (cs.lineHeight && !/[a-z%]/i.test(cs.lineHeight)) lh *= fsz;   // 无单位行高（如 1.5）= 字号倍数
+    if (rr.height > lh * 1.4) { perChar(nd, t); continue; }   // 折行的多行段落：退回逐字符
+    const chars = [];
+    for (let i = 0; i < nd.data.length; i++) { const ch = nd.data[i]; if (!/\s/.test(ch)) chars.push(ch); }
+    const n = chars.length;
+    if (!n) continue;
+    const cw = rr.width / n;   // 单行：整段一个 rect，字符按行宽均分（批量化，网格语义不变）
+    for (let i = 0; i < n; i++) t.chars.push({ ch: chars[i], x: rr.x + i * cw, y: rr.y, w: cw, h: rr.height });
+  }
+  for (const t of targets) claimTarget(t);
+  return true;
+}
+
+function buildFinish() {
+  buildTargets = null;
+  loading.classList.add("done");
+  if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 炸"; }
   updateProgress();
 }
 
@@ -347,7 +477,7 @@ function shoot() {
   const w = WEAPONS[S.weapon - 1], now = performance.now();
   if (w.kind === "beam") return;                 // 激光在 loop 里持续处理
   if (now - S.lastShot < w.rate) return;
-  S.lastShot = now;
+  S.lastShot = now;                              // 先占坑：下一次调用要等满 rate，射速永远不会被"卡住一档"
   S.shots++;
   const m = { x: S.px + S.face * 14, y: S.py - 6 };
   const ang = Math.atan2(S.aimY - m.y, S.aimX - m.x);
@@ -445,11 +575,16 @@ function loop(t) {
   lastT = t;
   if (!S.started) { draw(); return; }
 
-  // clawd：平台物理（瓦片 = 台阶）
-  const L = S.keys["a"] || S.keys["arrowleft"], R = S.keys["d"] || S.keys["arrowright"];
-  S.vx += ((R ? 1 : 0) - (L ? 1 : 0)) * 0.9;
+  // clawd：平台物理（瓦片 = 台阶）。键盘 a/d 与虚拟摇杆向量合并
+  const kL = S.keys["a"] || S.keys["arrowleft"], kR = S.keys["d"] || S.keys["arrowright"];
+  let mv = (kR ? 1 : 0) - (kL ? 1 : 0);
+  if (S.stick.on) {
+    if (S.stick.y < -0.5) mv = Math.abs(mv) >= 0.9 ? mv : S.stick.x;   // 摇杆朝上（推进方向）：纯键盘时保留键盘，否则用摇杆全向
+    else mv = mv || S.stick.x;                                         // 摇杆横向：键盘优先，摇杆补空（同时按住取键盘）
+  }
+  S.vx += Math.max(-1, Math.min(1, mv)) * 0.9;
   S.vx *= 0.85;
-  const jet = S.keys["w"] || S.keys["arrowup"];
+  const jet = S.keys["w"] || S.keys["arrowup"] || (S.stick.on && S.stick.y < -0.5);
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
   // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
   if (!jet && S.onGround) S.vy = 0;
@@ -500,7 +635,7 @@ function loop(t) {
   }
   S.px = Math.max(20, Math.min(S.worldW - 20, S.px));
   player.style.left = S.px - 14 + "px";
-  player.style.top = S.py - HH + "px";
+  player.style.top = S.py - HH - S.camY + "px";   // player 在 #stage：屏幕坐标 = 世界坐标 - camY
 
   // 朝向跟随鼠标；枪臂指向鼠标
   S.aimY = S.aimScreenY + S.camY;
@@ -511,7 +646,6 @@ function loop(t) {
   const flipV = Math.abs(ang) > Math.PI / 2 ? " scaleY(-1)" : "";
   gun.style.transform = `rotate(${ang}rad)${flipV}`;
   gun.style.left = "10px";
-  gun.style.top = "8px";
 
   // 相机跟随
   const viewH = innerHeight;
@@ -520,7 +654,8 @@ function loop(t) {
   world.style.transform = `translateY(${-S.camY}px)`;
 
   const w = WEAPONS[S.weapon - 1];
-  if (S.firing && w.auto && w.kind !== "beam") shoot();
+  // 触屏开火键按住连发一切武器（旧 setInterval 行为）；桌面半自动仍单发
+  if (S.firing && (w.auto || S.touchFire) && w.kind !== "beam") shoot();
 
   // 激光：按住持续融化（独立计时器，每 80ms 融一格）
   if (w.kind === "beam" && S.firing) {
@@ -580,7 +715,7 @@ function loop(t) {
   for (let i = S.parts.length - 1; i >= 0; i--) {
     const p = S.parts[i];
     p.x += p.vx; p.y += p.vy; p.vy += (p.g ?? 0.16); if (p.vr) p.rot += p.vr; p.life -= dt;
-    if (p.life <= 0) S.parts.splice(i, 1);
+    if (p.life <= 0 || p.y > S.camY + innerHeight + 400) S.parts.splice(i, 1);   // 落出相机下方的粒子提前回收
   }
   for (let i = S.beams.length - 1; i >= 0; i--) {
     S.beams[i].life -= dt;
@@ -596,39 +731,45 @@ function loop(t) {
 }
 
 function draw() {
-  ctx.clearRect(0, 0, fx.width, fx.height);
+  drawBegin();
   ctx.save();
   if (S.shake > 0.5) ctx.translate((Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake);
-  ctx.translate(0, SKY); // 画布顶端在世界 y=-SKY
+  // 画布固定在 #stage 视口上：世界坐标 = 屏幕坐标 + camY
+  ctx.translate(0, -S.camY);
 
-  // 弹坑（只有被炸掉的字/图区域）
-  const camT = S.camY - 40, camB = S.camY + innerHeight + 40;
+  const cullY0 = S.camY - 40, cullY1 = S.camY + S.vh + 40;
+  const cullX0 = -40, cullX1 = S.vw + 40;
+
+  // 弹坑（只有被炸掉的字/图区域）——只画可见行区间
   for (const h of holes) {
-    if (h.y + h.h < camT || h.y > camB) continue;
+    if (h.y + h.h < cullY0 || h.y > cullY1) continue;
     ctx.fillStyle = h.color;
     ctx.fillRect(h.x, h.y, h.w, h.h);
   }
 
   // 光束
   for (const b of S.beams) {
-    ctx.globalAlpha = Math.max(0, b.life / 0.12);
+    const a = Math.max(0, b.life / 0.12);
+    ctx.globalAlpha = a;
     ctx.strokeStyle = b.color; ctx.lineWidth = b.width;
     ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
-    ctx.globalAlpha = Math.max(0, b.life / 0.12) * 0.4; ctx.lineWidth = b.width * 2.6;
+    ctx.globalAlpha = a * 0.4; ctx.lineWidth = b.width * 2.6;
     ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
     ctx.globalAlpha = 1;
   }
 
-  // 粒子（字符 / 图片块 / 方块）
+  // 粒子（字符 / 图片块 / 方块）：只画视口内的；字符粒子按字号分组复用 ctx.font
+  let curFont = "";
   for (const p of S.parts) {
+    if (p.y + (p.size || 12) < cullY0 || p.y - (p.size || 12) > cullY1 || p.x < cullX0 || p.x > cullX1) continue;
     const a = Math.max(0, Math.min(1, p.life / (p.max || 1)));
     ctx.save();
     ctx.globalAlpha = a;
     ctx.translate(p.x, p.y);
     if (p.rot) ctx.rotate(p.rot);
     if (p.type === "char") {
+      if (p.font !== curFont) { ctx.font = curFont = p.font; }   // 同字号粒子复用，不再每粒子设置
       ctx.fillStyle = p.color;
-      ctx.font = p.font;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(p.ch, 0, 0);
@@ -666,8 +807,8 @@ function draw() {
     }
   }
 
-  // 飘字
-  ctx.font = "700 13px " + getComputedStyle(document.body).fontFamily;
+  // 飘字（字体常量已在顶部取一次，不再每帧 getComputedStyle）
+  ctx.font = POPS_FONT;
   ctx.textAlign = "center";
   for (const p of S.pops) {
     ctx.globalAlpha = Math.max(0, p.life);
@@ -688,7 +829,7 @@ function draw() {
     ctx.moveTo(cx, cy + 5); ctx.lineTo(cx, cy + 14);
     ctx.stroke();
   }
-  ctx.restore();
+  drawEnd();
 }
 
 // ---------- 输入 ----------
@@ -710,11 +851,12 @@ addEventListener("mousedown", (e) => {
   const t = e.target;
   if (t && t.closest && t.closest("#hud, #touch")) return;
   S.aimX = e.clientX; S.aimScreenY = e.clientY;
-  S.firing = true;
+  S.firing = true; S.touchFire = false;
   const w = WEAPONS[S.weapon - 1];
   if (!w.auto) shoot();
 });
-addEventListener("mouseup", () => { S.firing = false; });
+addEventListener("mouseup", () => { S.firing = false; S.touchFire = false; });
+addEventListener("blur", () => { for (const k in S.keys) delete S.keys[k]; S.firing = false; S.touchFire = false; });   // 失焦清键，防卡键
 addEventListener("contextmenu", (e) => {
   if (!S.started) return;
   const t = e.target;
@@ -725,24 +867,102 @@ addEventListener("wheel", (e) => {
   if (!S.started) return;
   setWeapon(((S.weapon - 1 + (e.deltaY > 0 ? 1 : WEAPONS.length - 1)) % WEAPONS.length) + 1);
 }, { passive: true });
-addEventListener("resize", () => { fx.width = S.worldW = innerWidth; });
-fx.width = innerWidth; fx.height = S.worldH + SKY; fx.style.top = -SKY + "px";
+let rszT = 0;
+addEventListener("resize", () => {
+  clearTimeout(rszT);
+  rszT = setTimeout(() => {
+    sizeFx();
+    const d = doc();
+    if (S.started) return;   // 对局中只重设画布尺寸，不重建瓦片（避免清空玩家破坏进度）
+    if (d && d.body && d.readyState === "complete") { S.docH = Math.max(600, d.documentElement.scrollHeight); target.style.height = S.docH + "px"; S.worldH = S.docH + GROUND_H; world.style.height = S.worldH + "px"; floorEl.style.top = (S.docH + 40) + "px"; buildTiles(); }
+  }, 300);   // 防抖；尺寸变了按新宽度重建瓦片
+});
+sizeFx();
 
-// 触屏
-if ("ontouchstart" in window) touchBox.hidden = false;
+// ---------- 触屏：虚拟摇杆（左下，全向）+ 大开火键（右下，按住连发） ----------
+// 只在触屏启用：Pointer Events + setPointerCapture，多指各自跟踪，摇杆与开火键可同时按。
+// 触控容器 touch-action:none + 全局 touchmove preventDefault（iOS 橡皮筋）。
+let touchInited = false;
+function setupTouch() {
+  if (!("PointerEvent" in window) || touchInited) return;
+  touchInited = true;
+  touchBox.hidden = false;
+  document.documentElement.classList.add("has-touch");
+  document.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
+
+  const zone = $("stickZone"), stickBase = $("stick"), knob = $("knob"), fireBtn = $("tFire");
+  const stickIds = new Set();                       // 摇杆区活动指针
+  let baseId = -1;
+  const R = zone.offsetWidth / 2 - 6;
+
+  zone.addEventListener("pointerdown", (e) => {
+    if (!S.started || S.over) return;
+    if (baseId !== -1) return;
+    baseId = e.pointerId;
+    stickIds.add(e.pointerId);
+    zone.setPointerCapture(e.pointerId);
+    placeBase(e.clientX, e.clientY);
+    moveStick(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  zone.addEventListener("pointermove", (e) => {
+    if (!stickIds.has(e.pointerId)) return;
+    if (e.pointerId === baseId) moveStick(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  const release = (e) => {
+    if (!stickIds.has(e.pointerId)) return;
+    stickIds.delete(e.pointerId);
+    if (e.pointerId === baseId) {                  // 主指离开：摇杆归零
+      baseId = -1;
+      S.stick.on = false; S.stick.x = 0; S.stick.y = 0;
+      stickBase.style.transform = "translate(-50%, -50%)";
+      knob.style.transform = "translate(-50%, -50%)";
+      zone.classList.remove("active");
+    }
+    e.preventDefault();
+  };
+  zone.addEventListener("pointerup", release);
+  zone.addEventListener("pointercancel", release);
+
+  function placeBase(px, py) {
+    stickBase.style.left = px + "px";
+    stickBase.style.top = py + "px";
+    stickBase.style.transform = "translate(-50%, -50%)";
+  }
+  function moveStick(px, py) {
+    const bx = stickBase.offsetLeft, by = stickBase.offsetTop;
+    let dx = px - bx, dy = py - by;
+    const d = Math.hypot(dx, dy);
+    if (d > R) { dx = dx / d * R; dy = dy / d * R; }
+    S.stick.on = true;
+    S.stick.x = dx / R;
+    S.stick.y = dy / R;
+    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    if (!zone.classList.contains("active")) zone.classList.add("active");
+    S.aimX = S.px + S.face * 200;
+    S.aimScreenY = S.py - S.camY - 60;
+  }
+
+  // 开火键：setPointerCapture 保证滑出也连发；S.firing + S.touchFire 由 loop 按武器射速自动连发
+  const fireOn = (e) => { if (!S.started || S.over) return; fireBtn.classList.add("down"); S.aimX = S.px + S.face * 200; S.aimScreenY = S.py - S.camY - 60; S.firing = true; S.touchFire = true; shoot(); e.preventDefault(); };
+  const fireOff = () => { fireBtn.classList.remove("down"); S.firing = false; S.touchFire = false; };
+  fireBtn.addEventListener("pointerdown", (e) => { fireBtn.setPointerCapture(e.pointerId); fireOn(e); });
+  fireBtn.addEventListener("pointerup", (e) => { fireOff(); e.preventDefault(); });
+  fireBtn.addEventListener("pointercancel", fireOff);
+
+  // 跳跃键（保留：按住=喷气，点按=跳）
+  hold($("tJet"), () => { S.keys["w"] = true; }, () => { S.keys["w"] = false; });
+}
+
+// 按住辅助：Pointer 事件（触摸指针有隐式 capture，滑出按钮也不会卡键）
 const hold = (el, on, off) => {
-  el.addEventListener("touchstart", (e) => { e.preventDefault(); on(); }, { passive: false });
-  el.addEventListener("touchend", (e) => { e.preventDefault(); off(); }, { passive: false });
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); on(); }, { passive: false });
+  el.addEventListener("pointerup", (e) => { off(); e.preventDefault(); });
+  el.addEventListener("pointercancel", off);
 };
-hold($("tLeft"), () => { S.keys["a"] = true; }, () => { S.keys["a"] = false; });
-hold($("tRight"), () => { S.keys["d"] = true; }, () => { S.keys["d"] = false; });
-hold($("tJet"), () => { S.keys["w"] = true; }, () => { S.keys["w"] = false; });
-let touchTimer = 0;
-hold($("tFire"), () => {
-  S.aimX = S.px + S.face * 200; S.aimScreenY = S.py - S.camY - 60;
-  S.firing = true; shoot();
-  touchTimer = setInterval(shoot, 160);
-}, () => { S.firing = false; clearInterval(touchTimer); });
+if (isCoarse) setupTouch();
+window.__setupTouch = setupTouch;
 
 // 武器栏
 function buildWeaponBar() {

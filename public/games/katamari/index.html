@@ -28,7 +28,12 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
 #ball { position: absolute; z-index: 4; pointer-events: none; }
 #spin { position: absolute; inset: 0; }
 #clutter { position: absolute; inset: 0; }
-#clutter .frag { position: absolute; left: 50%; top: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+#clutter .frag {
+  position: absolute; left: 50%; top: 50%;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center;
+  overflow: visible; white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
 #ball img {
   position: absolute; left: 50%; top: 50%; height: 78%; width: 78%;
   object-fit: cover; transform: translate(-50%, -50%); border-radius: 50%;
@@ -46,6 +51,20 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
 #hudFill { position: absolute; inset: 0; width: 0%; background: linear-gradient(90deg, var(--primary), var(--gold)); transition: width .3s; }
 #hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
 @media (max-width: 720px) { #hint { display: none; } }
+#joy {
+  position: fixed; left: 22px; bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+  z-index: 10; width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(11,11,16,.48); border: 2px solid rgba(255,255,255,.22);
+  box-shadow: 6px 6px 0 #000a;
+  touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+#joyKnob {
+  position: absolute; left: 50%; top: 50%; margin: -20px 0 0 -20px;
+  width: 40px; height: 40px; border-radius: 50%; background: var(--gold);
+  box-shadow: 0 0 0 3px var(--primary), 0 0 0 5px rgba(11,11,16,.65), 3px 3px 0 #000a;
+  pointer-events: none; will-change: transform;
+}
+@media (pointer: fine) { #joy { display: none !important; } }
 #intro, #done {
   position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
   background: rgba(5,5,9,.78); backdrop-filter: blur(3px);
@@ -86,14 +105,14 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
   <div id="hud">
     <div id="hudTitle">已收集 <b id="cnt">0</b>/<span id="tot">?</span> 个元素 · 覆盖率 <b id="cov">0%</b> · 球径 <span id="diam">52</span>px</div>
     <div id="hudBar"><div id="hudFill"></div></div>
-    <div id="hint">方向键 / WASD 滚动 · 碰到比自己小的元素就会粘上来 · 球越大能卷的越多</div>
+    <div id="hint">方向键 / WASD 滚动 · 手机用左下角摇杆 · 碰到比自己小的元素就会粘上来 · 球越大能卷的越多</div>
   </div>
 
   <div id="intro">
     <div class="panel">
       <h1>🟠 Katamari 测试版</h1>
-      <p>clawd 变成一个球，在 bt's Blog 的<b>真实页面</b>上滚动。碰到<b>比球小</b>的元素就会粘到球上，球越滚越大，最后把整个首页卷进怀里。</p>
-      <p class="keys">方向键 / WASD 滚动 · 无重力 · 球只会越变越大</p>
+      <p>clawd 变成一个球，在 bt's Blog 的<b>真实页面</b>上滚动。碰到<b>比球小</b>的元素就会粘到球上——<b>文字原字体原颜色、图片原样</b>贴在球面，球越滚越大，最后把整个首页卷进怀里。</p>
+      <p class="keys">方向键 / WASD 滚动 · 手机左下角有虚拟摇杆 · 无重力 · 球只会越变越大</p>
       <button id="startBtn" disabled>目标加载中…</button>
       <p class="fine">测试版原型 · 灵感来自 Katamari Damacy 与"把网站卷起来"的推文。卷的是自己家的站。</p>
     </div>
@@ -164,10 +183,18 @@ function buildEls() {
     if (r.width < 8 || r.height < 8) return;
     if (r.width * r.height > S.worldW * S.docH * 0.5) return;
     const cs = d.defaultView.getComputedStyle(el);
-    let color = cs.backgroundColor;
-    if (!color || color === "transparent" || /rgba?\([^)]*,\s*0\)/.test(color)) color = cs.color;
-    if (!color || color === "transparent") color = "#8a8a9a";
-    S.els.push({ el, x: r.x, y: r.y, w: r.width, h: r.height, area: r.width * r.height, color, absorbed: false });
+    let bg = cs.backgroundColor;
+    if (!bg || bg === "transparent" || /rgba?\([^)]*,\s*0\)/.test(bg)) bg = "";
+    let fg = cs.color;
+    if (!fg || fg === "transparent") fg = "#e8e8ee";
+    const color = bg || fg;
+    const txt = (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 20);
+    S.els.push({
+      el, x: r.x, y: r.y, w: r.width, h: r.height, area: r.width * r.height,
+      color, bg, fg, text: txt,
+      fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontSize: parseFloat(cs.fontSize) || 14,
+      isImg: el.tagName === "IMG", absorbed: false,
+    });
     S.total++; S.totalArea += r.width * r.height;
   });
 }
@@ -189,15 +216,33 @@ function tryAbsorb() {
     // 球长大（面积守恒近似）
     S.r = Math.sqrt(S.r * S.r + e.area / Math.PI);
     // 碎片真粘到球面上（凸出球缘，随滚动旋转）
+    // 图片元素贴真实缩略图；带字的元素贴真实文字（原字体原颜色）；纯色块兜底
     const clutterLayer = document.getElementById("clutter");
     const d = doc();
     const frag = d.createElement("div");
     frag.className = "frag";
-    const fw = Math.max(7, Math.min(Math.max(e.w, e.h) / 2.2, S.r * 0.9));
-    const fh = Math.max(5, Math.min(fw * (e.h / Math.max(e.w, 1)), S.r * 0.7));
+    const fw = Math.max(8, Math.min(Math.max(e.w, e.h) / 1.6, S.r * 0.9));
+    const fh = Math.max(6, Math.min(fw * (e.h / Math.max(e.w, 1)), S.r * 0.7));
     const a = Math.random() * Math.PI * 2;
     const dist = S.r * (0.82 + Math.random() * 0.3) + fh / 2;
-    frag.style.cssText = "width:" + fw + "px;height:" + fh + "px;left:" + (50 + Math.cos(a) * dist / (S.r * 2) * 100) + "%;top:" + (50 + Math.sin(a) * dist / (S.r * 2) * 100) + "%;transform:translate(-50%,-50%) rotate(" + (a + Math.PI / 2) + "rad);background:" + e.color + ";";
+    const tpos = "width:" + fw + "px;height:" + fh + "px;left:" + (50 + Math.cos(a) * dist / (S.r * 2) * 100) + "%;top:" + (50 + Math.sin(a) * dist / (S.r * 2) * 100) + "%;transform:translate(-50%,-50%) rotate(" + (a + Math.PI / 2) + "rad);";
+    if (e.isImg && e.el.complete && e.el.naturalWidth) {
+      // 图片：真实缩略图（同源可绘制）
+      const c = frag.appendChild(d.createElement("canvas"));
+      const maxW = 56, maxH = 56;
+      const iw = e.el.naturalWidth, ih = e.el.naturalHeight;
+      const sc = Math.min(1, maxW / iw, maxH / ih);
+      c.width = Math.max(8, iw * sc); c.height = Math.max(8, ih * sc);
+      try { c.getContext("2d").drawImage(e.el, 0, 0, c.width, c.height); } catch (ex) { frag.style.background = e.color; }
+      frag.style.cssText = tpos;
+    } else if (e.text) {
+      // 文字：原字体原颜色，字随碎片尺寸缩放
+      const fs = Math.max(7, Math.min(e.fontSize * (fh / Math.max(14, e.h)), fh * 0.8));
+      frag.textContent = e.text;
+      frag.style.cssText = tpos + "background:" + (e.bg || "transparent") + ";color:" + e.fg + ";font-family:" + e.fontFamily + ";font-weight:" + e.fontWeight + ";font-size:" + fs + "px;line-height:1.15;";
+    } else {
+      frag.style.cssText = tpos + "background:" + e.color + ";";
+    }
     clutterLayer.appendChild(frag);
     while (clutterLayer.children.length > 110) clutterLayer.firstElementChild.remove();
     ballEl.classList.remove("pop"); void ballEl.offsetWidth; ballEl.classList.add("pop");
@@ -238,6 +283,11 @@ function loop(t) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
   lastT = t;
+  // 摇杆只在游戏进行中显示（开局前 / 结算后隐藏）
+  if (joyEl) {
+    const show = S.started && !S.over;
+    if (show !== joyShown) { joyEl.style.display = show ? "block" : "none"; joyShown = show; }
+  }
   if (!S.started) { draw(); return; }
 
   // 滚动输入
@@ -246,6 +296,7 @@ function loop(t) {
   if (S.keys["arrowright"] || S.keys["d"]) ax += 1;
   if (S.keys["arrowup"] || S.keys["w"]) ay -= 1;
   if (S.keys["arrowdown"] || S.keys["s"]) ay += 1;
+  if (joy.id !== -1 && !S.over) { ax += joy.dx; ay += joy.dy; }  // 摇杆与键盘合并
   const acc = 0.55;
   S.vx += ax * acc; S.vy += ay * acc;
   const sp = Math.hypot(S.vx, S.vy), maxSp = 7 + Math.min(6, S.r / 40);
@@ -298,10 +349,52 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("keyup", (e) => { S.keys[e.key.toLowerCase()] = false; });
 addEventListener("resize", () => { fx.width = S.worldW = innerWidth; });
+// 全局防 iOS 橡皮筋 / 页面滚动（页面本身 overflow:hidden，这里兜底）
+addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
+
+// ---------- 虚拟摇杆（仅触屏设备，桌面端不创建、不参与输入） ----------
+const joy = { id: -1, dx: 0, dy: 0 };
+let joyShown = false;
+const joyEl = matchMedia("(pointer: coarse)").matches ? document.createElement("div") : null;
+if (joyEl) {
+  joyEl.id = "joy";
+  const knob = document.createElement("div");
+  knob.id = "joyKnob";
+  joyEl.appendChild(knob);
+  document.body.appendChild(joyEl);
+  joyEl.style.display = "none";
+  const joyMove = (e) => {
+    const r = joyEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2;
+    let vx = (e.clientX - cx) / R, vy = (e.clientY - cy) / R;
+    const len = Math.hypot(vx, vy);
+    if (len > 1) { vx /= len; vy /= len; }  // 方向向量截断到 1，力度随偏移 0~1
+    joy.dx = vx; joy.dy = vy;
+    // 圆头跟随手指，可拖出底圈（不夹住）
+    knob.style.transform = "translate(" + (e.clientX - cx) + "px," + (e.clientY - cy) + "px)";
+  };
+  const joyEnd = (e) => {
+    if (e.pointerId !== joy.id) return;
+    joy.id = -1; joy.dx = 0; joy.dy = 0;
+    knob.style.transform = "translate(0,0)";
+  };
+  joyEl.addEventListener("pointerdown", (e) => {
+    if (joy.id !== -1) return;  // 多指：只跟踪起始的那根手指
+    e.preventDefault();
+    joy.id = e.pointerId;
+    joyEl.setPointerCapture(e.pointerId);
+    joyMove(e);
+  });
+  joyEl.addEventListener("pointermove", (e) => { if (e.pointerId === joy.id) joyMove(e); });
+  joyEl.addEventListener("pointerup", joyEnd);
+  joyEl.addEventListener("pointercancel", joyEnd);
+  joyEl.addEventListener("lostpointercapture", joyEnd);
+}
 
 // ---------- 开局 ----------
 function startGame() {
   if (startBtn.disabled) return;
+  if (innerWidth < 700) S.bx = innerWidth / 2;  // 窄屏：球出生在屏幕中央，避免偏出屏幕
   S.started = true; S.t0 = performance.now();
   try { ac().resume(); } catch (e) {}
   intro.style.display = "none";

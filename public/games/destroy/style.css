@@ -47,9 +47,11 @@ body {
 }
 #loading.done { display: none; }
 
-/* ---- 玩家（世界坐标内，clawd 本体） ---- */
+/* ---- 玩家（clawd 本体，屏幕坐标定位：top = 世界 y - camY，由 JS 每帧更新） ---- */
 #player {
   position: absolute; width: 28px; height: 40px; z-index: 4;
+  left: 0; top: 0;
+  will-change: left, top;
 }
 #sprite {
   position: absolute; left: 50%; bottom: -12px;
@@ -110,14 +112,75 @@ body {
 #hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
 @media (max-width: 720px) { #hint { display: none; } .wslot { padding: 3px 5px; font-size: 10px; } }
 
-/* ---- 触屏按钮 ---- */
-#touch { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; align-items: center; gap: 8px; padding: 0 10px 10px; }
-#touch button {
-  width: 52px; height: 44px; font-size: 18px; font-family: var(--mono);
-  background: #000a; color: #fff; border: 2px solid var(--line);
+/* ---- 触屏：虚拟摇杆（左下）+ 喷气 + 大开火键（右下） ---- */
+/* 只在触屏设备上显示/启用 */
+#touch { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; pointer-events: none; }
+#touch button { font-family: var(--mono); }
+
+#stickZone {
+  position: absolute; left: calc(14px + env(safe-area-inset-left)); bottom: calc(12px + env(safe-area-inset-bottom));
+  width: 128px; height: 128px; z-index: 2;
+  pointer-events: auto;
+  touch-action: none;
 }
-#tFire { color: var(--red) !important; border-color: var(--red) !important; }
-#tJet { margin-left: auto; }
+#stick {
+  position: absolute; left: 50%; top: 50%;
+  width: 74px; height: 74px;
+  border: 2px solid var(--line);
+  background: #000a;
+  box-shadow: 4px 4px 0 #000a;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+#knob {
+  position: absolute; left: 50%; top: 50%;
+  width: 30px; height: 30px;
+  background: var(--primary);
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000a;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+#stickZone.active #knob { background: var(--gold); }
+
+#tJet {
+  position: absolute; right: calc(96px + env(safe-area-inset-right)); bottom: calc(34px + env(safe-area-inset-bottom));
+  width: 58px; height: 46px;
+  font-size: 13px; font-weight: 700;
+  color: #fff; background: #000a; border: 2px solid var(--line);
+  box-shadow: 3px 3px 0 #000a;
+  pointer-events: auto;
+  touch-action: none;
+}
+#tJet:active { background: var(--green); color: #000; }
+
+#tFire {
+  position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom));
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--red);
+  background: rgba(255, 92, 92, .18);
+  color: var(--red);
+  font-size: 17px; font-weight: 700; letter-spacing: .1em;
+  box-shadow: 4px 4px 0 #000a, inset 0 0 18px rgba(255, 92, 92, .25);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#tFire.down {
+  background: var(--red);
+  color: #fff;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000a, inset 0 0 18px rgba(255, 255, 255, .35);
+}
+#touch button:active { filter: brightness(1.25); }
+
+/* 触屏上隐藏元素选择光标、防止长按选中 */
+html.has-touch #wrap { -webkit-tap-highlight-color: transparent; }
+/* 触屏上把底部提示换成触控提示 */
+html.has-touch #hint { display: none; }
+
+/* 桌面（精细指针）完全不显示触控层，键盘鼠标行为与旧版一致 */
 @media (hover: hover) and (pointer: fine) { #touch { display: none !important; } }
 
 /* ---- 面板 ---- */

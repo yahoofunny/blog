@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="no-touch">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>摧毁本站 · bt's Arcade</title>
 <meta name="description" content="把 bt 的博客首页当靶场：像素小人背着喷气背包飞上真实页面，一格一格把网站炸碎，8 种武器。">
-<link rel="stylesheet" href="style.css?v=28">
+<link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
 <div id="wrap">
@@ -13,9 +13,9 @@
     <div id="world">
       <iframe id="target" src="/" title="目标网站"></iframe>
       <div id="floor"></div>
-      <canvas id="fx"></canvas>
-      <div id="player"><img id="sprite" src="/clawd/clawd-idle.gif" alt=""><div id="jetpack"></div><div id="gun"></div></div>
     </div>
+    <canvas id="fx"></canvas>
+    <div id="player"><img id="sprite" src="/clawd/clawd-idle.gif" alt=""><div id="jetpack"></div><div id="gun"></div></div>
     <div id="loading"><span>目标网站加载中…</span></div>
   </div>
 
@@ -29,10 +29,11 @@
   </div>
 
   <div id="touch" hidden>
-    <button id="tLeft">◀</button>
-    <button id="tRight">▶</button>
-    <button id="tJet">✈</button>
-    <button id="tFire">🔥</button>
+    <div id="stickZone">
+      <div id="stick"><div id="knob"></div></div>
+    </div>
+    <button id="tJet">▲ 喷</button>
+    <button id="tFire"><span>开火</span></button>
   </div>
 
   <div id="intro">
@@ -57,6 +58,6 @@
     </div>
   </div>
 </div>
-<script src="game.js?v=28"></script>
+<script src="game.js?v=29"></script>
 </body>
 </html>
