@@ -494,4 +494,8 @@ target.addEventListener("load", () => {
 });
 
 requestAnimationFrame(loop);
+
+// DEBUG（发布版删除）
+window.__S = S;
+window.__hitTest = hitTest;
 })();
