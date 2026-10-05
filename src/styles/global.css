@@ -36,22 +36,22 @@
 /* ---------- Design tokens ---------- */
 /* 亮色 = zed.dev 式暖奶油纸面：低眩光、暖炭灰正文、柔和蓝点缀（参考 zed.dev/docs 2026-10） */
 :root {
-  --wm-paper: #faf9f5;
-  --wm-panel: #f1efe8;
-  --wm-card: #fdfdfb;
-  --wm-ink: #38352f;
-  --wm-ink-soft: #5d584d;
-  --wm-muted: #8f8a7d;
-  --wm-faint: #bcb7aa;
+  --wm-paper: #f3f0e8;
+  --wm-panel: #edeade;
+  --wm-card: #faf8f2;
+  --wm-ink: #3f3b33;
+  --wm-ink-soft: #6b6557;
+  --wm-muted: #968f7f;
+  --wm-faint: #c3bcab;
   --wm-primary: #3a63d0;
   --wm-primary-soft: #6187db;
   --wm-on-primary: #ffffff;
   --wm-accent: #ffcd42;
-  --wm-line: rgba(56, 53, 47, 0.16);
-  --wm-dotted: #cfc9bb;
-  --wm-shadow-hair: 0 1px 2px rgba(56, 53, 47, 0.06);
+  --wm-line: rgba(63, 59, 51, 0.15);
+  --wm-dotted: #c8c1b0;
+  --wm-shadow-hair: 0 1px 2px rgba(63, 59, 51, 0.06);
   --wm-shadow-lift: 0 14px 28px -14px rgba(58, 99, 208, 0.2);
-  --wm-shadow-press: 0 1px 1px rgba(56, 53, 47, 0.12);
+  --wm-shadow-press: 0 1px 1px rgba(63, 59, 51, 0.12);
   --font-display: "Oswald", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --font-mono: "Courier Prime", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
