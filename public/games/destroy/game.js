@@ -317,6 +317,21 @@ function iframeOff() {
   return { x: 0, y: 0 };
 }
 
+// S/↓：向下一层——瞬移到脚下更深处的下一个可站立表面
+function descendOneLayer() {
+  const fy = S.py + HH;
+  const footL = S.px - HW + 3, footR = S.px + HW - 3;
+  let targetTop = null;
+  for (let y = fy + CELL + 2; y < S.worldH - 56; y += CELL / 2) {
+    if (solidAt(footL, y + 1) || solidAt(footR, y + 1)) { targetTop = y; break; }
+  }
+  const dest = targetTop !== null ? targetTop - HH : S.worldH - 56 - HH;
+  burst(S.px, S.py, 12, "#7ee787");
+  S.py = dest; S.vy = 0;
+  burst(S.px, S.py + HH, 12, "#7ee787");
+  sfx("laser");
+}
+
 function burst(x, y, n, color) {
   for (let i = 0; i < n; i++) {
     if (!roomFor(1)) return;
@@ -435,7 +450,6 @@ function loop(t) {
   S.vx *= 0.85;
   const jet = S.keys["w"] || S.keys[" "] || S.keys["arrowup"];
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
-  if (S.keys["s"] || S.keys["arrowdown"]) S.vy += 0.4;
   // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
   if (!jet && S.onGround) S.vy = 0;
   else { S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy)); }
@@ -667,7 +681,8 @@ addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
   S.keys[k] = true;
-  if (!S.started) return;
+  if (!S.started || S.over) return;
+  if ((k === "s" || k === "arrowdown" || e.code === "Numpad2") && !e.repeat) descendOneLayer();
   const num = parseInt(k, 10);
   if (num >= 1 && num <= WEAPONS.length) setWeapon(num);
   if (k === "m") S.muted = !S.muted;
