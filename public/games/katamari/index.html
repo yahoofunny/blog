@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Katamari 测试版 · clawd 滚球</title>
+<meta name="description" content="测试版：clawd 变成球在真实页面上滚，把元素一个个粘进来，球越滚越大。">
+<style>
+:root {
+  --bg: #0b0b10; --panel: #15151c; --line: #2a2a35;
+  --primary: #7c6cff; --gold: #ffd23e; --muted: #9a9aa8;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; overflow: hidden; }
+body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-select: none; }
+#wrap { position: fixed; inset: 0; }
+#stage { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+#world { position: absolute; top: 0; left: 0; width: 100%; will-change: transform; }
+#target { width: 100%; border: 0; display: block; pointer-events: none; }
+#fx { position: absolute; top: 0; left: 0; pointer-events: none; }
+#loading {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); z-index: 8; font-size: 13px; letter-spacing: .2em; color: var(--muted);
+}
+#loading.done { display: none; }
+#ball { position: absolute; z-index: 4; pointer-events: none; }
+#ball img { position: absolute; left: 50%; top: 50%; height: 100%; width: 100%; object-fit: cover; transform: translate(-50%, -50%); border-radius: 50%; }
+#hud {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: none;
+}
+#hudTitle { font-size: 12px; letter-spacing: .14em; color: #cfcfda; }
+#hudTitle b { color: var(--gold); font-size: 15px; }
+#hudBar { width: min(420px, 70vw); height: 12px; background: #0009; border: 2px solid var(--line); position: relative; }
+#hudFill { position: absolute; inset: 0; width: 0%; background: linear-gradient(90deg, var(--primary), var(--gold)); transition: width .3s; }
+#hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
+@media (max-width: 720px) { #hint { display: none; } }
+#intro, #done {
+  position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+  background: rgba(5,5,9,.78); backdrop-filter: blur(3px);
+}
+#intro .panel, #done .panel {
+  width: min(560px, 92vw); background: var(--panel); border: 2px solid var(--line);
+  box-shadow: 8px 8px 0 #000a; padding: 28px 30px; text-align: center;
+}
+#intro h1, #done h1 { font-size: 26px; margin-bottom: 14px; }
+#intro p, #done p { font-size: 13px; line-height: 1.9; color: #c9c9d6; }
+#intro .keys { color: var(--muted); font-size: 12px; margin: 10px 0 18px; }
+#intro b { color: var(--gold); }
+#startBtn {
+  font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: .15em;
+  background: var(--gold); color: #222; border: 0; padding: 12px 34px; cursor: pointer; box-shadow: 4px 4px 0 #000a;
+}
+#startBtn:disabled { background: #3a3a4a; color: #888; cursor: wait; }
+#done .row { margin-top: 18px; }
+#done a {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-decoration: none;
+  color: var(--muted); border: 2px solid var(--line); padding: 11px 16px; margin: 0 5px; display: inline-block;
+}
+#done a:hover { color: #fff; border-color: var(--primary); }
+.dm-done { visibility: hidden !important; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <div id="world">
+      <iframe id="target" src="/" title="目标网站"></iframe>
+      <canvas id="fx"></canvas>
+      <div id="ball"><img id="ballImg" src="/clawd/clawd-idle.gif" alt=""></div>
+    </div>
+    <div id="loading"><span>目标网站加载中…</span></div>
+  </div>
+
+  <div id="hud">
+    <div id="hudTitle">已收集 <b id="cnt">0</b>/<span id="tot">?</span> 个元素 · 覆盖率 <b id="cov">0%</b> · 球径 <span id="diam">52</span>px</div>
+    <div id="hudBar"><div id="hudFill"></div></div>
+    <div id="hint">方向键 / WASD 滚动 · 碰到比自己小的元素就会粘上来 · 球越大能卷的越多</div>
+  </div>
+
+  <div id="intro">
+    <div class="panel">
+      <h1>🟠 Katamari 测试版</h1>
+      <p>clawd 变成一个球，在 bt's Blog 的<b>真实页面</b>上滚动。碰到<b>比球小</b>的元素就会粘到球上，球越滚越大，最后把整个首页卷进怀里。</p>
+      <p class="keys">方向键 / WASD 滚动 · 无重力 · 球只会越变越大</p>
+      <button id="startBtn" disabled>目标加载中…</button>
+      <p class="fine">测试版原型 · 灵感来自 Katamari Damacy 与"把网站卷起来"的推文。卷的是自己家的站。</p>
+    </div>
+  </div>
+
+  <div id="done" hidden>
+    <div class="panel">
+      <h1>🌀 整站已卷完</h1>
+      <p id="doneStats"></p>
+      <div class="row">
+        <button id="againBtn">再卷一次</button>
+        <a href="/games/" class="ghost">回游戏厅</a>
+        <a href="/" class="ghost">看看被卷空的首页</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const stage = $("stage"), world = $("world"), target = $("target"), fx = $("fx"),
+      loading = $("loading"), ballEl = $("ball"), ballImg = $("ballImg"),
+      intro = $("intro"), startBtn = $("startBtn"), doneScreen = $("done"), doneStats = $("doneStats"),
+      againBtn = $("againBtn");
+const ctx = fx.getContext("2d");
+
+const CELL_MARGIN = 6;          // 吸收判定额外余量
+const WIN_COVER = 0.8;
+const S = {
+  started: false, over: false,
+  bx: 300, by: 60, vx: 0, vy: 0, r: 26, angle: 0,
+  camX: 0, camY: 0,
+  worldW: innerWidth, worldH: 1000, docH: 600,
+  els: [], total: 0, collected: 0, totalArea: 1, collectedArea: 0,
+  clutter: [], keys: {}, t0: 0, muted: false,
+};
+
+// ---------- 音效 ----------
+let actx = null;
+const ac = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
+function sfx(kind) {
+  if (S.muted) return;
+  try {
+    const a = ac(), t = a.currentTime;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = "triangle";
+    const base = 300 + Math.min(500, S.r * 4);
+    o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * 1.8, t + 0.09);
+    g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + 0.11);
+  } catch (e) {}
+}
+
+// ---------- 目标文档 ----------
+const doc = () => { try { return target.contentDocument; } catch (e) { return null; } };
+const SKIP_TAGS = new Set(["html", "body", "head", "script", "style", "link", "meta",
+  "noscript", "title", "br", "template", "iframe"]);
+
+function buildEls() {
+  const d = doc();
+  if (!d || !d.body) return;
+  S.els = []; S.total = 0; S.totalArea = 1;
+  d.body.querySelectorAll("*").forEach((el) => {
+    if (SKIP_TAGS.has(el.tagName.toLowerCase()) || el.__absorbed) return;
+    if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return;
+    const r = el.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) return;
+    if (r.width * r.height > S.worldW * S.docH * 0.5) return;
+    const cs = d.defaultView.getComputedStyle(el);
+    let color = cs.backgroundColor;
+    if (!color || color === "transparent" || /rgba?\([^)]*,\s*0\)/.test(color)) color = cs.color;
+    if (!color || color === "transparent") color = "#8a8a9a";
+    S.els.push({ el, x: r.x, y: r.y, w: r.width, h: r.height, area: r.width * r.height, color, absorbed: false });
+    S.total++; S.totalArea += r.width * r.height;
+  });
+}
+
+// ---------- 吸收 ----------
+function tryAbsorb() {
+  for (const e of S.els) {
+    if (e.absorbed) continue;
+    // 球与矩形相交 + 元素比球小
+    const nx = Math.max(e.x, Math.min(S.bx, e.x + e.w));
+    const ny = Math.max(e.y, Math.min(S.by, e.y + e.h));
+    const dx = nx - S.bx, dy = ny - S.by;
+    if (dx * dx + dy * dy > S.r * S.r) continue;
+    if (Math.max(e.w, e.h) > S.r * 2 + CELL_MARGIN) continue;
+    // 吸收！
+    e.absorbed = true;
+    e.el.classList.add("dm-done");
+    S.collected++; S.collectedArea += e.area;
+    // 球长大（面积守恒近似）
+    S.r = Math.sqrt(S.r * S.r + e.area / Math.PI);
+    // 碎片挂到球上
+    const a = Math.random() * Math.PI * 2, dist = S.r * (0.35 + Math.random() * 0.55);
+    S.clutter.push({
+      dx: Math.cos(a) * dist, dy: Math.sin(a) * dist,
+      w: Math.max(4, Math.min(e.w / 3, 34)), h: Math.max(3, Math.min(e.h / 3, 16)),
+      color: e.color, rot: Math.random() * Math.PI,
+    });
+    if (S.clutter.length > 90) S.clutter.shift();
+    sfx("absorb");
+    updateHUD();
+  }
+}
+
+function updateHUD() {
+  const cover = Math.min(100, Math.round((S.collectedArea / S.totalArea) * 100));
+  $("cnt").textContent = S.collected;
+  $("cov").textContent = cover + "%";
+  $("diam").textContent = Math.round(S.r * 2);
+  $("hudFill").style.width = cover + "%";
+  if (S.started && !S.over && cover >= WIN_COVER * 100) finish();
+}
+
+function finish() {
+  S.over = true;
+  const secs = Math.round((performance.now() - S.t0) / 1000);
+  doneStats.textContent = `${secs} 秒卷完全站 · ${S.collected}/${S.total} 个元素 · 最终球径 ${Math.round(S.r * 2)}px`;
+  doneScreen.hidden = false;
+  try {
+    const a = ac(), t = a.currentTime;
+    [523, 659, 784, 1046, 1318].forEach((fq, i) => {
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = "square"; o.frequency.value = fq;
+      g.gain.setValueAtTime(0.0001, t + i * 0.12); g.gain.linearRampToValueAtTime(0.1, t + i * 0.12 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.32);
+      o.connect(g).connect(a.destination); o.start(t + i * 0.12); o.stop(t + i * 0.12 + 0.34);
+    });
+  } catch (e) {}
+}
+
+// ---------- 主循环 ----------
+let lastT = 0;
+function loop(t) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+  lastT = t;
+  if (!S.started) { draw(); return; }
+
+  // 滚动输入
+  let ax = 0, ay = 0;
+  if (S.keys["arrowleft"] || S.keys["a"]) ax -= 1;
+  if (S.keys["arrowright"] || S.keys["d"]) ax += 1;
+  if (S.keys["arrowup"] || S.keys["w"]) ay -= 1;
+  if (S.keys["arrowdown"] || S.keys["s"]) ay += 1;
+  const acc = 0.55;
+  S.vx += ax * acc; S.vy += ay * acc;
+  const sp = Math.hypot(S.vx, S.vy), maxSp = 7 + Math.min(6, S.r / 40);
+  if (sp > maxSp) { S.vx *= maxSp / sp; S.vy *= maxSp / sp; }
+  S.vx *= 0.985; S.vy *= 0.985;
+  S.bx = Math.max(S.r, Math.min(S.worldW - S.r, S.bx + S.vx));
+  S.by = Math.max(S.r, Math.min(S.worldH - S.r, S.by + S.vy));
+  const dist = Math.hypot(S.vx, S.vy);
+  S.angle += dist / Math.max(8, S.r);
+
+  tryAbsorb();
+
+  // 相机跟随
+  const viewH = innerHeight;
+  const tx = Math.max(0, Math.min(S.worldW - viewH, 0)); // 页宽=视宽，只纵向跟
+  const ty = Math.max(0, Math.min(S.worldH - viewH, S.by - viewH / 2));
+  S.camX = tx; S.camY += (ty - S.camY) * 0.14;
+  world.style.transform = `translateY(${-S.camY}px)`;
+  ballEl.style.left = S.bx - S.r + "px";
+  ballEl.style.top = S.by - S.r + "px";
+  ballEl.style.width = S.r * 2 + "px";
+  ballEl.style.height = S.r * 2 + "px";
+
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, fx.width, fx.height);
+  ctx.save();
+  // 粘上的碎片（跟着球转；clawd 球体由 DOM #ball 渲染）
+  ctx.save();
+  ctx.translate(S.bx, S.by);
+  ctx.rotate(S.angle);
+  for (const c of S.clutter) {
+    ctx.save();
+    ctx.translate(c.dx, c.dy); ctx.rotate(c.rot);
+    ctx.fillStyle = c.color; ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+    ctx.restore();
+  }
+  // 球描边
+  ctx.beginPath(); ctx.arc(0, 0, S.r, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,210,62,.85)"; ctx.lineWidth = 3; ctx.stroke();
+  ctx.restore();
+}
+
+// ---------- 输入 ----------
+addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
+  S.keys[k] = true;
+});
+addEventListener("keyup", (e) => { S.keys[e.key.toLowerCase()] = false; });
+addEventListener("resize", () => { fx.width = S.worldW = innerWidth; });
+
+// ---------- 开局 ----------
+function startGame() {
+  if (startBtn.disabled) return;
+  S.started = true; S.t0 = performance.now();
+  try { ac().resume(); } catch (e) {}
+  intro.style.display = "none";
+}
+startBtn.addEventListener("click", startGame);
+againBtn.addEventListener("click", () => {
+  doneScreen.hidden = true;
+  S.over = false; S.collected = 0; S.collectedArea = 0; S.r = 26; S.clutter = [];
+  loading.classList.remove("done");
+  target.src = "/?r=" + Date.now();
+});
+
+// iframe 就绪
+let inited = false;
+function initTarget() {
+  if (inited) return true;
+  const d = doc();
+  if (!d || !d.body || d.readyState !== "complete" || d.location.href === "about:blank") return false;
+  inited = true;
+  d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
+  S.docH = Math.max(600, d.documentElement.scrollHeight);
+  target.style.height = S.docH + "px";
+  S.worldH = S.docH + 40;
+  world.style.height = S.worldH + "px";
+  buildEls();
+  fx.width = S.worldW = innerWidth; fx.height = S.worldH;
+  ballEl.style.left = S.bx - S.r + "px";
+  ballEl.style.top = S.by - S.r + "px";
+  ballEl.style.width = S.r * 2 + "px";
+  ballEl.style.height = S.r * 2 + "px";
+  $("tot").textContent = S.total;
+  updateHUD();
+  loading.classList.add("done");
+  if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 卷"; }
+  return true;
+}
+target.addEventListener("load", () => setTimeout(initTarget, 300));
+const readyPoll = setInterval(() => { if (initTarget()) clearInterval(readyPoll); }, 150);
+
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
