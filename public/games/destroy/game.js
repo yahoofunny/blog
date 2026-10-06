@@ -146,7 +146,7 @@ function sfx(kind) {
 const doc = () => { try { return target.contentDocument; } catch (e) { return null; } };
 
 const SKIP_TAGS = new Set(["html", "body", "head", "script", "style", "link", "meta",
-  "noscript", "title", "br", "path", "svg", "template", "input", "textarea", "select", "label", "iframe"]);
+  "noscript", "title", "br", "path", "svg", "template", "input", "textarea", "select", "label"]);
 const BLOCK_SEL = "div,main,header,footer,section,article,aside,nav,ul,ol,table,thead,tbody,tr,form,fieldset,blockquote,template,details";
 
 // ---------- 瓦片网格（只有文字/图片是靶子与台阶；背景不可破坏不可踩） ----------
@@ -210,6 +210,17 @@ function ownChars(el) {
   return n;
 }
 
+// 元素自身「看得见的内容」：媒体标签 / 直接文字 / no-repeat 背景图（logo、栏目图标、
+// 轮播占位这类 CSS 背景内容，不是 <img> 所以旧逻辑全漏）。纯容器仍不是靶子。
+function hasVisualContent(d, el) {
+  const tag = el.tagName;
+  if (tag === "IMG" || tag === "VIDEO" || tag === "CANVAS" || tag === "PICTURE" || tag === "IFRAME") return true;
+  if (ownChars(el) > 0) return true;
+  const cs = d.defaultView.getComputedStyle(el);
+  const bi = cs.backgroundImage;
+  return !!bi && bi !== "none" && cs.backgroundRepeat !== "repeat" && cs.backgroundRepeat !== "repeat-x" && cs.backgroundRepeat !== "repeat-y";
+}
+
 function buildTiles() {
   // 快速路径（首选）：页面规模不大时，单行文本节点用"整段一个 Range"量一次再均分
   // （本任务指定的按行/词批量测量，无换行的标题/链接/导航几乎全是单行节点，Range
@@ -230,11 +241,11 @@ function buildTiles() {
   for (let i = allEls.length - 1; i >= 0; i--) {
     const el = allEls[i];
     if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
-    const isImg = el.tagName === "IMG";
-    // 纯容器（文字全在子孙里）不入选：靶子只能是"自己身上"直接带文字的元素或图片。
+    // 纯容器（文字全在子孙里）不入选：靶子只能是"自己身上"有可见内容的元素
+    //（直接文字 / <img> / <iframe> / no-repeat 背景图）。
     // 否则断链容器（子元素里有 script/包装层）会把整棵子树的文字都认领成自己的瓦片，
     // 打光后整块 header/侧栏一起消失——背景不该被摧毁。
-    if (!isImg && !ownChars(el)) continue;
+    if (!hasVisualContent(d, el)) continue;
     candSet.add(el);
   }
   buildTargets = [];
@@ -243,10 +254,10 @@ function buildTiles() {
     if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 8 || r.height < 8) continue;
-    if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
     const isImg = el.tagName === "IMG";
+    const isBlock = !isImg && ownChars(el) === 0;   // iframe / 背景图块：无文字，整块成瓦片
     const cs = d.defaultView.getComputedStyle(el);
-    buildTargets.push({ el, r, isImg, total: isImg ? 1 : Math.max(1, ownChars(el)), chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
+    buildTargets.push({ el, r, isImg, isBlock, total: isImg ? 1 : Math.max(1, ownChars(el)), chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
   }
   buildCursor = 0; buildDone = 0;
   buildTotal = buildTargets.reduce((a, t) => a + t.total, 0);
@@ -289,12 +300,13 @@ function claimTarget(t) {
     if (!set) { set = new Set(); elTiles.set(data.el, set); }
     set.add(k);
   };
-  if (t.isImg) {
+  if (t.isImg || t.isBlock) {
+    // <img> 与 iframe/背景图块：整块 rect 全铺瓦片（isBlock 无逐字符，一格一洞）
     const rect = t.r;
     const c0 = Math.max(0, Math.floor(rect.left / CELL)), c1 = Math.min(S.cols - 1, Math.floor((rect.left + rect.width - 1) / CELL));
     const r0 = Math.max(0, Math.floor(rect.top / CELL)), r1 = Math.min(S.rows - 1, Math.floor((rect.top + rect.height - 1) / CELL));
     for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) {
-      claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, isImg: true });
+      claimCell(cc, rr, { el: t.el, fg: t.fg, hole: t.hole, isImg: t.isImg });
     }
     S.totalEls++;
     return;
@@ -352,8 +364,7 @@ function buildFast(d) {
   for (let i = allEls.length - 1; i >= 0; i--) {
     const el = allEls[i];
     if (!el || el.nodeType !== 1 || SKIP_TAGS.has(el.tagName.toLowerCase())) continue;
-    if (el.tagName === "IMG") { candSet.add(el); continue; }
-    if (!ownChars(el)) continue;
+    if (!hasVisualContent(d, el)) continue;
     candSet.add(el);
   }
   const targets = [];
@@ -363,11 +374,11 @@ function buildFast(d) {
     if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 8 || r.height < 8) continue;
-    if (r.width * r.height > S.worldW * S.docH * 0.06) continue;
     const isImg = el.tagName === "IMG";
+    const isBlock = !isImg && ownChars(el) === 0;   // iframe / 背景图块
     const cs = d.defaultView.getComputedStyle(el);
     elCs.set(el, cs);
-    targets.push({ el, r, isImg, chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
+    targets.push({ el, r, isImg, isBlock, chars: [], font: `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`, fg: cs.color, hole: effBg(d, el.parentElement) });
   }
   // 文本节点 → 所属靶子元素（只挂"最近候选就是自己父元素"的节点：
   // 候选只含直接带文字的元素，纯容器已排除，不会再出现"离容器近被容器抢字"）

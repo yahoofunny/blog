@@ -39,14 +39,15 @@
 
 这两个游戏不开新关卡——**直接把博客首页（真实 DOM）当游戏世界**，同源 iframe 拉伸为整页高度，相机跟着角色跑：
 
-- **[摧毁本站](public/games/destroy/)（`/games/destroy/`）** — clawd 从天而降踩上首页：**带文字的元素既是台阶也是靶子**，28px 瓦片粒度一格一格炸，字符逐字飞散；S/↓ 沿文字行下潜一层，空格跳，W/↑ 火箭推进，8 种像素武器（手枪/冲锋枪/霰弹/狙击/手雷/火箭/激光/BFG）。纯拆，没有通关。
-- **[clawd 滚球](public/games/katamari/)（`/games/katamari/`，橡皮擦版）** — clawd 变成球在页面上 360° 滚动，滚过哪里哪里的字和图就变成空白（小球**不再变大**，纯擦除）；小元素直接擦掉，比球大的块用网格整块擦空。
+- **[摧毁本站](public/games/destroy/)（`/games/destroy/`）** — clawd 从天而降踩上首页：**靶子/台阶 = 自己带文字的元素 + `<img>` + `<iframe>` 块 + no-repeat CSS 背景图（logo/栏目图标）**，28px 瓦片粒度一格一格炸，字符逐字飞散；S/↓ 沿文字行下潜一层，空格跳，W/↑ 火箭推进，8 种像素武器（手枪/冲锋枪/霰弹/狙击/手雷/火箭/激光/BFG）。纯拆，没有通关。
+- **[clawd 滚球](public/games/katamari/)（`/games/katamari/`，橡皮擦版）** — clawd 变成球在页面上 360° 滚动，滚过哪里哪里的字和图就变成空白（小球**不再变大**，纯擦除）；小元素直接擦掉，比球大的块用网格整块擦空。擦除对象同摧毁（文字/图片/iframe/背景图）；纯容器（文字全在子孙里、无背景图）不是靶子，内容擦光后自动塌掉。
 
 **任意网页模式**：两个游戏都支持 `?url=<绝对地址>` 书签——但浏览器禁止跨源读写 iframe，所以游戏会经 `functions/api/mirror/[[path]].js`（Cloudflare Pages Function）把目标页"搬"成同源镜像（注入 `<base>` + 重写绝对地址 + 剥掉 XFO/CSP frame 限制 + 拦截 iframe 内点击改走镜像导航），这样擦/炸的就是你指定的那个网页。内网和回环地址被拒绝（防 SSRF）；不接受访客 Cookie。也可以直接在游戏开局面板输入网址跳转。
 
 > ⚠️ 镜像的两条血泪经验（踩坑记录，改这个函数前先读）：
 > 1. **CSS/JS 必须强制走镜像通道**。相对路径的样式表/脚本经 `<base>` 会直连原站——带 `crossorigin="anonymous"` 的站点（Cloudflare 托管的常见）没有 `Access-Control-Allow-Origin` 响应头，样式被 CORS 拦截 → 页面背景透明、透出游戏黑底（dhu.edu.cn 案）。所以 `<link rel=stylesheet>`/`<script src>` 一律重写为镜像路径（同源后无 CORS），CSS/JS 响应补 `Access-Control-Allow-Origin: *`，并剥掉 `integrity`（内容重写了哈希必挂）。
 > 2. **镜像路径必须写成本域绝对地址**（`location.origin + /api/mirror/...`）。页里有 `<base href=原站>`，写相对 `/api/mirror/...` 会被浏览器解析到原站域名下全 404。`//cdn-cgi/...` 这类 CF 注入脚本跳过重写（重写了反而 ORB 拦截 + 混合内容错误）。
+> 3. **靶子判定要覆盖"看不见 DOM 文字"的内容**：`<iframe>` 块、no-repeat CSS 背景图（logo/栏目图标）、超大图（曾因 6% 面积过滤被踢，导致"站不上去也炸不掉"）都得是靶子，否则用户会报"有些内容擦不掉/不能站"（dhu.edu.cn 案）。
 
 技术要点：`Range API` 逐字符测量真实位置生成瓦片（空白处是空气，人物不会悬浮在空白上）；元素吸收 = `visibility: hidden` + 粒子/碎片表现；站内模式无后端、无依赖，全部逻辑在这两个目录的 `index.html` + `game.js` 里，镜像代理在 `functions/api/mirror/`。灵感：spritefusion 的 destroy 彩蛋、MIT 的 [website-breaker](https://github.com/komlanKodoh/website-breaker)、Katamari Damacy。
 

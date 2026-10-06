@@ -203,7 +203,7 @@ function sfx() {
 // ---------- 目标文档 ----------
 const doc = () => { try { return target.contentDocument; } catch (e) { return null; } };
 const SKIP_TAGS = new Set(["html", "body", "head", "script", "style", "link", "meta",
-  "noscript", "title", "br", "template", "iframe"]);
+  "noscript", "title", "br", "template"]);
 
 function isVisibleEl(el) {
   if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibility: true })) return false;
@@ -214,6 +214,16 @@ function isTransparent(c) {
   return !c || c === "transparent" || /rgba?\([^)]*,\s*0\)/.test(c);
 }
 
+// 元素自身「看得见的内容」判定：<img>/<video>/<canvas>/<picture> 标签、
+// 自己直接挂文字、或有 no-repeat 背景图（logo/图标/栏目图这类 CSS 背景内容）。
+// 纯容器（文字全在子孙里、无背景图）不是靶子——否则最大的容器被一碰就整块擦掉。
+function hasVisualContent(d, el) {
+  const tag = el.tagName;
+  if (tag === "IMG" || tag === "VIDEO" || tag === "CANVAS" || tag === "PICTURE") return true;
+  if (ownChars(el) > 0) return true;
+  const cs = d.defaultView.getComputedStyle(el);
+  return !!cs.backgroundImage && cs.backgroundImage !== "none" && cs.backgroundRepeat !== "repeat" && cs.backgroundRepeat !== "repeat-x" && cs.backgroundRepeat !== "repeat-y";
+}
 // 直接子文本节点里的非空白字符数：靶子判定用（只有自己身上带字的才是靶子）
 function ownChars(el) {
   let n = 0;
@@ -256,7 +266,7 @@ function buildEls() {
   const targetSet = new Set();
   for (const el of allEls) {
     if (SKIP_TAGS.has(el.tagName.toLowerCase()) || el.__absorbed) continue;
-    if (el.tagName === "IMG" || ownChars(el) > 0) targetSet.add(el);
+    if (hasVisualContent(d, el)) targetSet.add(el);
   }
   const csCache = new Map();
   for (const el of targetSet) {
@@ -266,12 +276,15 @@ function buildEls() {
     const cs = d.defaultView.getComputedStyle(el);
     const bg = isTransparent(cs.backgroundColor) ? "" : cs.backgroundColor;
     const fg = isTransparent(cs.color) ? "#e8e8ee" : cs.color;
+    const bgi = cs.backgroundImage;
+    const bgImg = (bgi && bgi !== "none") ? bgi : "";   // CSS 背景图（url(...)），碎片判定用
     const txt = (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 20);
     const e = {
       el, x: r.x, y: r.y, w: r.width, h: r.height, area: r.width * r.height,
-      color: bg || fg, bg, fg, text: txt,
+      color: bg || fg, bg, fg, bgImg, text: txt,
       fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontSize: parseFloat(cs.fontSize) || 14,
-      isImg: el.tagName === "IMG", absorbed: false, collapser: null,
+      isImg: el.tagName === "IMG", isMedia: ["IMG","VIDEO","CANVAS","PICTURE"].includes(el.tagName),
+      absorbed: false, collapser: null,
     };
     // 最近的可折叠容器祖先（有可见盒子、不是靶子的纯容器）——该容器记一个"单元"
     let p = el.parentElement;
@@ -339,6 +352,12 @@ function tryAbsorb() {
     // 否则全页最大的容器被一碰就整块清空，覆盖率瞬间 ≥80% → "0 秒擦完全站"
     if (e.isImg && e.el.complete && e.el.naturalWidth && Math.max(e.w, e.h) > S.r * 2 + 6) {
       if (!e.el.__blanking) blankBig(e);
+    } else if (e.isMedia) {
+      // video/canvas/picture/iframe：暂停播放后用 dm-done 隐藏（保持布局不动，
+      // 直接移除 DOM 会让下方内容整体上移、其他靶子的坐标全失效）
+      if (e.el.tagName === "VIDEO") { try { e.el.pause(); } catch (ex) {} }
+      e.el.classList.add("dm-done");
+      e.el.__absorbed = true;
     } else {
       e.el.classList.add("dm-done");
       e.el.__absorbed = true;
@@ -383,6 +402,9 @@ function addFrag(e) {
     const fs = Math.max(8, Math.min(e.fontSize * (fh / Math.max(12, e.h)), fh * 0.9));
     frag.textContent = e.text;
     frag.style.cssText = tpos + "background:" + (e.bg || "transparent") + ";color:" + e.fg + ";font-family:" + e.fontFamily + ";font-weight:" + e.fontWeight + ";font-size:" + fs + "px;line-height:1.15;";
+  } else if (e.bg && e.bg !== "transparent" && /^url/.test(e.bg)) {
+    // CSS 背景图（logo/图标/栏目图）：碎片做成一个纯色占位块 + 底部原色条
+    frag.style.cssText = tpos + "background:rgba(160,170,200,0.5);border:1px solid rgba(120,130,160,0.8);";
   } else {
     frag.style.cssText = tpos + "background:" + e.color + ";";
   }
