@@ -219,7 +219,7 @@ function isTransparent(c) {
 // 纯容器（文字全在子孙里、无背景图）不是靶子——否则最大的容器被一碰就整块擦掉。
 function hasVisualContent(d, el) {
   const tag = el.tagName;
-  if (tag === "IMG" || tag === "VIDEO" || tag === "CANVAS" || tag === "PICTURE") return true;
+  if (tag === "IMG" || tag === "VIDEO" || tag === "CANVAS" || tag === "PICTURE" || tag === "IFRAME") return true;
   if (ownChars(el) > 0) return true;
   const cs = d.defaultView.getComputedStyle(el);
   return !!cs.backgroundImage && cs.backgroundImage !== "none" && cs.backgroundRepeat !== "repeat" && cs.backgroundRepeat !== "repeat-x" && cs.backgroundRepeat !== "repeat-y";
