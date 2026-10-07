@@ -51,19 +51,6 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
 #hudFill { position: absolute; inset: 0; width: 0%; background: linear-gradient(90deg, var(--primary), var(--gold)); transition: width .3s; }
 #hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-shadow: 0 1px 0 #000; }
 @media (max-width: 720px) { #hint { display: none; } }
-#joy {
-  position: fixed; left: 22px; bottom: calc(26px + env(safe-area-inset-bottom, 0px));
-  z-index: 10; width: 120px; height: 120px; border-radius: 50%;
-  background: rgba(11,11,16,.48); border: 2px solid rgba(255,255,255,.22);
-  box-shadow: 6px 6px 0 #000a;
-  touch-action: none; -webkit-tap-highlight-color: transparent;
-}
-#joyKnob {
-  position: absolute; left: 50%; top: 50%; margin: -20px 0 0 -20px;
-  width: 40px; height: 40px; border-radius: 50%; background: var(--gold);
-  box-shadow: 0 0 0 3px var(--primary), 0 0 0 5px rgba(11,11,16,.65), 3px 3px 0 #000a;
-  pointer-events: none; will-change: transform;
-}
 @media (pointer: fine) { #joy { display: none !important; } }
 #intro, #done {
   position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
@@ -114,14 +101,13 @@ body { background: var(--bg); color: #e8e8ee; font-family: var(--mono); user-sel
   <div id="hud">
     <div id="hudTitle">已擦除 <b id="cnt">0</b>/<span id="tot">?</span> 个元素 · 覆盖率 <b id="cov">0%</b></div>
     <div id="hudBar"><div id="hudFill"></div></div>
-    <div id="hint">方向键 / WASD 滚动 · 手机用左下角摇杆 · 橡皮擦滚过哪里，哪里就变成空白 · 大块内容会被整块擦掉</div>
+    <div id="hint">方向键 / WASD 滚动 · 碰到比自己小的元素就会粘上来 · 球越大能卷的越多</div>
   </div>
 
   <div id="intro">
     <div class="panel">
       <h1>🧽 clawd 橡皮擦</h1>
       <p>clawd 变成一块<b>不会变大的橡皮擦</b>，在<b>真实页面</b>上滚一圈——滚过哪里，哪里的字和图片就被擦成空白，留下一个个白色的洞。小元素直接擦掉，<b>大块内容用网格整块擦除</b>。转圈照旧，只是不再越滚越大。</p>
-      <p class="keys">方向键 / WASD 滚动 · 手机左下角有虚拟摇杆 · 无重力</p>
       <div class="urlrow">
         <input id="urlInput" type="url" placeholder="输入任意网页地址…" autocomplete="off">
         <button id="urlBtn" type="button">擦这个网页</button>
@@ -450,7 +436,6 @@ function loop(t) {
   if (S.keys["arrowright"] || S.keys["d"]) ax += 1;
   if (S.keys["arrowup"] || S.keys["w"]) ay -= 1;
   if (S.keys["arrowdown"] || S.keys["s"]) ay += 1;
-  if (joy.id !== -1 && !S.over) { ax += joy.dx; ay += joy.dy; }
   const acc = 0.55;
   S.vx += ax * acc; S.vy += ay * acc;
   const sp = Math.hypot(S.vx, S.vy), maxSp = 8;  // 球径固定，速度也固定
@@ -491,46 +476,6 @@ addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false }
 // ---------- 虚拟摇杆（仅触屏设备） ----------
 const joy = { id: -1, dx: 0, dy: 0 };
 let joyShown = false;
-// ---------- 浮动摇杆（按住屏幕任意位置出现，死区+响应曲线） ----------
-const JOY_R = 56, JOY_DEAD = 0.14;
-const joyBase = document.createElement("div"); joyBase.id = "joyBase";
-const joyKnob = document.createElement("div"); joyKnob.id = "joyKnob";
-document.body.appendChild(joyBase); document.body.appendChild(joyKnob);
-const joyShow = (x, y) => {
-  joyShown = true;
-  joyBase.style.left = x + "px"; joyBase.style.top = y + "px";
-  joyKnob.style.left = x + "px"; joyKnob.style.top = y + "px";
-  joyBase.classList.add("on"); joyKnob.classList.add("on");
-};
-const joyStick = (x, y) => {
-  let dx = x - joyBase.offsetLeft, dy = y - joyBase.offsetTop;
-  const d = Math.hypot(dx, dy) || 1;
-  const cl = Math.min(d, JOY_R);
-  const nx = dx / d, ny = dy / d;
-  const mag = Math.min(1, cl / JOY_R);
-  const m2 = mag < JOY_DEAD ? 0 : (mag - JOY_DEAD) / (1 - JOY_DEAD);
-  joy.dx = nx * m2; joy.dy = ny * m2;
-  joyKnob.style.left = (joyBase.offsetLeft + nx * cl) + "px";
-  joyKnob.style.top = (joyBase.offsetTop + ny * cl) + "px";
-};
-const joyEnd = () => {
-  joy.id = -1; joy.dx = 0; joy.dy = 0; joyShown = false;
-  joyBase.classList.remove("on"); joyKnob.classList.remove("on");
-};
-const stage = document.getElementById("stage");
-stage.addEventListener("pointerdown", (e) => {
-  if (!S.started || S.over) return;
-  if (e.pointerType === "mouse") return;
-  if (e.target.closest("#hud, button, input, a")) return;
-  if (joy.id !== -1) return;
-  joy.id = e.pointerId;
-  joyShow(e.clientX, e.clientY);
-  joyStick(e.clientX, e.clientY);
-  e.preventDefault();
-}, { passive: false });
-addEventListener("pointermove", (e) => { if (e.pointerId === joy.id) joyStick(e.clientX, e.clientY); }, { passive: false });
-const joyRelease = (e) => { if (e.pointerId === joy.id) joyEnd(); };
-addEventListener("pointerup", joyRelease);
 addEventListener("pointercancel", joyRelease);
 
 // ---------- 开局 ----------

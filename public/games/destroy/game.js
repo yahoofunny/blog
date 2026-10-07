@@ -101,10 +101,8 @@ const S = {
   bullets: [], parts: [], pops: [], beams: [],
   worldW: innerWidth, worldH: 1000, docH: 600,
   totalTiles: 0, destroyedTiles: 0, totalEls: 0, destroyedEls: 0,
-  shake: 0, muted: false, t0: 0, shots: 0,
+  shake: 0, muted: false, t0: 0, shots: 0, mouseFire: false,
   keys: {},
-  joyMove: null, joyAim: null,        // 浮动摇杆状态（setupTouch 创建）
-  joyDesc: false,
 };
 
 // ---------- 音效 ----------
@@ -565,7 +563,6 @@ function burst(x, y, n, color) {
 // ---------- 武器 / 射击 ----------
 function shoot() {
   if (S.over || !S.started) return;
-  if (S.joyAim) { S.aimX = S.px + S.joyAim.x * 220; S.aimScreenY = S.py - S.camY + S.joyAim.y * 220; }
   const w = WEAPONS[S.weapon - 1], now = performance.now();
   if (w.kind === "beam") return;                 // 激光在 loop 里持续处理
   if (now - S.lastShot < w.rate) return;
@@ -670,12 +667,10 @@ function loop(t) {
   // clawd：平台物理（瓦片 = 台阶）。键盘 a/d 与虚拟摇杆向量合并
   const kL = S.keys["a"] || S.keys["arrowleft"], kR = S.keys["d"] || S.keys["arrowright"];
   let mv = (kR ? 1 : 0) - (kL ? 1 : 0);
-  if (S.joyMove) mv = Math.max(-1, Math.min(1, mv + S.joyMove.x));   // 浮动摇杆：模拟量叠加
   S.vx += Math.max(-1, Math.min(1, mv)) * 0.9;
   S.vx *= 0.85;
-  const jet = S.keys["w"] || S.keys["arrowup"] || (S.joyMove && S.joyMove.y < -0.45);
+  const jet = S.keys["w"] || S.keys["arrowup"];
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
-  if (S.joyMove && S.joyMove.y > 0.75) { if (!S.joyDesc) { S.joyDesc = true; descendOneLayer(); } } else S.joyDesc = false;
   // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
   if (!jet && S.onGround) S.vy = 0;
   else { S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy)); }
@@ -745,7 +740,7 @@ function loop(t) {
 
   const w = WEAPONS[S.weapon - 1];
   // 触屏开火键按住连发一切武器（旧 setInterval 行为）；桌面半自动仍单发
-  if (S.firing && w.kind !== "beam") shoot();
+  if (S.firing && (w.auto || S.mouseFire) && w.kind !== "beam") shoot();
 
   // 激光：按住持续融化（独立计时器，每 80ms 融一格）
   if (w.kind === "beam" && S.firing) {
@@ -923,9 +918,8 @@ function draw() {
 }
 
 // ---------- 输入 ----------
-const KEY_MAP = { KeyW: "w", KeyA: "a", KeyS: "s", KeyD: "d", ArrowUp: "arrowup", ArrowDown: "arrowdown", ArrowLeft: "arrowleft", ArrowRight: "arrowright", Space: " " };
 addEventListener("keydown", (e) => {
-  const k = KEY_MAP[e.code] || e.key.toLowerCase();
+  const k = e.key.toLowerCase();
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
   S.keys[k] = true;
   if (!S.started || S.over) return;
@@ -935,18 +929,18 @@ addEventListener("keydown", (e) => {
   if (num >= 1 && num <= WEAPONS.length) setWeapon(num);
   if (k === "m") S.muted = !S.muted;
 });
-addEventListener("keyup", (e) => { const k = KEY_MAP[e.code] || e.key.toLowerCase(); S.keys[k] = false; });
+addEventListener("keyup", (e) => { S.keys[e.key.toLowerCase()] = false; });
 addEventListener("mousemove", (e) => { S.aimX = e.clientX; S.aimScreenY = e.clientY; });
 addEventListener("mousedown", (e) => {
   if (!S.started || S.over) return;
   const t = e.target;
   if (t && t.closest && t.closest("#hud, #touch")) return;
   S.aimX = e.clientX; S.aimScreenY = e.clientY;
-  S.firing = true;
+  S.firing = true; S.mouseFire = true;
   const w = WEAPONS[S.weapon - 1];
   if (!w.auto) shoot();
 });
-addEventListener("mouseup", () => { S.firing = false; });
+addEventListener("mouseup", () => { S.firing = false; S.mouseFire = false; });
 addEventListener("blur", () => { for (const k in S.keys) delete S.keys[k]; S.firing = false; });   // 失焦清键，防卡键
 addEventListener("contextmenu", (e) => {
   if (!S.started) return;
@@ -972,79 +966,6 @@ sizeFx();
 
 // ---------- 触屏：虚拟摇杆（左下，全向）+ 大开火键（右下，按住连发） ----------
 // 只在触屏启用：Pointer Events + setPointerCapture，多指各自跟踪，摇杆与开火键可同时按。
-// 触控容器 touch-action:none + 全局 touchmove preventDefault（iOS 橡皮筋）。
-// ---------- 浮动双摇杆（virtualjoystick.js 风格）：左半屏移动，右半屏瞄准+自动开火 ----------
-const JOY_R = 56, JOY_DEAD = 0.14;
-function makeJoy(cls) {
-  const base = document.createElement("div");
-  base.className = "joyBase " + cls;
-  const knob = document.createElement("div");
-  knob.className = "joyKnob " + cls;
-  wrap.appendChild(base); wrap.appendChild(knob);
-  const st = { id: -1, bx: 0, by: 0, x: 0, y: 0, base, knob };
-  st.show = (x, y) => {
-    st.bx = x; st.by = y;
-    base.classList.add("on"); knob.classList.add("on");
-    base.style.left = x + "px"; base.style.top = y + "px";
-    knob.style.left = x + "px"; knob.style.top = y + "px";
-  };
-  st.move = (x, y) => {
-    let dx = x - st.bx, dy = y - st.by;
-    const d = Math.hypot(dx, dy) || 1;
-    const cl = Math.min(d, JOY_R);
-    const nx = dx / d, ny = dy / d;
-    const mag = Math.min(1, cl / JOY_R);
-    const m2 = mag < JOY_DEAD ? 0 : (mag - JOY_DEAD) / (1 - JOY_DEAD);
-    st.x = nx * m2; st.y = ny * m2;
-    knob.style.left = (st.bx + nx * cl) + "px";
-    knob.style.top = (st.by + ny * cl) + "px";
-  };
-  st.hide = () => { st.id = -1; st.x = 0; st.y = 0; base.classList.remove("on"); knob.classList.remove("on"); };
-  return st;
-}
-let touchInited = false;
-function setupTouch() {
-  if (!("PointerEvent" in window) || touchInited) return;
-  touchInited = true;
-  document.documentElement.classList.add("has-touch");
-  document.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
-  S.joyMove = makeJoy("joyL");
-  S.joyAim = makeJoy("joyR");
-  const release = (pid) => {
-    if (S.joyMove && S.joyMove.id === pid) { S.joyMove.hide(); }
-    if (S.joyAim && S.joyAim.id === pid) { S.joyAim.hide(); S.firing = false; }
-  };
-  stage.addEventListener("pointerdown", (e) => {
-    if (!S.started || S.over) return;
-    if (e.pointerType === "mouse") return;                    // 桌面走键鼠
-    if (e.target.closest("#hud, button, input, a")) return;
-    if (e.clientX < innerWidth / 2) {                        // 左半屏：移动摇杆
-      if (S.joyMove.id !== -1) return;
-      S.joyMove.id = e.pointerId;
-      S.joyMove.show(e.clientX, e.clientY);
-      S.joyMove.move(e.clientX, e.clientY);
-    } else {                                                 // 右半屏：瞄准+开火
-      if (S.joyAim.id !== -1) return;
-      S.joyAim.id = e.pointerId;
-      S.joyAim.show(e.clientX, e.clientY);
-      S.joyAim.move(e.clientX, e.clientY);
-      S.firing = true;
-    }
-    e.preventDefault();
-  }, { passive: false });
-  addEventListener("pointermove", (e) => {
-    if (S.joyMove && e.pointerId === S.joyMove.id) S.joyMove.move(e.clientX, e.clientY);
-    if (S.joyAim && e.pointerId === S.joyAim.id) S.joyAim.move(e.clientX, e.clientY);
-  }, { passive: false });
-  const up = (e) => {
-    if (S.joyMove && e.pointerId === S.joyMove.id) S.joyMove.hide();
-    if (S.joyAim && e.pointerId === S.joyAim.id) { S.joyAim.hide(); S.firing = false; }
-  };
-  addEventListener("pointerup", up);
-  addEventListener("pointercancel", up);
-}
-if (isCoarse) setupTouch();
-window.__setupTouch = setupTouch;
 
 // 武器栏
 function buildWeaponBar() {
