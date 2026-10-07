@@ -490,40 +490,47 @@ addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false }
 // ---------- 虚拟摇杆（仅触屏设备） ----------
 const joy = { id: -1, dx: 0, dy: 0 };
 let joyShown = false;
-const joyEl = matchMedia("(pointer: coarse)").matches ? document.createElement("div") : null;
-if (joyEl) {
-  joyEl.id = "joy";
-  const knob = document.createElement("div");
-  knob.id = "joyKnob";
-  joyEl.appendChild(knob);
-  document.body.appendChild(joyEl);
-  joyEl.style.display = "none";
-  const joyMove = (e) => {
-    const r = joyEl.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2;
-    let vx = (e.clientX - cx) / R, vy = (e.clientY - cy) / R;
-    const len = Math.hypot(vx, vy);
-    if (len > 1) { vx /= len; vy /= len; }
-    joy.dx = vx; joy.dy = vy;
-    knob.style.transform = "translate(" + (e.clientX - cx) + "px," + (e.clientY - cy) + "px)";
-  };
-  const joyEnd = (e) => {
-    if (e.pointerId !== joy.id) return;
-    joy.id = -1; joy.dx = 0; joy.dy = 0;
-    knob.style.transform = "translate(0,0)";
-  };
-  joyEl.addEventListener("pointerdown", (e) => {
-    if (joy.id !== -1) return;
-    e.preventDefault();
-    joy.id = e.pointerId;
-    joyEl.setPointerCapture(e.pointerId);
-    joyMove(e);
-  });
-  joyEl.addEventListener("pointermove", (e) => { if (e.pointerId === joy.id) joyMove(e); });
-  joyEl.addEventListener("pointerup", joyEnd);
-  joyEl.addEventListener("pointercancel", joyEnd);
-  joyEl.addEventListener("lostpointercapture", joyEnd);
-}
+// ---------- 浮动摇杆（按住屏幕任意位置出现，死区+响应曲线） ----------
+const JOY_R = 56, JOY_DEAD = 0.14;
+const joyBase = document.createElement("div"); joyBase.id = "joyBase";
+const joyKnob = document.createElement("div"); joyKnob.id = "joyKnob";
+document.body.appendChild(joyBase); document.body.appendChild(joyKnob);
+const joyShow = (x, y) => {
+  joyShown = true;
+  joyBase.style.left = x + "px"; joyBase.style.top = y + "px";
+  joyKnob.style.left = x + "px"; joyKnob.style.top = y + "px";
+  joyBase.classList.add("on"); joyKnob.classList.add("on");
+};
+const joyStick = (x, y) => {
+  let dx = x - joyBase.offsetLeft, dy = y - joyBase.offsetTop;
+  const d = Math.hypot(dx, dy) || 1;
+  const cl = Math.min(d, JOY_R);
+  const nx = dx / d, ny = dy / d;
+  const mag = Math.min(1, cl / JOY_R);
+  const m2 = mag < JOY_DEAD ? 0 : (mag - JOY_DEAD) / (1 - JOY_DEAD);
+  joy.dx = nx * m2; joy.dy = ny * m2;
+  joyKnob.style.left = (joyBase.offsetLeft + nx * cl) + "px";
+  joyKnob.style.top = (joyBase.offsetTop + ny * cl) + "px";
+};
+const joyEnd = () => {
+  joy.id = -1; joy.dx = 0; joy.dy = 0; joyShown = false;
+  joyBase.classList.remove("on"); joyKnob.classList.remove("on");
+};
+const stage = document.getElementById("stage");
+stage.addEventListener("pointerdown", (e) => {
+  if (!S.started || S.over) return;
+  if (e.pointerType === "mouse") return;
+  if (e.target.closest("#hud, button, input, a")) return;
+  if (joy.id !== -1) return;
+  joy.id = e.pointerId;
+  joyShow(e.clientX, e.clientY);
+  joyStick(e.clientX, e.clientY);
+  e.preventDefault();
+}, { passive: false });
+addEventListener("pointermove", (e) => { if (e.pointerId === joy.id) joyStick(e.clientX, e.clientY); }, { passive: false });
+const joyRelease = (e) => { if (e.pointerId === joy.id) joyEnd(); };
+addEventListener("pointerup", joyRelease);
+addEventListener("pointercancel", joyRelease);
 
 // ---------- 开局 ----------
 function startGame() {

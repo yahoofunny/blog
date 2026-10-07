@@ -97,13 +97,14 @@ const S = {
   px: innerWidth / 2, py: -SKY + 80, vx: 0, vy: 0, onGround: false, face: 1,
   camY: -SKY,
   aimX: innerWidth * 0.6, aimScreenY: 200, aimY: 200,
-  weapon: 0, lastShot: 0, beamAcc: 0, firing: false, touchFire: false, descendTarget: null,
+  weapon: 0, lastShot: 0, beamAcc: 0, firing: false, descendTarget: null,
   bullets: [], parts: [], pops: [], beams: [],
   worldW: innerWidth, worldH: 1000, docH: 600,
   totalTiles: 0, destroyedTiles: 0, totalEls: 0, destroyedEls: 0,
   shake: 0, muted: false, t0: 0, shots: 0,
   keys: {},
-  stick: { on: false, x: 0, y: 0 },   // 虚拟摇杆归一化向量，与键盘合并
+  joyMove: null, joyAim: null,        // 浮动摇杆状态（setupTouch 创建）
+  joyDesc: false,
 };
 
 // ---------- 音效 ----------
@@ -564,6 +565,7 @@ function burst(x, y, n, color) {
 // ---------- 武器 / 射击 ----------
 function shoot() {
   if (S.over || !S.started) return;
+  if (S.joyAim) { S.aimX = S.px + S.joyAim.x * 220; S.aimScreenY = S.py - S.camY + S.joyAim.y * 220; }
   const w = WEAPONS[S.weapon - 1], now = performance.now();
   if (w.kind === "beam") return;                 // 激光在 loop 里持续处理
   if (now - S.lastShot < w.rate) return;
@@ -668,14 +670,12 @@ function loop(t) {
   // clawd：平台物理（瓦片 = 台阶）。键盘 a/d 与虚拟摇杆向量合并
   const kL = S.keys["a"] || S.keys["arrowleft"], kR = S.keys["d"] || S.keys["arrowright"];
   let mv = (kR ? 1 : 0) - (kL ? 1 : 0);
-  if (S.stick.on) {
-    if (S.stick.y < -0.5) mv = Math.abs(mv) >= 0.9 ? mv : S.stick.x;   // 摇杆朝上（推进方向）：纯键盘时保留键盘，否则用摇杆全向
-    else mv = mv || S.stick.x;                                         // 摇杆横向：键盘优先，摇杆补空（同时按住取键盘）
-  }
+  if (S.joyMove) mv = Math.max(-1, Math.min(1, mv + S.joyMove.x));   // 浮动摇杆：模拟量叠加
   S.vx += Math.max(-1, Math.min(1, mv)) * 0.9;
   S.vx *= 0.85;
-  const jet = S.keys["w"] || S.keys["arrowup"] || (S.stick.on && S.stick.y < -0.5);
+  const jet = S.keys["w"] || S.keys["arrowup"] || (S.joyMove && S.joyMove.y < -0.45);
   if (jet) { S.vy -= 0.62; player.classList.add("flying"); } else player.classList.remove("flying");
+  if (S.joyMove && S.joyMove.y > 0.75) { if (!S.joyDesc) { S.joyDesc = true; descendOneLayer(); } } else S.joyDesc = false;
   // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
   if (!jet && S.onGround) S.vy = 0;
   else { S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy)); }
@@ -745,7 +745,7 @@ function loop(t) {
 
   const w = WEAPONS[S.weapon - 1];
   // 触屏开火键按住连发一切武器（旧 setInterval 行为）；桌面半自动仍单发
-  if (S.firing && (w.auto || S.touchFire) && w.kind !== "beam") shoot();
+  if (S.firing && w.kind !== "beam") shoot();
 
   // 激光：按住持续融化（独立计时器，每 80ms 融一格）
   if (w.kind === "beam" && S.firing) {
@@ -941,12 +941,12 @@ addEventListener("mousedown", (e) => {
   const t = e.target;
   if (t && t.closest && t.closest("#hud, #touch")) return;
   S.aimX = e.clientX; S.aimScreenY = e.clientY;
-  S.firing = true; S.touchFire = false;
+  S.firing = true;
   const w = WEAPONS[S.weapon - 1];
   if (!w.auto) shoot();
 });
-addEventListener("mouseup", () => { S.firing = false; S.touchFire = false; });
-addEventListener("blur", () => { for (const k in S.keys) delete S.keys[k]; S.firing = false; S.touchFire = false; });   // 失焦清键，防卡键
+addEventListener("mouseup", () => { S.firing = false; });
+addEventListener("blur", () => { for (const k in S.keys) delete S.keys[k]; S.firing = false; });   // 失焦清键，防卡键
 addEventListener("contextmenu", (e) => {
   if (!S.started) return;
   const t = e.target;
@@ -972,85 +972,76 @@ sizeFx();
 // ---------- 触屏：虚拟摇杆（左下，全向）+ 大开火键（右下，按住连发） ----------
 // 只在触屏启用：Pointer Events + setPointerCapture，多指各自跟踪，摇杆与开火键可同时按。
 // 触控容器 touch-action:none + 全局 touchmove preventDefault（iOS 橡皮筋）。
+// ---------- 浮动双摇杆（virtualjoystick.js 风格）：左半屏移动，右半屏瞄准+自动开火 ----------
+const JOY_R = 56, JOY_DEAD = 0.14;
+function makeJoy(cls) {
+  const base = document.createElement("div");
+  base.className = "joyBase " + cls;
+  const knob = document.createElement("div");
+  knob.className = "joyKnob " + cls;
+  wrap.appendChild(base); wrap.appendChild(knob);
+  const st = { id: -1, bx: 0, by: 0, x: 0, y: 0, base, knob };
+  st.show = (x, y) => {
+    st.bx = x; st.by = y;
+    base.classList.add("on"); knob.classList.add("on");
+    base.style.left = x + "px"; base.style.top = y + "px";
+    knob.style.left = x + "px"; knob.style.top = y + "px";
+  };
+  st.move = (x, y) => {
+    let dx = x - st.bx, dy = y - st.by;
+    const d = Math.hypot(dx, dy) || 1;
+    const cl = Math.min(d, JOY_R);
+    const nx = dx / d, ny = dy / d;
+    const mag = Math.min(1, cl / JOY_R);
+    const m2 = mag < JOY_DEAD ? 0 : (mag - JOY_DEAD) / (1 - JOY_DEAD);
+    st.x = nx * m2; st.y = ny * m2;
+    knob.style.left = (st.bx + nx * cl) + "px";
+    knob.style.top = (st.by + ny * cl) + "px";
+  };
+  st.hide = () => { st.id = -1; st.x = 0; st.y = 0; base.classList.remove("on"); knob.classList.remove("on"); };
+  return st;
+}
 let touchInited = false;
 function setupTouch() {
   if (!("PointerEvent" in window) || touchInited) return;
   touchInited = true;
-  touchBox.hidden = false;
   document.documentElement.classList.add("has-touch");
   document.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
-
-  const zone = $("stickZone"), stickBase = $("stick"), knob = $("knob"), fireBtn = $("tFire");
-  const stickIds = new Set();                       // 摇杆区活动指针
-  let baseId = -1;
-  const R = zone.offsetWidth / 2 - 6;
-
-  zone.addEventListener("pointerdown", (e) => {
+  S.joyMove = makeJoy("joyL");
+  S.joyAim = makeJoy("joyR");
+  const release = (pid) => {
+    if (S.joyMove && S.joyMove.id === pid) { S.joyMove.hide(); }
+    if (S.joyAim && S.joyAim.id === pid) { S.joyAim.hide(); S.firing = false; }
+  };
+  stage.addEventListener("pointerdown", (e) => {
     if (!S.started || S.over) return;
-    if (baseId !== -1) return;
-    baseId = e.pointerId;
-    stickIds.add(e.pointerId);
-    zone.setPointerCapture(e.pointerId);
-    placeBase(e.clientX, e.clientY);
-    moveStick(e.clientX, e.clientY);
-    e.preventDefault();
-  });
-  zone.addEventListener("pointermove", (e) => {
-    if (!stickIds.has(e.pointerId)) return;
-    if (e.pointerId === baseId) moveStick(e.clientX, e.clientY);
-    e.preventDefault();
-  });
-  const release = (e) => {
-    if (!stickIds.has(e.pointerId)) return;
-    stickIds.delete(e.pointerId);
-    if (e.pointerId === baseId) {                  // 主指离开：摇杆归零
-      baseId = -1;
-      S.stick.on = false; S.stick.x = 0; S.stick.y = 0;
-      stickBase.style.transform = "translate(-50%, -50%)";
-      knob.style.transform = "translate(-50%, -50%)";
-      zone.classList.remove("active");
+    if (e.pointerType === "mouse") return;                    // 桌面走键鼠
+    if (e.target.closest("#hud, button, input, a")) return;
+    if (e.clientX < innerWidth / 2) {                        // 左半屏：移动摇杆
+      if (S.joyMove.id !== -1) return;
+      S.joyMove.id = e.pointerId;
+      S.joyMove.show(e.clientX, e.clientY);
+      S.joyMove.move(e.clientX, e.clientY);
+    } else {                                                 // 右半屏：瞄准+开火
+      if (S.joyAim.id !== -1) return;
+      S.joyAim.id = e.pointerId;
+      S.joyAim.show(e.clientX, e.clientY);
+      S.joyAim.move(e.clientX, e.clientY);
+      S.firing = true;
     }
     e.preventDefault();
+  }, { passive: false });
+  addEventListener("pointermove", (e) => {
+    if (S.joyMove && e.pointerId === S.joyMove.id) S.joyMove.move(e.clientX, e.clientY);
+    if (S.joyAim && e.pointerId === S.joyAim.id) S.joyAim.move(e.clientX, e.clientY);
+  }, { passive: false });
+  const up = (e) => {
+    if (S.joyMove && e.pointerId === S.joyMove.id) S.joyMove.hide();
+    if (S.joyAim && e.pointerId === S.joyAim.id) { S.joyAim.hide(); S.firing = false; }
   };
-  zone.addEventListener("pointerup", release);
-  zone.addEventListener("pointercancel", release);
-
-  function placeBase(px, py) {
-    stickBase.style.left = px + "px";
-    stickBase.style.top = py + "px";
-    stickBase.style.transform = "translate(-50%, -50%)";
-  }
-  function moveStick(px, py) {
-    const bx = stickBase.offsetLeft, by = stickBase.offsetTop;
-    let dx = px - bx, dy = py - by;
-    const d = Math.hypot(dx, dy);
-    if (d > R) { dx = dx / d * R; dy = dy / d * R; }
-    S.stick.on = true;
-    S.stick.x = dx / R;
-    S.stick.y = dy / R;
-    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-    if (!zone.classList.contains("active")) zone.classList.add("active");
-    S.aimX = S.px + S.face * 200;
-    S.aimScreenY = S.py - S.camY - 60;
-  }
-
-  // 开火键：setPointerCapture 保证滑出也连发；S.firing + S.touchFire 由 loop 按武器射速自动连发
-  const fireOn = (e) => { if (!S.started || S.over) return; fireBtn.classList.add("down"); S.aimX = S.px + S.face * 200; S.aimScreenY = S.py - S.camY - 60; S.firing = true; S.touchFire = true; shoot(); e.preventDefault(); };
-  const fireOff = () => { fireBtn.classList.remove("down"); S.firing = false; S.touchFire = false; };
-  fireBtn.addEventListener("pointerdown", (e) => { fireBtn.setPointerCapture(e.pointerId); fireOn(e); });
-  fireBtn.addEventListener("pointerup", (e) => { fireOff(); e.preventDefault(); });
-  fireBtn.addEventListener("pointercancel", fireOff);
-
-  // 跳跃键（保留：按住=喷气，点按=跳）
-  hold($("tJet"), () => { S.keys["w"] = true; }, () => { S.keys["w"] = false; });
+  addEventListener("pointerup", up);
+  addEventListener("pointercancel", up);
 }
-
-// 按住辅助：Pointer 事件（触摸指针有隐式 capture，滑出按钮也不会卡键）
-const hold = (el, on, off) => {
-  el.addEventListener("pointerdown", (e) => { e.preventDefault(); on(); }, { passive: false });
-  el.addEventListener("pointerup", (e) => { off(); e.preventDefault(); });
-  el.addEventListener("pointercancel", off);
-};
 if (isCoarse) setupTouch();
 window.__setupTouch = setupTouch;
 
