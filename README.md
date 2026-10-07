@@ -1,5 +1,7 @@
 # bt's Blog
 
+[English](./README.en.md) · 简体中文
+
 基于 [Astro](https://astro.build) 构建的个人主页 + 游戏厅，硬边纸面设计（暗色为主）+ 自托管的碎碎念时间线。
 
 ## ✨ 特性
