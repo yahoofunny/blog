@@ -40,11 +40,13 @@ target.src = targetSrc();
 
 // ---------- 目标就绪（load 监听 + 轮询双保险，防竞态） ----------
 let targetInited = false;
-function initTarget() {
-  if (targetInited) return true;
+let initRunning = false;
+async function initTarget() {
+  if (targetInited || initRunning) return true;
   const d = doc();
   if (!d || !d.body || d.readyState !== "complete") return false;
   if (d.location.href === "about:blank") return false;
+  initRunning = true;
   targetInited = true;
   d.querySelectorAll('details:not([open])').forEach((x) => { x.open = true; });
   // 同源 iframe 才能把隐藏样式打进目标文档（game.js 是外层脚本，样式规则不会自动穿透）
@@ -54,8 +56,16 @@ function initTarget() {
     st.textContent = ".dm-done{visibility:hidden !important;}";
     (d.head || d.documentElement).appendChild(st);
   }
-  S.docH = Math.max(600, d.documentElement.scrollHeight);
-  target.style.height = S.docH + "px";
+  // 高度稳定化：100vh 版式随 iframe 高度重排，测→设→再测直到收敛
+  let hh = Math.max(600, d.documentElement.scrollHeight);
+  for (let k = 0; k < 3; k++) {
+    target.style.height = hh + "px";
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const h2 = Math.max(600, d.documentElement.scrollHeight);
+    if (Math.abs(h2 - hh) <= 2) { hh = h2; break; }
+    hh = h2;
+  }
+  S.docH = hh;
   S.worldH = S.docH + GROUND_H;
   world.style.height = S.worldH + "px";
   floorEl.style.top = (S.docH + 40) + "px";
@@ -66,10 +76,11 @@ function initTarget() {
   S.py = -SKY + 80; S.vy = 0; S.onGround = false;
   player.style.left = S.px - 14 + "px";
   player.style.top = S.py - HH - S.camY + "px";   // player 已移入 #stage，屏幕坐标 = 世界坐标 - camY
+  initRunning = false;
   return true;
 }
-target.addEventListener("load", () => setTimeout(initTarget, 300));
-const readyPoll = setInterval(() => { if (initTarget()) clearInterval(readyPoll); }, 150);
+target.addEventListener("load", () => setTimeout(() => initTarget(), 300));
+const readyPoll = setInterval(() => { initTarget().then((ok) => { if (ok) clearInterval(readyPoll); }); }, 150);
 
 // ---------- 常量 ----------
 const CELL = 28;
@@ -674,6 +685,9 @@ function loop(t) {
   // 站稳时不积累重力速度（消除落地抖动）；空中才施加重力
   if (!jet && S.onGround) S.vy = 0;
   else { S.vy += 0.42; S.vy = Math.max(-8, Math.min(9, S.vy)); }
+  const dkey = S.keys["s"] || S.keys["arrowdown"];
+  if (dkey && S.onGround) { S.descAcc = (S.descAcc || 0) + dt; if (S.descAcc >= 0.32) { S.descAcc = 0; descendOneLayer(); } }
+  else S.descAcc = 0;
 
   if (S.descendTarget !== null) {
     S.vy = Math.min(S.vy + 0.5, 8.5);
@@ -924,7 +938,6 @@ addEventListener("keydown", (e) => {
   S.keys[k] = true;
   if (!S.started || S.over) return;
   if (k === " " && !e.repeat && S.onGround) { S.vy = -9; S.onGround = false; sfx("hit"); }
-  if ((k === "s" || k === "arrowdown" || e.code === "Numpad2") && !e.repeat) descendOneLayer();
   const num = parseInt(k, 10);
   if (num >= 1 && num <= WEAPONS.length) setWeapon(num);
   if (k === "m") S.muted = !S.muted;
