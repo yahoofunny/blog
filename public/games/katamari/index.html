@@ -478,12 +478,13 @@ function loop(t) {
 }
 
 // ---------- 输入 ----------
+const KEY_MAP = { KeyW: "w", KeyA: "a", KeyS: "s", KeyD: "d", ArrowUp: "arrowup", ArrowDown: "arrowdown", ArrowLeft: "arrowleft", ArrowRight: "arrowright", Space: " " };
 addEventListener("keydown", (e) => {
-  const k = e.key.toLowerCase();
+  const k = KEY_MAP[e.code] || e.key.toLowerCase();
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
   S.keys[k] = true;
 });
-addEventListener("keyup", (e) => { S.keys[e.key.toLowerCase()] = false; });
+addEventListener("keyup", (e) => { const k = KEY_MAP[e.code] || e.key.toLowerCase(); S.keys[k] = false; });
 addEventListener("resize", () => { fx.width = S.worldW = innerWidth; });
 addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
 

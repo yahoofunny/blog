@@ -923,8 +923,9 @@ function draw() {
 }
 
 // ---------- 输入 ----------
+const KEY_MAP = { KeyW: "w", KeyA: "a", KeyS: "s", KeyD: "d", ArrowUp: "arrowup", ArrowDown: "arrowdown", ArrowLeft: "arrowleft", ArrowRight: "arrowright", Space: " " };
 addEventListener("keydown", (e) => {
-  const k = e.key.toLowerCase();
+  const k = KEY_MAP[e.code] || e.key.toLowerCase();
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
   S.keys[k] = true;
   if (!S.started || S.over) return;
@@ -934,7 +935,7 @@ addEventListener("keydown", (e) => {
   if (num >= 1 && num <= WEAPONS.length) setWeapon(num);
   if (k === "m") S.muted = !S.muted;
 });
-addEventListener("keyup", (e) => { S.keys[e.key.toLowerCase()] = false; });
+addEventListener("keyup", (e) => { const k = KEY_MAP[e.code] || e.key.toLowerCase(); S.keys[k] = false; });
 addEventListener("mousemove", (e) => { S.aimX = e.clientX; S.aimScreenY = e.clientY; });
 addEventListener("mousedown", (e) => {
   if (!S.started || S.over) return;
