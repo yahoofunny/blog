@@ -1,15 +1,47 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
-
-const meta = { description: "About", title: "About" };
+const meta = { description: "About bt and this site", title: "About" };
 ---
-
 <PageLayout meta={meta}>
   <div class="glass-card !p-8 md:!p-12">
     <h1 class="text-3xl font-bold mb-2">About</h1>
-    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">bt's personal site — jotting things down, with a few games on the side.</p>
+    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">bt's personal site — a blog, an arcade, and a bunch of homemade toys. Open source, no ads, no tracking.</p>
 
     <div class="prose max-w-none space-y-8">
+      <div>
+        <h2 class="text-xl">👋 I'm bt</h2>
+        <p>A student, an INTP, majoring in slacking off — this site is the toy I tinker with instead. No positioning, no roadmap: whatever comes to mind goes up — study notes, hand-built games, self-hosted services, and one crab.</p>
+        <p>Everything here runs in my own hands: the blog is a static <strong>Astro</strong> site on Cloudflare Pages, comments and likes are self-hosted, and even the AI answering you is trained by myself. No analytics, no ads, no cookie banners.</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🧨 Two games that use real pages as levels</h2>
+        <p>The two freshest ones in the arcade. They don't ship new levels — <strong>they turn real web pages into the game world</strong>. On-site pages work natively; any other URL gets proxied into same-origin by a self-built mirror (SSRF-guarded, no cookies collected).</p>
+        <ul>
+          <li><strong><a href="/games/destroy/">Destroy this site</a></strong> — clawd drops from the sky onto the page: <strong>elements with text are both platforms and targets</strong>, chipped away in 28px tiles with characters scattering letter by letter. S/↓ descends one text line, Space jumps, W/↑ rocket-thrusts, 8 pixel weapons (pistol / SMG / shotgun / sniper / grenade / rocket / laser / BFG). Pure demolition, no win condition.</li>
+          <li><strong><a href="/games/katamari/">clawd ball</a></strong> — clawd becomes a ball rolling 360° across the page; elements smaller than the ball stick to its surface and spin along, the ball grows, and at 80% coverage the whole site is rolled up.</li>
+        </ul>
+        <p class="font-mono text-xs" style="color: var(--wm-muted)">Tech: the Range API measures per-character positions to build tiles (empty space is air, so the character never floats); cross-site pages go through a functions/api/mirror proxy (base injection, asset rewrite, XFO/CSP stripping, SSRF guard). Inspired by spritefusion's destroy easter egg, the MIT-licensed website-breaker, and Katamari Damacy.</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🎮 Arcade</h2>
+        <p><strong>Games</strong> in the top nav leads to the arcade (/games/) — all open source, free, self-hosted:</p>
+        <ul>
+          <li><strong>Destroy this site</strong> — destruction sandbox, real page as the level (desktop)</li>
+          <li><strong>clawd ball</strong> — Katamari prototype, real page (desktop)</li>
+          <li><strong>Airplane War</strong> — bullet-hell shooter, touch playable</li>
+          <li><strong>Big Eats Small</strong> — agar.io single-player, touch patched</li>
+          <li><strong>Suika Game</strong> — the viral watermelon merge</li>
+          <li><strong>Transport Ship · CF 3D</strong> — classic CF map in 3D</li>
+          <li><strong>Pelican on a Bike</strong> — casual 3D</li>
+          <li><strong>Speed Drift 3D</strong> — QQ Speed fan racing</li>
+          <li><strong>Pixel Monster Battle</strong> — hand-drawn pixel RPG</li>
+          <li><strong>Celeste</strong> — web port (desktop), PICO-8 original (mobile)</li>
+          <li><strong>Mini Games ×124</strong> — open-source collection (external)</li>
+        </ul>
+      </div>
+
       <div>
         <h2 class="text-xl !flex items-center gap-2"><img src="/clawd-icon.svg" alt="" width="22" height="22" />Clawd, the desktop pet</h2>
         <p>The crab friend in the bottom-right corner. You can:</p>
@@ -29,19 +61,19 @@ const meta = { description: "About", title: "About" };
 
       <div>
         <h2 class="text-xl">📮 Mome</h2>
-        <p>The <strong>Mome</strong> item in the top nav is an external link to <a href="https://mome.bingtao.xyz" target="_blank" rel="noopener">mome.bingtao.xyz</a> — a running-notes timeline I self-host, running the open-source <a href="https://github.com/lin-snow/Ech0" target="_blank" rel="noopener">Ech0</a>.</p>
+        <p>The <strong>Mome</strong> item in the top nav is an external link to <a href="https://mome.bingtao.xyz" target="_blank" rel="noopener">mome.bingtao.xyz</a> — a self-hosted micro-timeline running the open-source <a href="https://github.com/lin-snow/Ech0" target="_blank" rel="noopener">Ech0</a>.</p>
         <ul>
-          <li>Post whatever crosses your mind — much lower effort than writing a full article</li>
-          <li>No sign-up, no login needed to read, and you can hit like without one either</li>
-          <li>Comments are open, but I review them before they go live</li>
+          <li>Post whatever comes to mind — much lower barrier than a full article</li>
+          <li>No account needed to read or like</li>
+          <li>Comments are open but moderated</li>
         </ul>
       </div>
 
       <div>
-        <h2 class="text-xl">🎵 Claude FM &amp; Drone Zone</h2>
+        <h2 class="text-xl">🎵 Claude FM & Drone Zone</h2>
         <p>The Gadgets page hosts two radio streams:</p>
         <ul>
-          <li><strong>Claude FM</strong> — 24/7 lo-fi &amp; ambient online radio</li>
+          <li><strong>Claude FM</strong> — 24/7 Lo-fi & Ambient</li>
           <li><strong>🌑 Drone Zone</strong> — SomaFM dark ambient space music</li>
         </ul>
       </div>
@@ -50,40 +82,37 @@ const meta = { description: "About", title: "About" };
         <h2 class="text-xl">📸 Telegraph image host</h2>
         <p>The <strong>click it</strong> button at the bottom of the Gadgets page links to a self-hosted Telegraph image host.</p>
         <ul>
-          <li>No registration — upload and go</li>
-          <li>Handy for sending me images, screenshots and memes</li>
-          <li>Click through → upload → copy the link and send it to me</li>
+          <li>No sign-up, upload and go</li>
+          <li>For sharing images, screenshots and memes with me</li>
+          <li>Click → upload → copy the link → send it to me</li>
         </ul>
       </div>
 
       <div>
-        <h2 class="text-xl">🎮 Arcade</h2>
-        <p>The <strong>Games</strong> item in the top nav goes straight to the arcade (/games/). Everything is open source and self-hosted:</p>
+        <h2 class="text-xl">🌙 Theme & language</h2>
+        <p><strong>Theme</strong> — the 🌙/☀️ button in the top bar toggles dark/light (dark by default); the preference is saved and shared with the arcade.</p>
+        <p><strong>Language</strong> — the three-way switch on the right of the header: <strong>中</strong> / <strong>EN</strong> / <strong>(´・ω・`)</strong>.</p>
         <ul>
-          <li><strong>Plane Wars</strong> — shoot 'em up with weapon upgrades, bosses and touch controls</li>
-          <li><strong>Agar</strong> — single-player agar.io, touch supported</li>
-          <li><strong>Suika</strong> — the fruit-merging puzzle hit</li>
-          <li><strong>Transport Ship · CrossFire 3D</strong> — the classic CF map rebuilt in 3D</li>
-          <li><strong>Pelican on a Bike</strong> — a relaxed 3D toy</li>
-          <li><strong>QQ Speed 3D</strong> — 3D racing fan remake</li>
-          <li><strong>Celeste</strong> — Celeste Classic ported to the web, plus the PICO-8 original</li>
-          <li><strong>Pixel Monsters</strong> — a hand-made pixel RPG battle game</li>
-          <li><strong>Mini-game collection ×124</strong> — external open-source bundle</li>
+          <li><strong>EN</strong> — real English pages (<code>/en/</code>), articles translated offline by argos-translate, no online translation services</li>
+          <li><strong>Kaomoji</strong> — sprinkles random kaomoji after punctuation on the current language, purely local</li>
         </ul>
       </div>
 
       <div>
-        <h2 class="text-xl">🌙 Dark / light theme</h2>
-        <p>The bulb button in the top-right switches between dark and light mode. Your preference is saved, and the arcade follows it too. Dark is the default.</p>
-      </div>
-
-      <div>
-        <h2 class="text-xl">🌐 Language switch</h2>
-        <p>The three-part switch in the header: <strong>中</strong> / <strong>EN</strong> / <strong>(´・ω・`)</strong>.</p>
+        <h2 class="text-xl">🛠 Colophon</h2>
         <ul>
-          <li><strong>EN</strong> — real English pages under <code>/en/</code>. Posts are translated offline with argos-translate; no online translation API is involved.</li>
-          <li><strong>(´・ω・`)</strong> — sprinkles a random kaomoji after each sentence-ending punctuation mark, purely a local display effect</li>
+          <li><strong>Framework</strong> — Astro 6 + Tailwind CSS 4, statically generated, deployed on Cloudflare Pages</li>
+          <li><strong>Fonts</strong> — Oswald + Courier Prime, self-hosted, zero third-party requests</li>
+          <li><strong>Math / code</strong> — KaTeX + Expressive Code (dual themes)</li>
+          <li><strong>Games</strong> — native Canvas / DOM, zero dependencies, no build step</li>
+          <li><strong>Credits</strong> — micro-timeline based on Ech0 (AGPL-3.0); destruction shattering inspired by the MIT-licensed website-breaker</li>
+          <li><strong>Privacy</strong> — no analytics, no tracking, no ads, no cookie banners</li>
         </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">📮 Find me</h2>
+        <p>GitHub: <a href="https://github.com/yahoofunny" target="_blank" rel="noopener">@yahoofunny</a>; click <strong>Chat</strong> to talk to the crab (it is me); leave a comment on <strong>Mome</strong> (I read them).</p>
       </div>
     </div>
   </div>

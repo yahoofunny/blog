@@ -1,13 +1,47 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
-const meta = { description: "About", title: "About" };
+const meta = { description: "关于 bt 和这个站", title: "About" };
 ---
 <PageLayout meta={meta}>
   <div class="glass-card !p-8 md:!p-12">
     <h1 class="text-3xl font-bold mb-2">About</h1>
-    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">bt 的个人站 —— 随手记点东西，顺便放几个游戏。</p>
+    <p class="font-mono text-xs mb-8" style="color: var(--wm-muted)">bt 的个人站 —— 博客 + 游戏厅 + 一堆自制小玩意。开源、无广告、无追踪。</p>
 
     <div class="prose max-w-none space-y-8">
+      <div>
+        <h2 class="text-xl">👋 我是 bt</h2>
+        <p>在校学生，INTP，主业划水，副业把这个站当玩具折腾。这里没有定位、没有规划，想到什么放什么：复习笔记、手搓的游戏、自部署的小服务，以及一只螃蟹。</p>
+        <p>站上所有东西都跑在自己手里：博客是 <strong>Astro</strong> 静态站，托管在 Cloudflare Pages；评论点赞是自建服务；连回你话的那个 AI 都是自己训练的。没有统计埋点、没有广告、没有 Cookie 弹窗。</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🧨 拿真实网页当关卡的两款游戏</h2>
+        <p>游戏中心里最新鲜的两个。它们不开新关卡——<strong>直接把真实网页当游戏世界</strong>。站内页面原生支持；任何别的网址会经自建镜像代理搬成同源再开炸（防 SSRF，不收 Cookie）。</p>
+        <ul>
+          <li><strong><a href="/games/destroy/">摧毁本站</a></strong> — clawd 从天而降踩上页面：<strong>带文字的元素既是台阶也是靶子</strong>，28px 瓦片粒度一格一格炸碎，字符逐字飞散。S/↓ 沿文字行下潜一层，空格跳，W/↑ 火箭推进，8 种像素武器（手枪 / 冲锋枪 / 霰弹 / 狙击 / 手雷 / 火箭筒 / 激光 / BFG）。纯拆，没有通关。</li>
+          <li><strong><a href="/games/katamari/">clawd 滚球</a></strong> — clawd 变成球在页面上 360° 滚动，比球小的元素统统粘到球面上随球转圈，球越滚越大能卷的越多，覆盖率 80% 卷完全站。</li>
+        </ul>
+        <p class="font-mono text-xs" style="color: var(--wm-muted)">技术：Range API 逐字符测量真实位置生成瓦片（空白处是空气，角色不会悬空）；跨站走 functions/api/mirror 镜像代理（注入 base、重写资源、剥 XFO/CSP、防 SSRF）。灵感：spritefusion 的 destroy 彩蛋、MIT 的 website-breaker、Katamari Damacy。</p>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🎮 游戏中心</h2>
+        <p>顶部导航 <strong>Games</strong> 直达游戏中心（/games/），全部开源、免费托管：</p>
+        <ul>
+          <li><strong>摧毁本站</strong> — 破坏沙盒，真实页面当关卡（电脑）</li>
+          <li><strong>clawd 滚球</strong> — Katamari 测试版，真实页面（电脑）</li>
+          <li><strong>飞机大战</strong> — 全民飞机大战风格，手机触屏可玩</li>
+          <li><strong>大球吃小球</strong> — agar.io 单机版，支持触屏</li>
+          <li><strong>合成大西瓜</strong> — 爆火 Suika 玩法</li>
+          <li><strong>运输船 · 穿越火线 3D</strong> — CF 经典地图 3D 还原</li>
+          <li><strong>鹈鹕骑单车</strong> — 3D 休闲小游戏</li>
+          <li><strong>飞车 3D · QQ飞车同人</strong> — 3D 竞速</li>
+          <li><strong>像素怪物对战</strong> — 手搓的像素风 RPG 对战</li>
+          <li><strong>蔚蓝 Celeste</strong> — 原版网页移植（电脑），PICO-8 原版（手机）</li>
+          <li><strong>小游戏合集 ×124</strong> — 开源合集外链</li>
+        </ul>
+      </div>
+
       <div>
         <h2 class="text-xl !flex items-center gap-2"><img src="/clawd-icon.svg" alt="" width="22" height="22" />Clawd 桌宠</h2>
         <p>右下角的螃蟹朋友！你可以：</p>
@@ -55,33 +89,30 @@ const meta = { description: "About", title: "About" };
       </div>
 
       <div>
-        <h2 class="text-xl">🎮 游戏中心</h2>
-        <p>顶部导航 <strong>Games</strong> 直达游戏中心（/games/），全部开源、免费托管：</p>
-        <ul>
-          <li><strong>飞机大战</strong> — 全民飞机大战风格，手机触屏可玩</li>
-          <li><strong>大球吃小球</strong> — agar.io 单机版，支持触屏</li>
-          <li><strong>合成大西瓜</strong> — 爆火 Suika 玩法</li>
-          <li><strong>运输船 · 穿越火线 3D</strong> — CF 经典地图 3D 还原</li>
-          <li><strong>鹈鹕骑单车</strong> — 3D 休闲小游戏</li>
-          <li><strong>飞车 3D · QQ飞车同人</strong> — 3D 竞速</li>
-          <li><strong>像素怪物对战</strong> — 手搓的像素风 RPG 对战</li>
-          <li><strong>蔚蓝 Celeste</strong> — 原版网页移植（电脑），PICO-8 原版（手机）</li>
-          <li><strong>小游戏合集 ×124</strong> — 开源合集外链</li>
-        </ul>
-      </div>
-
-      <div>
-        <h2 class="text-xl">🌙 暗/亮主题</h2>
-        <p>右上角 🌙/☀️ 按钮一键切换暗色和亮色模式，偏好自动保存，游戏中心同步生效。</p>
-      </div>
-
-      <div>
-        <h2 class="text-xl">🌐 语言切换</h2>
-        <p>页头右侧的三段式开关：<strong>中</strong> / <strong>EN</strong> / <strong>(´・ω・`)</strong>。</p>
+        <h2 class="text-xl">🌙 主题与语言</h2>
+        <p><strong>主题</strong> — 右上角 🌙/☀️ 一键切换暗色和亮色模式（默认暗色），偏好自动保存，游戏中心同步生效。</p>
+        <p><strong>语言</strong> — 页头右侧的三段式开关：<strong>中</strong> / <strong>EN</strong> / <strong>(´・ω・`)</strong>。</p>
         <ul>
           <li><strong>EN</strong> — 真正的英文页面（<code>/en/</code> 路径），文章由 argos-translate 离线翻译，不依赖任何在线翻译接口</li>
           <li><strong>颜文字</strong> — 在当前语言的页面上给句末标点随机插一个颜文字，纯本地显示效果</li>
         </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">🛠 Colophon</h2>
+        <ul>
+          <li><strong>框架</strong> — Astro 6 + Tailwind CSS 4，静态生成，Cloudflare Pages 直连部署</li>
+          <li><strong>字体</strong> — Oswald + Courier Prime 自托管，无第三方请求</li>
+          <li><strong>公式 / 代码</strong> — KaTeX + Expressive Code（明暗双主题）</li>
+          <li><strong>游戏</strong> — 原生 Canvas / DOM，零依赖零构建</li>
+          <li><strong>署名</strong> — 碎碎念基于 Ech0（AGPL-3.0）；破坏玩法的碎裂思路参考 MIT 的 website-breaker</li>
+          <li><strong>隐私</strong> — 无统计、无埋点、无广告、无 Cookie 弹窗</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xl">📮 找到我</h2>
+        <p>GitHub 上是 <a href="https://github.com/yahoofunny" target="_blank" rel="noopener">@yahoofunny</a>；站内点 <strong>Chat</strong> 找螃蟹聊（它就是我）；<strong>Mome</strong> 评论留言（我会看）。</p>
       </div>
     </div>
   </div>
