@@ -76,6 +76,25 @@ async function initTarget() {
   S.py = -SKY + 80; S.vy = 0; S.onGround = false;
   player.style.left = S.px - 14 + "px";
   player.style.top = S.py - HH - S.camY + "px";   // player 已移入 #stage，屏幕坐标 = 世界坐标 - camY
+  // 页面长高跟随：懒加载图片/分段展开会撑高文档，跟随拉高 iframe 并重建（已毁进度保留）
+  let hwTries = 0;
+  if (S.heightWatch) clearInterval(S.heightWatch);
+  S.heightWatch = setInterval(() => {
+    const dd = doc();
+    if (!dd || S.over) return;
+    const h2 = Math.max(600, dd.documentElement.scrollHeight);
+    if (h2 > S.docH + 8) { S.docH = h2; target.style.height = h2 + "px"; S.worldH = h2 + GROUND_H; world.style.height = S.worldH + "px"; floorEl.style.top = (h2 + 40) + "px"; buildTiles(); }
+    if (++hwTries > 25) { clearInterval(S.heightWatch); S.heightWatch = null; }
+  }, 1300);
+  // 外站镜像模式：快速滚到底再回顶，触发懒加载图片与分段展开
+  if (location.search.includes("url=")) {
+    (async () => {
+      const dd = doc(); if (!dd) return;
+      const stepSize = Math.max(500, innerHeight);
+      for (let y = 0; y <= S.docH; y += stepSize) { dd.documentElement.scrollTop = y; await new Promise(r => setTimeout(r, 170)); }
+      dd.documentElement.scrollTop = 0;
+    })();
+  }
   initRunning = false;
   return true;
 }
@@ -238,6 +257,10 @@ function buildTiles() {
   // 语义不变：非空白字符仍是独立粒子，占据同一批 28px 格子。
   // 分帧路径（兜底）：大页面逐目标元素推进，每帧 5ms 预算 + rAF 续跑，绝不卡首帧。
   const d = doc();
+  // 重建前保留已摧毁的瓦片与弹坑（页面长高跟随重建时，玩家的破坏进度不丢）
+  const preservedTiles = new Set();
+  for (const [k, t] of grid) if (t.destroyed) preservedTiles.add(k);
+  const preservedHoles = holes.slice();
   grid.clear(); elTiles.clear(); holes = [];
   S.totalTiles = 0; S.destroyedTiles = 0; S.totalEls = 0; S.destroyedEls = 0;
   if (!d || !d.body) { buildTargets = null; loading.classList.add("done"); return; }
@@ -458,6 +481,15 @@ function buildFast(d) {
 
 function buildFinish() {
   buildTargets = null;
+  // 恢复重建前已摧毁的瓦片与弹坑（位置没变的格子原样保留）
+  let restored = 0;
+  for (const k of preservedTiles) {
+    const t = grid.get(k);
+    if (t && !t.destroyed) { t.destroyed = true; restored++; }
+  }
+  S.destroyedTiles = restored;
+  holes = holes.concat(preservedHoles.filter((h) => !holes.some((g) => g.x === h.x && g.y === h.y)));
+  preservedTiles.clear(); preservedHoles.length = 0;
   loading.classList.add("done");
   if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 炸"; }
   updateProgress();

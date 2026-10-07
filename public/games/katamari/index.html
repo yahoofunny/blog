@@ -526,6 +526,25 @@ function initTarget() {
   ballEl.style.height = S.r * 2 + "px";
   $("tot").textContent = S.total;
   updateHUD();
+  // 页面长高跟随：懒加载图片/分段展开会撑高文档，跟随拉高 iframe
+  let hwTries = 0;
+  if (S.heightWatch) clearInterval(S.heightWatch);
+  S.heightWatch = setInterval(() => {
+    const dd = doc();
+    if (!dd) return;
+    const h2 = Math.max(600, dd.documentElement.scrollHeight);
+    if (h2 > S.docH + 8) { S.docH = h2; target.style.height = h2 + "px"; S.worldH = h2 + 40; world.style.height = S.worldH + "px"; }
+    if (++hwTries > 25) { clearInterval(S.heightWatch); S.heightWatch = null; }
+  }, 1300);
+  // 外站镜像模式：快速滚到底再回顶，触发懒加载图片与分段展开
+  if (location.search.includes("url=")) {
+    (async () => {
+      const dd = doc(); if (!dd) return;
+      const stepSize = Math.max(500, innerHeight);
+      for (let y = 0; y <= S.docH; y += stepSize) { dd.documentElement.scrollTop = y; await new Promise(r => setTimeout(r, 170)); }
+      dd.documentElement.scrollTop = 0;
+    })();
+  }
   loading.classList.add("done");
   if (startBtn.disabled) { startBtn.disabled = false; startBtn.textContent = "开 擦"; }
   return true;
