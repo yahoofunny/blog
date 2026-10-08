@@ -329,15 +329,10 @@ function load(){
     return;
   }
   if (S.runaway) return; // 离家出走的状态要保留，等用户点「重新领养」
-  // 补算离线时间：孵蛋期间不衰减，孵化之后的空档才衰减
+  // 补算离线衰减。蛋不参与衰减（applyDecay 里判 stage），
+  // 所以出生后就离开、很久才回来的话，回来是刚孵化的满状态 —— 有意的宽容。
   var mins = clamp((now() - S.last) / 60000, 0, OFFLINE_CAP_MIN);
-  if (mins > 0) {
-    var ageAtLastSeen = (S.last - S.born) / 60000;
-    var decayMins = ageAtLastSeen < HATCH_MIN
-      ? Math.max(0, mins - (HATCH_MIN - ageAtLastSeen))   // 先扣掉还在孵蛋的那段
-      : mins;
-    if (decayMins > 0) applyDecay(decayMins);
-  }
+  if (mins > 0) applyDecay(mins);
   S.last = now();
 }
 
@@ -378,12 +373,10 @@ function checkGrow(){
   var target = stageForAge();
   if (target > S.stage) {
     if (careScore() >= 0.4 || target >= 3) { // 照顾太差会延迟进化（成年只是时间问题）
-      var old = S.stage;
       S.stage = target;
       log('clawd 进化成了' + STAGE_NAMES[target] + '！');
       fx('✨'); beep(523); beep(659, .1); beep(784, .2);
       save(); // 进化是里程碑，立刻落盘，别等到 15 秒心跳
-      void old;
     }
   }
 }
