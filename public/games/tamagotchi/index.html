@@ -295,26 +295,6 @@ var SPRITES = {
     ".BB....BBBBBB....BB.",
     ".BB....BBBBBB....BB.",
     "...................."
-  ],
-  away: [
-    "....................",
-    "......BBBBBBBB......",
-    "....BBBBBBBBBBBB....",
-    "...BBBBBBBBBBBBBB...",
-    "...BBBBBBBBBBBBBB...",
-    "..BBBBBBBBBBBBBBBB..",
-    "..BBBBBBBBBBBBBBBB..",
-    "..BBBBBBBBBBBBBBBB..",
-    "..BBBBBBBBBBBBBBBB..",
-    "BB.BBBBBBBBBBBBBB.BB",
-    "BB..BBBBBBBBBBBB..BB",
-    "...BBBBBBBBBBBBBB...",
-    "....BBBBBBBBBBBB....",
-    ".BB..BBBBBBBBBB..BB.",
-    ".BB..BBBBBBBBBB..BB.",
-    ".BB....BBBBBB....BB.",
-    ".BB....BBBBBB....BB.",
-    "...................."
   ]
 };
 var STAGE_NAMES = ['蛋', '幼崽', '少年', '成年'];
@@ -337,7 +317,7 @@ function load(){
   if (raw) {
     try { S = JSON.parse(raw); } catch(e){ S = null; }
   }
-  if (!S || S.runaway || !S.born) {
+  if (!S || !S.born) {
     S = {
       born: now(), last: now(),
       hunger: 35, fun: 40, clean: 75, energy: 90,
@@ -347,6 +327,7 @@ function load(){
     };
     return;
   }
+  if (S.runaway) return; // 离家出走的状态要保留，等用户点「重新领养」
   // 补算离线时间
   var mins = clamp((now() - S.last) / 60000, 0, OFFLINE_CAP_MIN);
   if (mins > 0) applyDecay(mins);
@@ -515,13 +496,13 @@ function act(name){
 
 /* ---------- 渲染 ---------- */
 function sprite(){
-  if (S.runaway) return SPRITES.away;
   var t = S.stage === 0 ? 'egg' : (S.stage === 1 ? 'baby' : (S.stage === 2 ? 'teen' : 'adult'));
   if (S.sleeping && t !== 'egg') t += 'Sleep';
   return SPRITES[t];
 }
 
 function renderPet(){
+  if (S.runaway) { petEl.innerHTML = ''; petEl.className = 'pet'; return; }
   var rows = sprite();
   var h = rows.length, w = rows[0].length;
   var s = '';
@@ -581,6 +562,14 @@ function render(){
   document.getElementById('b-clean').style.display = S.poop ? '' : 'none';
   document.getElementById('b-med').style.display = S.sick ? '' : 'none';
   document.getElementById('adopt-btn').style.display = S.runaway ? '' : 'none';
+  // 离家出走后所有照料按钮禁用
+  var ids = ['b-feed', 'b-snack', 'b-play', 'b-wash', 'b-sleep', 'b-clean', 'b-med'];
+  for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).disabled = !!S.runaway;
+  if (S.runaway) {
+    document.getElementById('stage-name').textContent = '—';
+    document.getElementById('age').textContent = '已离家';
+    document.getElementById('poop').style.display = 'none';
+  }
   document.getElementById('mute-btn').textContent = S.mute ? '🔇' : '🔊';
   renderMsg();
 }
