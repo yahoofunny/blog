@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>clawd 电子宠物 · bt's Arcade</title>
+<meta name="theme-color" content="#0000f2" />
+<style>
+  :root {
+    --line: #0d0d14; --ink: #f2e9d8; --muted: #9a93a8;
+    --panel: #23232f; --bg: #1a1a24;
+    --lcd: #101018; --lcd-line: #23232f;
+    --fire: #e85b3c; --grass: #6ecb63; --elec: #ffcd42;
+    --primary: #6e6eff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 16px 16px;
+    color: var(--ink);
+    font-family: "Courier New", "SimHei", monospace;
+    min-height: 100vh;
+    padding: 24px 12px 48px;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap { max-width: 440px; margin: 0 auto; }
+
+  header.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .back { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .back:hover { color: var(--ink); }
+  h1 { font-size: 24px; color: var(--elec); text-shadow: 3px 3px 0 var(--line); letter-spacing: 2px; }
+  .mute { background: none; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px; }
+  .sub { text-align: center; color: var(--muted); font-size: 12px; margin: 4px 0 20px; }
+
+  /* ===== 机身 ===== */
+  .shell {
+    background: var(--panel); border: 4px solid var(--line);
+    box-shadow: 6px 6px 0 rgba(0,0,0,.45);
+    border-radius: 26px; padding: 14px 14px 18px;
+  }
+  .lcd {
+    position: relative; overflow: hidden;
+    background: var(--lcd); border: 3px solid var(--lcd-line); border-radius: 14px;
+    padding: 10px 12px 12px;
+    background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size: 7px 7px;
+  }
+  /* 顶部信息栏 */
+  .info { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .info .stage { color: var(--elec); }
+  /* 宠物区 */
+  .stage-box { position: relative; height: 190px; display: flex; align-items: center; justify-content: center; }
+  .pet { display: block; width: auto; height: 92%; filter: drop-shadow(0 6px 0 rgba(0,0,0,.35)); }
+  .pet.bob { animation: bob 2.2s ease-in-out infinite; }
+  .pet.sleeping { animation: bob 4s ease-in-out infinite; }
+  .pet.sick { filter: drop-shadow(0 6px 0 rgba(0,0,0,.35)) hue-rotate(60deg) saturate(.7); }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .fx {
+    position: absolute; font-size: 22px; pointer-events: none;
+    animation: floatUp 1.1s ease-out forwards;
+  }
+  @keyframes floatUp {
+    from { opacity: 1; transform: translateY(6px) scale(.7); }
+    to   { opacity: 0; transform: translateY(-46px) scale(1.15); }
+  }
+  .poop {
+    position: absolute; right: 18px; bottom: 10px; font-size: 26px;
+    filter: saturate(.8); animation: bob 2s ease-in-out infinite;
+  }
+  /* 消息行 */
+  .msg {
+    height: 34px; font-size: 12px; color: var(--ink); line-height: 17px;
+    border-top: 1px dashed rgba(242,233,216,.15); padding-top: 6px; margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .msg .time { color: var(--muted); margin-right: 6px; }
+  /* 状态条 */
+  .stats { margin-top: 10px; display: grid; gap: 6px; }
+  .stat { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .stat .ico { width: 22px; text-align: center; }
+  .stat .bar { flex: 1; display: flex; gap: 3px; height: 10px; }
+  .stat .bar i { flex: 1; background: rgba(242,233,216,.08); border-radius: 2px; }
+  .stat .bar i.on-good { background: var(--grass); }
+  .stat .bar i.on-mid  { background: var(--elec); }
+  .stat .bar i.on-bad  { background: var(--fire); }
+  .stat .pct { width: 30px; text-align: right; color: var(--muted); }
+
+  /* ===== 按键 ===== */
+  .btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .btns button {
+    font-family: inherit; font-size: 13px; color: var(--ink);
+    background: var(--bg); border: 2px solid var(--line);
+    border-radius: 10px; padding: 12px 4px; cursor: pointer;
+    box-shadow: 0 3px 0 var(--line); transition: transform .06s, box-shadow .06s;
+    touch-action: manipulation;
+  }
+  .btns button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
+  .btns button:disabled { opacity: .35; cursor: default; }
+  .btns button:disabled:active { transform: none; box-shadow: 0 3px 0 var(--line); }
+  .btns button .em { display: block; font-size: 20px; margin-bottom: 2px; }
+  .btns button.hot { border-color: var(--primary); color: #c9c9ff; }
+
+  .adopt {
+    display: none; width: 100%; margin-top: 16px;
+    font-family: inherit; font-size: 15px; color: #0d0d14; background: var(--elec);
+    border: 2px solid var(--line); border-radius: 10px; padding: 14px; cursor: pointer;
+    box-shadow: 0 3px 0 var(--line); letter-spacing: 3px;
+  }
+  footer { margin-top: 22px; text-align: center; font-size: 11px; color: var(--muted); }
+  footer a { color: var(--primary); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="back" href="/games/">← 游戏厅</a>
+    <h1>clawd 电子宠物</h1>
+    <button class="mute" id="mute-btn" aria-label="静音">🔊</button>
+  </header>
+  <p class="sub">// 经典拓麻歌子 · 进度存浏览器 · 离线也会饿</p>
+
+  <div class="shell">
+    <div class="lcd">
+      <div class="info">
+        <span class="stage" id="stage-name">蛋</span>
+        <span id="age">孵化中…</span>
+        <span id="sick-tag" style="display:none;color:var(--fire)">💢 生病</span>
+      </div>
+      <div class="stage-box" id="stage-box">
+        <svg class="pet bob" id="pet" viewBox="0 0 20 18" shape-rendering="crispEdges" aria-label="clawd"></svg>
+        <div class="poop" id="poop" style="display:none">💩</div>
+      </div>
+      <div class="msg" id="msg"><span class="time">[00:00]</span>clawd 出生了</div>
+      <div class="stats">
+        <div class="stat"><span class="ico">🍚</span><div class="bar" id="bar-hunger"></div><span class="pct" id="pct-hunger"></span></div>
+        <div class="stat"><span class="ico">🎮</span><div class="bar" id="bar-fun"></div><span class="pct" id="pct-fun"></span></div>
+        <div class="stat"><span class="ico">🛁</span><div class="bar" id="bar-clean"></div><span class="pct" id="pct-clean"></span></div>
+        <div class="stat"><span class="ico">⚡</span><div class="bar" id="bar-energy"></div><span class="pct" id="pct-energy"></span></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button id="b-feed" title="喂饭"><span class="em">🍚</span>喂饭</button>
+      <button id="b-snack" title="零食"><span class="em">🍪</span>零食</button>
+      <button id="b-play" title="玩耍"><span class="em">🎮</span>玩耍</button>
+      <button id="b-wash" title="洗澡"><span class="em">🛁</span>洗澡</button>
+      <button id="b-sleep" title="睡觉"><span class="em">💤</span>睡觉</button>
+      <button id="b-clean" title="清理" style="display:none"><span class="em">🧹</span>清理</button>
+      <button id="b-med" title="吃药" class="hot" style="display:none"><span class="em">💊</span>吃药</button>
+    </div>
+    <button class="adopt" id="adopt-btn">重新领养</button>
+  </div>
+
+  <footer>
+    素材与玩法参考 GitHub tamagotchi-game topic · 回博客：<a href="https://blog-6rb.pages.dev/">blog-6rb.pages.dev</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+var SAVE_KEY = 'clawd-tama-v1';
+var PIXEL = {
+  B: '#d77757',   // clawd 身体
+  E: '#17121c',   // 眼睛
+  W: '#fff6e8',   // 高光
+  C: '#f3e0bd',   // 蛋壳
+  S: '#e8a24c',   // 蛋斑
+  X: '#17121c'    // 病号眼
+};
+// 精灵图：每行字符串长度 = 列数
+var SPRITES = {
+  egg: [
+    "................",
+    ".....CCCCCC.....",
+    "...CCCCCCCCCC...",
+    "..CCCCCCCCCCCC..",
+    ".CCCCCCCCCCCCCC.",
+    ".CCCCCSSCCCCCCC.",
+    ".CCCCCCCCCCCCCC.",
+    ".CCCCCCCCCCCCCC.",
+    ".CCCCCCCCCCCCCC.",
+    "..CCCCCCCCCCCC..",
+    "...CCCCCCCCCC...",
+    ".....CCCCCC.....",
+    "................",
+    "................"
+  ],
+  baby: [
+    "................",
+    "................",
+    "....BBBBBBBB....",
+    "..BBBBBBBBBBBB..",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBEWBBBBBBEWBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    "..BBBBBBBBBBBB..",
+    "....BBBBBBBB....",
+    "................",
+    "................"
+  ],
+  babySleep: [
+    "................",
+    "................",
+    "....BBBBBBBB....",
+    "..BBBBBBBBBBBB..",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    "..BBBBBBBBBBBB..",
+    "....BBBBBBBB....",
+    "................",
+    "................"
+  ],
+  teen: [
+    "................",
+    "....BBBBBBBB....",
+    "...BBBBBBBBBB...",
+    "..BBBBBBBBBBBB..",
+    "..BBBBBBBBBBBB..",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBEWBBBBBBEWBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    "..BBBBBBBBBBBB..",
+    "...BBBBBBBBBB...",
+    ".BB..BBBBBB..BB.",
+    ".BB..BBBBBB..BB.",
+    "................",
+    "................"
+  ],
+  teenSleep: [
+    "................",
+    "....BBBBBBBB....",
+    "...BBBBBBBBBB...",
+    "..BBBBBBBBBBBB..",
+    "..BBBBBBBBBBBB..",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    ".BBBBBBBBBBBBBB.",
+    "..BBBBBBBBBBBB..",
+    "...BBBBBBBBBB...",
+    ".BB..BBBBBB..BB.",
+    ".BB..BBBBBB..BB.",
+    "................",
+    "................"
+  ],
+  adult: [
+    "....................",
+    "......BBBBBBBB......",
+    "....BBBBBBBBBBBB....",
+    "...BBBBBBBBBBBBBB...",
+    "...BBBBBBBBBBBBBB...",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBEWBBBBBBBBEWBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "BB.BBBBBBBBBBBBBB.BB",
+    "BB..BBBBBBBBBBBB..BB",
+    "...BBBBBBBBBBBBBB...",
+    "....BBBBBBBBBBBB....",
+    ".BB..BBBBBBBBBB..BB.",
+    ".BB..BBBBBBBBBB..BB.",
+    ".BB....BBBBBB....BB.",
+    ".BB....BBBBBB....BB.",
+    "...................."
+  ],
+  adultSleep: [
+    "....................",
+    "......BBBBBBBB......",
+    "....BBBBBBBBBBBB....",
+    "...BBBBBBBBBBBBBB...",
+    "...BBBBBBBBBBBBBB...",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "BB.BBBBBBBBBBBBBB.BB",
+    "BB..BBBBBBBBBBBB..BB",
+    "...BBBBBBBBBBBBBB...",
+    "....BBBBBBBBBBBB....",
+    ".BB..BBBBBBBBBB..BB.",
+    ".BB..BBBBBBBBBB..BB.",
+    ".BB....BBBBBB....BB.",
+    ".BB....BBBBBB....BB.",
+    "...................."
+  ],
+  away: [
+    "....................",
+    "......BBBBBBBB......",
+    "....BBBBBBBBBBBB....",
+    "...BBBBBBBBBBBBBB...",
+    "...BBBBBBBBBBBBBB...",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "..BBBBBBBBBBBBBBBB..",
+    "BB.BBBBBBBBBBBBBB.BB",
+    "BB..BBBBBBBBBBBB..BB",
+    "...BBBBBBBBBBBBBB...",
+    "....BBBBBBBBBBBB....",
+    ".BB..BBBBBBBBBB..BB.",
+    ".BB..BBBBBBBBBB..BB.",
+    ".BB....BBBBBB....BB.",
+    ".BB....BBBBBB....BB.",
+    "...................."
+  ]
+};
+var STAGE_NAMES = ['蛋', '幼崽', '少年', '成年'];
+var HATCH_MIN = 3;      // 蛋孵化分钟数
+var TEEN_MIN = 60;      // 幼崽→少年
+var ADULT_MIN = 360;    // 少年→成年（6 小时）
+var OFFLINE_CAP_MIN = 48 * 60; // 离线衰减最多补算 48 小时
+
+function now(){ return Date.now(); }
+function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
+
+var S = null;
+var petEl = document.getElementById('pet');
+var lastTick = now();
+var lastSave = now();
+
+function load(){
+  var raw = null;
+  try { raw = localStorage.getItem(SAVE_KEY); } catch(e){}
+  if (raw) {
+    try { S = JSON.parse(raw); } catch(e){ S = null; }
+  }
+  if (!S || S.runaway || !S.born) {
+    S = {
+      born: now(), last: now(),
+      hunger: 35, fun: 40, clean: 75, energy: 90,
+      stage: 0, poop: false, sleeping: false, sick: false,
+      hungerPeakSince: null, criticalSince: null,
+      runaway: false, mute: false, events: []
+    };
+    return;
+  }
+  // 补算离线时间
+  var mins = clamp((now() - S.last) / 60000, 0, OFFLINE_CAP_MIN);
+  if (mins > 0) applyDecay(mins);
+  S.last = now();
+}
+
+function applyDecay(mins){
+  if (S.stage === 0 || S.runaway) return;
+  var sickMult = S.sick ? 1.5 : 1;
+  var sleepMult = S.sleeping ? 0.5 : 1;
+  S.hunger = clamp(S.hunger + 1.5 * mins * sickMult * sleepMult, 0, 100);
+  S.fun    = clamp(S.fun    + 1.2 * mins * sickMult * sleepMult, 0, 100);
+  S.clean  = clamp(S.clean  - 0.9 * mins * sickMult * sleepMult, 0, 100);
+  if (S.poop) S.clean = clamp(S.clean - 2 * mins * sickMult * sleepMult, 0, 100);
+  S.energy = S.sleeping
+    ? clamp(S.energy + 8 * mins, 0, 100)
+    : clamp(S.energy - 1.1 * mins * sickMult, 0, 100);
+  if (S.sleeping && S.energy >= 100) { S.sleeping = false; log('clawd 睡饱了'); }
+}
+
+function ageMin(){ return (now() - S.born) / 60000; }
+
+function stageForAge(){
+  var m = ageMin();
+  if (m < HATCH_MIN) return 0;
+  if (m < TEEN_MIN) return 1;
+  if (m < ADULT_MIN) return 2;
+  return 3;
+}
+
+function careScore(){
+  // 0..1，越高照顾得越好
+  return clamp((100 - S.hunger) / 100 * .35 + (100 - S.fun) / 100 * .3 + S.clean / 100 * .2 + S.energy / 100 * .15, 0, 1);
+}
+
+function checkGrow(){
+  if (S.stage === 0) {
+    if (ageMin() >= HATCH_MIN) { S.stage = 1; log('蛋裂开了！clawd 孵化出来了'); fx('🐣'); beep(660); beep(880, .1); }
+    return;
+  }
+  var target = stageForAge();
+  if (target > S.stage) {
+    if (careScore() >= 0.4 || target >= 3) { // 照顾太差会延迟进化（成年只是时间问题）
+      var old = S.stage;
+      S.stage = target;
+      log('clawd 进化成了' + STAGE_NAMES[target] + '！');
+      fx('✨'); beep(523); beep(659, .1); beep(784, .2);
+      void old;
+    }
+  }
+}
+
+function checkSick(){
+  if (S.sick) return; // 一旦生病要吃药
+  var crits = 0;
+  if (S.hunger >= 85) crits++;
+  if (S.fun >= 85) crits++;
+  if (S.clean <= 15) crits++;
+  if (S.energy <= 8) crits++;
+  if (crits >= 2) { S.sick = true; log('clawd 生病了，快喂药 💊'); fx('💢'); beep(220, .2); }
+}
+
+function checkRunaway(){
+  if (S.runaway) return;
+  if (S.hunger >= 100) {
+    if (!S.hungerPeakSince) S.hungerPeakSince = now();
+    if (now() - S.hungerPeakSince > 120 * 60000) doRunaway('饿到极点，clawd 离家出走了…');
+  } else {
+    S.hungerPeakSince = null;
+  }
+  var crits = 0;
+  if (S.hunger >= 85) crits++;
+  if (S.fun >= 85) crits++;
+  if (S.clean <= 10) crits++;
+  if (crits >= 3) {
+    if (!S.criticalSince) S.criticalSince = now();
+    if (now() - S.criticalSince > 60 * 60000) doRunaway('你太久没管它，clawd 离家出走了…');
+  } else {
+    S.criticalSince = null;
+  }
+}
+
+function doRunaway(msg){
+  S.runaway = true;
+  S.sleeping = false;
+  log(msg);
+  fx('💨'); beep(392, .12); beep(330, .12); beep(262, .3);
+  save();
+  render();
+}
+
+function checkPoop(mins){
+  if (S.poop || S.sleeping || S.stage === 0) return;
+  if (S.hunger > 45 && Math.random() < mins * 0.05) {
+    S.poop = true;
+    log('clawd 拉粑粑了，快清理 🧹');
+    fx('💩');
+  }
+}
+
+function tick(){
+  var t = now();
+  var mins = (t - lastTick) / 60000;
+  lastTick = t;
+  applyDecay(mins);
+  checkPoop(mins);
+  checkSick();
+  checkRunaway();
+  if (S.runaway) { render(); return; }
+  checkGrow();
+  render();
+  if (t - lastSave > 15000) save();
+}
+
+/* ---------- 动作 ---------- */
+function act(name){
+  if (S.runaway) return;
+  if (S.stage === 0) { log('蛋还没孵化，再等等…'); return; }
+  if (S.sleeping && name !== 'sleep' && name !== 'clean' && name !== 'med') { log('clawd 在睡觉，别吵它 💤'); return; }
+  if (name === 'feed') {
+    S.hunger = clamp(S.hunger - 22, 0, 100);
+    S.fun = clamp(S.fun + 4, 0, 100);
+    S.energy = clamp(S.energy + 3, 0, 100);
+    if (Math.random() < 0.12 && !S.poop) { S.poop = true; log('吃饱就拉，clawd 拉粑粑了'); }
+    else log('clawd 吃得很香');
+    fx('🍚'); beep(784);
+  } else if (name === 'snack') {
+    S.hunger = clamp(S.hunger - 8, 0, 100);
+    S.fun = clamp(S.fun + 8, 0, 100);
+    if (Math.random() < 0.18 && !S.poop) { S.poop = true; log('零食吃多了，clawd 拉粑粑了'); }
+    else log('零食让 clawd 很开心');
+    fx('🍪'); beep(880);
+  } else if (name === 'play') {
+    S.fun = clamp(S.fun - 25, 0, 100);
+    S.hunger = clamp(S.hunger + 10, 0, 100);
+    S.energy = clamp(S.energy - 12, 0, 100);
+    log('clawd 玩得满头大汗');
+    fx('❤️'); beep(659); beep(880, .09);
+  } else if (name === 'wash') {
+    S.clean = clamp(S.clean + 35, 0, 100);
+    S.energy = clamp(S.energy - 6, 0, 100);
+    log('clawd 洗得香喷喷');
+    fx('🫧'); beep(587);
+  } else if (name === 'clean') {
+    if (!S.poop) return;
+    S.poop = false;
+    S.clean = clamp(S.clean + 10, 0, 100);
+    S.fun = clamp(S.fun - 5, 0, 100);
+    log('粑粑清干净了');
+    fx('🧹'); beep(494);
+  } else if (name === 'med') {
+    if (!S.sick) return;
+    S.sick = false;
+    S.hunger = clamp(S.hunger - 12, 0, 100);
+    S.energy = clamp(S.energy - 8, 0, 100);
+    log('clawd 吃完药好多了');
+    fx('💊'); beep(523); beep(784, .12);
+  } else if (name === 'sleep') {
+    S.sleeping = !S.sleeping;
+    log(S.sleeping ? 'clawd 睡着了 💤' : 'clawd 醒了');
+    beep(S.sleeping ? 330 : 660);
+  }
+  checkSick();
+  render();
+}
+
+/* ---------- 渲染 ---------- */
+function sprite(){
+  if (S.runaway) return SPRITES.away;
+  var t = S.stage === 0 ? 'egg' : (S.stage === 1 ? 'baby' : (S.stage === 2 ? 'teen' : 'adult'));
+  if (S.sleeping && t !== 'egg') t += 'Sleep';
+  return SPRITES[t];
+}
+
+function renderPet(){
+  var rows = sprite();
+  var h = rows.length, w = rows[0].length;
+  var s = '';
+  for (var y = 0; y < h; y++) {
+    for (var x = 0; x < w; x++) {
+      var c = PIXEL[rows[y][x]];
+      if (!c) continue;
+      s += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + c + '"/>';
+    }
+  }
+  petEl.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+  petEl.innerHTML = s;
+  petEl.className = 'pet ' + (S.runaway ? '' : (S.sleeping ? 'sleeping' : 'bob')) + (S.sick ? ' sick' : '');
+}
+
+function fmtAge(){
+  var m = Math.floor(ageMin());
+  if (m < 1) return '孵化中…';
+  var d = Math.floor(m / 1440), hh = Math.floor(m % 1440 / 60), mm = m % 60;
+  var p = function(n){ return (n < 10 ? '0' : '') + n; };
+  return (d ? d + '天' : '') + p(hh) + ':' + p(mm);
+}
+
+function renderBar(id, value, invert){
+  // invert=true 表示数值越高越糟（饥饿/无聊）
+  var el = document.getElementById(id);
+  var segs = 8, on = Math.round(value / 100 * segs);
+  var html = '';
+  for (var i = 0; i < segs; i++) {
+    var cls = '';
+    if (i < on) {
+      var bad, mid;
+      if (invert) { bad = value >= 60; mid = !bad && value >= 30; }
+      else        { bad = value < 30;  mid = !bad && value < 60; }
+      cls = bad ? 'on-bad' : (mid ? 'on-mid' : 'on-good');
+    }
+    html += '<i class="' + cls + '"></i>';
+  }
+  el.innerHTML = html;
+}
+
+function render(){
+  if (!S) return;
+  document.getElementById('stage-name').textContent = STAGE_NAMES[S.stage] + (S.sleeping ? ' 💤' : '');
+  document.getElementById('age').textContent = '年龄 ' + fmtAge();
+  document.getElementById('sick-tag').style.display = S.sick ? '' : 'none';
+  renderPet();
+  document.getElementById('poop').style.display = S.poop && !S.sleeping ? '' : 'none';
+  renderBar('bar-hunger', S.hunger, true);
+  renderBar('bar-fun', S.fun, true);
+  renderBar('bar-clean', S.clean, false);
+  renderBar('bar-energy', S.energy, false);
+  document.getElementById('pct-hunger').textContent = Math.round(S.hunger);
+  document.getElementById('pct-fun').textContent = Math.round(S.fun);
+  document.getElementById('pct-clean').textContent = Math.round(S.clean);
+  document.getElementById('pct-energy').textContent = Math.round(S.energy);
+  document.getElementById('b-clean').style.display = S.poop ? '' : 'none';
+  document.getElementById('b-med').style.display = S.sick ? '' : 'none';
+  document.getElementById('adopt-btn').style.display = S.runaway ? '' : 'none';
+  document.getElementById('mute-btn').textContent = S.mute ? '🔇' : '🔊';
+  renderMsg();
+}
+
+var msgEl = document.getElementById('msg');
+function log(m){
+  var t = new Date();
+  var p = function(n){ return (n < 10 ? '0' : '') + n; };
+  S.events.push({ t: p(t.getHours()) + ':' + p(t.getMinutes()), m: m });
+  if (S.events.length > 20) S.events.shift();
+  renderMsg();
+}
+function renderMsg(){
+  var e = S.events[S.events.length - 1];
+  if (!e) return;
+  msgEl.innerHTML = '<span class="time">[' + e.t + ']</span>' + e.m.replace(/</g, '&lt;');
+}
+
+function fx(emoji){
+  var box = document.getElementById('stage-box');
+  var d = document.createElement('div');
+  d.className = 'fx';
+  d.textContent = emoji;
+  d.style.left = (30 + Math.random() * 40) + '%';
+  d.style.top = '30%';
+  box.appendChild(d);
+  setTimeout(function(){ d.remove(); }, 1200);
+}
+
+/* ---------- 音效 ---------- */
+var actx = null;
+function beep(freq, delay){
+  if (!S || S.mute) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    var t0 = actx.currentTime + (delay || 0);
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.04, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.09);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t0); o.stop(t0 + 0.1);
+  } catch(e){}
+}
+
+/* ---------- 存档 ---------- */
+function save(){
+  S.last = now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
+}
+
+/* ---------- 事件绑定 ---------- */
+function bind(id, name){
+  document.getElementById(id).addEventListener('click', function(){ act(name); });
+}
+bind('b-feed', 'feed');
+bind('b-snack', 'snack');
+bind('b-play', 'play');
+bind('b-wash', 'wash');
+bind('b-clean', 'clean');
+bind('b-med', 'med');
+bind('b-sleep', 'sleep');
+document.getElementById('mute-btn').addEventListener('click', function(){
+  S.mute = !S.mute;
+  render();
+  if (!S.mute) beep(880);
+});
+document.getElementById('adopt-btn').addEventListener('click', function(){
+  try { localStorage.removeItem(SAVE_KEY); } catch(e){}
+  location.reload();
+});
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden) save();
+});
+window.addEventListener('beforeunload', save);
+window.addEventListener('pagehide', save);
+
+/* ---------- 启动 ---------- */
+load();
+render();
+save();
+setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
