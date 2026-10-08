@@ -325,12 +325,19 @@ function load(){
       hungerPeakSince: null, criticalSince: null,
       runaway: false, mute: false, events: []
     };
+    log('clawd 出生了！3 分钟后孵化');
     return;
   }
   if (S.runaway) return; // 离家出走的状态要保留，等用户点「重新领养」
-  // 补算离线时间
+  // 补算离线时间：孵蛋期间不衰减，孵化之后的空档才衰减
   var mins = clamp((now() - S.last) / 60000, 0, OFFLINE_CAP_MIN);
-  if (mins > 0) applyDecay(mins);
+  if (mins > 0) {
+    var ageAtLastSeen = (S.last - S.born) / 60000;
+    var decayMins = ageAtLastSeen < HATCH_MIN
+      ? Math.max(0, mins - (HATCH_MIN - ageAtLastSeen))   // 先扣掉还在孵蛋的那段
+      : mins;
+    if (decayMins > 0) applyDecay(decayMins);
+  }
   S.last = now();
 }
 
@@ -365,7 +372,7 @@ function careScore(){
 
 function checkGrow(){
   if (S.stage === 0) {
-    if (ageMin() >= HATCH_MIN) { S.stage = 1; log('蛋裂开了！clawd 孵化出来了'); fx('🐣'); beep(660); beep(880, .1); }
+    if (ageMin() >= HATCH_MIN) { S.stage = 1; log('蛋裂开了！clawd 孵化出来了'); fx('🐣'); beep(660); beep(880, .1); save(); }
     return;
   }
   var target = stageForAge();
@@ -375,6 +382,7 @@ function checkGrow(){
       S.stage = target;
       log('clawd 进化成了' + STAGE_NAMES[target] + '！');
       fx('✨'); beep(523); beep(659, .1); beep(784, .2);
+      save(); // 进化是里程碑，立刻落盘，别等到 15 秒心跳
       void old;
     }
   }
@@ -445,7 +453,11 @@ function tick(){
 /* ---------- 动作 ---------- */
 function act(name){
   if (S.runaway) return;
-  if (S.stage === 0) { log('蛋还没孵化，再等等…'); return; }
+  if (S.stage === 0) {
+    var left = Math.max(0, Math.ceil(HATCH_MIN - ageMin()));
+    log('蛋还没孵化，还要等 ' + left + ' 分钟');
+    return;
+  }
   if (S.sleeping && name !== 'sleep' && name !== 'clean' && name !== 'med') { log('clawd 在睡觉，别吵它 💤'); return; }
   if (name === 'feed') {
     S.hunger = clamp(S.hunger - 22, 0, 100);
@@ -502,7 +514,7 @@ function sprite(){
 }
 
 function renderPet(){
-  if (S.runaway) { petEl.innerHTML = ''; petEl.className = 'pet'; return; }
+  if (S.runaway) { petEl.innerHTML = ''; petEl.setAttribute('class', 'pet'); return; }
   var rows = sprite();
   var h = rows.length, w = rows[0].length;
   var s = '';
@@ -515,7 +527,8 @@ function renderPet(){
   }
   petEl.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
   petEl.innerHTML = s;
-  petEl.className = 'pet ' + (S.runaway ? '' : (S.sleeping ? 'sleeping' : 'bob')) + (S.sick ? ' sick' : '');
+  // SVGElement.className 是只读的 SVGAnimatedString，必须走 setAttribute
+  petEl.setAttribute('class', 'pet ' + (S.runaway ? '' : (S.sleeping ? 'sleeping' : 'bob')) + (S.sick ? ' sick' : ''));
 }
 
 function fmtAge(){
