@@ -18,16 +18,18 @@ const allPosts = (await getLocalizedPosts(lang)).sort(
 );
 
 // 分组用的标签（中文标签，中英站共用同一批文章）
-const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "8086", "电路", "模电", "期末复习", "考试"];
+const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "8086", "电路", "模电", "期末复习", "考试", "考研"];
 const isIelts = (p: LocalizedPost) => p.tags.includes("雅思");
+const isSSM = (p: LocalizedPost) => p.tags.includes("北大软微");
 const isCS = (p: LocalizedPost) => p.tags.some((tag) => CS_TAGS.includes(tag));
 const isTest = (p: LocalizedPost) => p.tags.includes("壁纸") || p.tags.includes("测试") || p.title.includes("壁纸测试");
 
 const groups = [
 	{ key: "ielts", label: t("groupIelts"), items: allPosts.filter(isIelts) },
-	{ key: "cs", label: t("groupCs"), items: allPosts.filter((p) => !isIelts(p) && isCS(p)) },
-	{ key: "essay", label: t("groupEssay"), items: allPosts.filter((p) => !isIelts(p) && !isCS(p) && !isTest(p)) },
-	{ key: "test", label: t("groupTest"), items: allPosts.filter((p) => !isIelts(p) && !isCS(p) && isTest(p)) },
+	{ key: "ssm", label: t("groupSsm"), items: allPosts.filter(isSSM) },
+	{ key: "cs", label: t("groupCs"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && isCS(p)) },
+	{ key: "essay", label: t("groupEssay"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && !isCS(p) && !isTest(p)) },
+	{ key: "test", label: t("groupTest"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && !isCS(p) && isTest(p)) },
 ].filter((g) => g.items.length > 0);
 
 const dateLocale = lang === "en" ? "en-US" : "zh-CN";
