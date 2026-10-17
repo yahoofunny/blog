@@ -1,0 +1,155 @@
+---
+title: "ESP32 电子吧唧 · CLAWD PET"
+tagline: "一只住在 1.85 英寸圆屏里的电子桌宠，能养成、能打游戏、还能陪聊。"
+description: "Waveshare ESP32-S3-Touch-LCD-1.85B 上的圆屏电子吧唧：六入口应用环、七段养成、20 种配饰、四个小游戏、AI 语音与 Wi-Fi 传歌。"
+publishDate: "2026-10-17"
+status: "active"
+stack: ["ESP32-S3", "Arduino", "ESP-IDF", "C++", "LVGL", "QSPI"]
+repo: "https://github.com/yahoofunny/esp32-badge"
+article: "/posts/esp32-badge-clawd-pet/"
+cover:
+  alt: "ESP32 圆屏主页：六个应用图标围成一圈，GAMES 文件夹处于选中状态"
+  src: "../../assets/esp32-badge/launcher.png"
+featured: true
+order: 1
+---
+
+import { Image } from "astro:assets";
+import petCare from "@/assets/esp32-badge/pet-care.png";
+import petWardrobe from "@/assets/esp32-badge/pet-wardrobe.png";
+import gamesFolder from "@/assets/esp32-badge/games-folder.png";
+import snake from "@/assets/esp32-badge/snake.png";
+import bricks from "@/assets/esp32-badge/bricks.png";
+import hypno from "@/assets/esp32-badge/hypno.png";
+import music from "@/assets/esp32-badge/music.png";
+import photos from "@/assets/esp32-badge/photos.png";
+import wifi from "@/assets/esp32-badge/wifi-transfer.png";
+import wifiWebCrop from "@/assets/esp32-badge/wifi-transfer-web-crop.png";
+
+一块 360×360 的圆屏，除了显示时间，还能装下多少东西？
+
+这个项目的答案是一只 **CLAWD PET**：开机是一个可以拖转的应用圆环，里面有养成、相册、音乐、惯性摆钟、小游戏和设置；同一只宠物会跟着你喂食、换装、进化，也能在小智语音里用同一个形象和表情说话。硬件是一块 **Waveshare ESP32-S3-Touch-LCD-1.85B**，带触摸、六轴传感器、麦克风、扬声器和一颗 500mAh 电池。
+
+它不是一块焊在洞洞板上的演示板，而是一套可以随身带着、每天开机玩的完整固件。
+
+<div class="not-prose my-8 grid gap-3 sm:grid-cols-3">
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">01 / PET</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">同一只宠物</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">蛋、七种成长形态、20 种配饰；喂食、抚摸、清洁、休息都会改变状态，换装后身体比例不变。</p>
+  </div>
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">02 / GAMES</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">四个小游戏</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">SNAKE、BRICKS、CLAWD ROLL、CLAWD TAP 收进独立的 GAMES 文件夹，操作和主页一致。</p>
+  </div>
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">03 / VOICE</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">会说话的版本</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">可选的 ESP-IDF 小智语音固件与启动器共用同一只宠物，聊天时保留形态、配饰和中文表情字幕。</p>
+  </div>
+</div>
+
+## 一个圆环，六个入口
+
+主页没有桌面、没有图标网格，只有一圈可以手指拖转的应用环。松手吸附、点击打开，GAMES 里的四个游戏再组成第二层圆环，BACK 负责回到上一层。主页不显示左上角时钟，把圆屏的每一寸都留给应用和宠物。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={petCare} alt="CLAWD PET 养成页：绿色像素宠物戴着花，顶部显示饥饿、能量、心情、清洁和健康" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">养成页：状态条 + 七种成长形态 + 互动按钮</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={petWardrobe} alt="衣柜页：绿色宠物戴着耳机，底部有 BACK 和 WEAR 按钮" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">衣柜：20 种配饰叠加，身体比例保持不变</figcaption>
+  </figure>
+</div>
+
+## 小游戏是认真的
+
+四个小游戏不是贴图演示：SNAKE 是 15×15 网格、按蛇头相对位置点击转向、带转向队列和暂停；BRICKS 有 20 块砖、三条命、左右半屏点击与按住控制；CLAWD ROLL 用六轴倾斜控制；CLAWD TAP 是点击反应小游戏。SNAKE 和 BRICKS 还记本次开机的最高分，退出后回到 GAMES 文件夹，而不是掉回主页。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-3">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={gamesFolder} alt="GAMES 文件夹圆环：蛇、砖块、宠物和返回图标" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">GAMES 第二层圆环</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={snake} alt="贪吃蛇游戏画面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">SNAKE：点蛇头周围转向</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={bricks} alt="打砖块游戏画面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">BRICKS：左右半屏控制挡板</figcaption>
+  </figure>
+</div>
+
+## 屏幕之外：相册、音乐和一块会晃的怀表
+
+PHOTOS 里内置了 24 个 Clawd 原始动图，也能读 SD 卡照片；左右滑动翻页，长按约 650ms 切换全屏裁切和完整显示。MUSIC 支持 MP3、WAV、M4A/AAC、FLAC、OGG，实测过一首 24 位 / 48kHz 的 FLAC，I2S 输出约 48,000 帧/秒、写入错误为 0。HYPNO 用 QMI8658 六轴传感器驱动一块金色怀表，跟着设备左右晃动，停手后逐渐衰减。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-3">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={hypno} alt="HYPNO 金色怀表与同心圆界面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">HYPNO：六轴惯性摆钟</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={music} alt="MUSIC 黑胶唱片播放器界面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">MUSIC：SD 卡本地播放器</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={photos} alt="PHOTOS 相册中的 Clawd 动图，底部显示页码" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">PHOTOS：内置动图 + SD 卡照片</figcaption>
+  </figure>
+</div>
+
+## 不用拔卡传歌
+
+设置里打开独立热点，手机会看到一个 `BADGE-xxxx` Wi-Fi。连上后浏览器打开 `192.168.4.1`，批量上传音乐和照片；完整写入才进歌单，中断会清理临时文件，同名文件自动加数字后缀。网页会把静态 JPG/PNG/WebP 转成最长边 1280 的 JPG，GIF 保留动画，每首音乐上限 512MiB。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-[1fr_1.1fr] sm:items-start">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={wifi} alt="吧唧上的 WIFI 热点页面，显示热点名称、密码和启动按钮" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">设备端：开热点</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={wifiWebCrop} alt="手机浏览器中的吧唧传输页，包含音乐上传、照片上传和 SD 卡文件列表" width={260} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">手机端：上传进度与 SD 卡内容</figcaption>
+  </figure>
+</div>
+
+## 技术侧写
+
+<div class="not-prose my-8 grid gap-3 sm:grid-cols-2">
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">FIRMWARE</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">两套固件，一个界面</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">Arduino 启动器放在 factory，ESP-IDF 小智语音放在 ota_0，沿用设备已有分区表；部署工具只写应用，避免覆盖分区表和另一套固件。</p>
+  </div>
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">RENDER</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">启动器绕开 LVGL</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">主系统直接绘制到 PSRAM 中的 RGB565 帧缓冲，再切成 DMA 条带送给 ST77916；每个应用实现同一个 Game 接口，文字、精灵和图标都是自己的绘制原语。</p>
+  </div>
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">PERF</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">16.6 → 27 fps</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">缓存主页几何、缩小圆环描边扫描范围，把整屏 DMA 条带从 8 行加到 32 行（后来到 40 行），实机主页从约 16.6fps 提升到 27.0fps。</p>
+  </div>
+  <div class="glass-card !p-4">
+    <p class="wm-kicker !mb-1">BATTERY</p>
+    <h3 class="text-base font-semibold" style="color: var(--wm-ink)">电量计不是装饰</h3>
+    <p class="mt-1 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">BQ27220 按实物 500mAh 配置并写回 NVS；插拔后零电流读数会自动降负载恢复。仅插线或显示 100% 都不能证明正在充电，页面分开显示 USB、CHARGING 和实际电流。</p>
+  </div>
+</div>
+
+## 想自己做一个？
+
+源码、硬件说明、编译脚本和踩坑记录都在 GitHub。项目采用 **AGPL-3.0**，Clawd 美术素材来自另一个 AGPL-3.0 项目，第三方材料在 `NOTICE.md` 里逐条列出。动手前请先完整备份 16MB 闪存——这块板子的原厂系统和分区布局，比一块空白开发板值得保护得多。
+
+<div class="not-prose my-8 flex flex-wrap gap-3">
+  <a href="https://github.com/yahoofunny/esp32-badge" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-md px-4 py-2 font-mono text-sm font-semibold" style="background: var(--wm-primary); color: #fff">GitHub 仓库 ↗</a>
+  <a href="/posts/esp32-badge-clawd-pet/" class="inline-flex items-center gap-2 rounded-md border px-4 py-2 font-mono text-sm" style="border-color: var(--wm-primary); color: var(--wm-primary)">读完整开发记录 →</a>
+</div>
+
+*项目状态：实机运行中。续航长测、更多媒体格式和 SD 卡兼容性还在继续。*

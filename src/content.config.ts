@@ -70,6 +70,37 @@ const postEn = defineCollection({
 		}),
 });
 
+// 项目文件夹：主页的「作品 / 广告位」，每个项目一个 MDX，详情正文写在文件里
+const project = defineCollection({
+	loader: glob({ base: "./src/content/project", pattern: "**/*.{md,mdx}" }),
+	schema: ({ image }) =>
+		z.object({
+			title: z.string().max(80),
+			tagline: z.string(),
+			description: z.string(),
+			publishDate: z
+				.string()
+				.or(z.date())
+				.transform((val) => new Date(val)),
+			updatedDate: z
+				.string()
+				.optional()
+				.transform((str) => (str ? new Date(str) : undefined)),
+			status: z.enum(["active", "maintained", "wip", "archived"]).default("active"),
+			stack: z.array(z.string()).default([]),
+			repo: z.string().optional(),
+			article: z.string().optional(),
+			demo: z.string().optional(),
+			cover: z.object({
+				alt: z.string(),
+				src: image(),
+			}),
+			featured: z.boolean().default(false),
+			order: z.number().default(0),
+			draft: z.boolean().default(false),
+		}),
+});
+
 const note = defineCollection({
 	loader: glob({ base: "./src/content/note", pattern: "**/*.{md,mdx}" }),
 	schema: baseSchema.extend({
@@ -88,4 +119,4 @@ const tag = defineCollection({
 	}),
 });
 
-export const collections = { post, postEn, note, tag };
+export const collections = { post, postEn, note, tag, project };

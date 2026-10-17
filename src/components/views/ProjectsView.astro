@@ -1,0 +1,124 @@
+---
+import ProjectCard from "@/components/ProjectCard.astro";
+import { getProjects } from "@/data/project";
+import { type Locale } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+import PageLayout from "@/layouts/Base.astro";
+
+interface Props {
+	lang: Locale;
+}
+
+const { lang } = Astro.props;
+const projects = await getProjects();
+const L = (path: string) => localizePath(path, lang);
+
+const copy =
+	lang === "en"
+		? {
+				metaTitle: "Projects",
+				metaDesc:
+					"bt's project folder: hardware, embedded toys and small tools. A portfolio and an ad board for everything I build.",
+				kicker: "PROJECTS · FOLDER",
+				title: "Projects",
+				desc: "Everything I've built lives here. Hardware, embedded toys, small tools — if it runs, it gets a slot. This folder will keep filling up; think of it as a portfolio and an ad board.",
+				count: (n: number) => `${n} ${n === 1 ? "project" : "projects"}`,
+				updating: "continuously updated",
+				related: "Related posts →",
+				nextKicker: "NEXT SLOT",
+				nextTitle: "The next project is in the works",
+				nextDesc:
+					"This slot is intentionally empty. The next piece of hardware or tool goes here once it runs.",
+				nextCta: "See progress on GitHub ↗",
+				whyKicker: "ABOUT THIS FOLDER",
+				whyTitle: "Why a separate project folder?",
+				whyDesc:
+					"Posts sink into the archive; projects don't. Every project gets its own page with screenshots, stack, repository and build log. Everything I make goes here.",
+			}
+		: {
+				metaTitle: "Projects · 项目",
+				metaDesc:
+					"bt 的项目文件夹：硬件、嵌入式和小工具。做完的东西都放在这里，当作品集也当广告位。",
+				kicker: "PROJECTS · 项目文件夹",
+				title: "Projects",
+				desc: "做完的东西都放在这里。硬件、嵌入式、小工具，能跑起来就值得一个位置。这个文件夹会越塞越满——也欢迎把它当成广告位。",
+				count: (n: number) => `${n} 个项目`,
+				updating: "持续更新",
+				related: "相关文章 →",
+				nextKicker: "NEXT SLOT",
+				nextTitle: "下一个项目正在做",
+				nextDesc: "这个位置先空着。等下一个硬件或小工具跑通，再把它填进来。",
+				nextCta: "GitHub 上看进度 ↗",
+				whyKicker: "ABOUT THIS FOLDER",
+				whyTitle: "为什么单独开一个项目文件夹？",
+				whyDesc:
+					"文章会沉在归档里，项目不会。这里每个项目有一页自己的广告页：能看图、看技术栈、直接跳仓库和开发记录。以后做的东西都往这里放。",
+			};
+---
+
+<PageLayout meta={{ title: copy.metaTitle, description: copy.metaDesc }}>
+  <!-- 文件夹封面 -->
+  <section class="mb-8 border-b border-dotted pb-8" style="border-color: var(--wm-dotted)">
+    <p class="wm-kicker mb-3">{copy.kicker}</p>
+    <h1
+      class="mb-4 text-4xl font-semibold uppercase tracking-tight md:text-5xl"
+      style="font-family: var(--font-display)"
+    >
+      {copy.title}
+    </h1>
+    <p class="max-w-2xl text-base leading-relaxed" style="color: var(--wm-ink-soft)">
+      {copy.desc}
+    </p>
+    <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs" style="color: var(--wm-muted)">
+      <span>{copy.count(projects.length)}</span>
+      <span>·</span>
+      <span>{copy.updating}</span>
+      <span>·</span>
+      <a href={L("/archives/")} class="transition-colors" style="color: var(--wm-primary)">{copy.related}</a>
+    </div>
+  </section>
+
+  <!-- 项目卡片 -->
+  <div class="grid gap-5 md:grid-cols-2">
+    {projects.map((project) => <ProjectCard project={project} lang={lang} />)}
+
+    <a
+      href="https://github.com/yahoofunny"
+      target="_blank"
+      rel="noreferrer noopener"
+      class="glass-card flex min-h-[300px] flex-col items-center justify-center !p-8 text-center"
+      style="border-style: dashed"
+    >
+      <span
+        class="mb-3 flex h-12 w-12 items-center justify-center rounded-full border text-2xl font-light"
+        style="border-color: var(--wm-dotted); color: var(--wm-primary)"
+      >
+        +
+      </span>
+      <p class="wm-kicker !mb-1">{copy.nextKicker}</p>
+      <h2 class="text-lg font-semibold" style="color: var(--wm-ink)">{copy.nextTitle}</h2>
+      <p class="mt-2 max-w-xs text-sm leading-relaxed" style="color: var(--wm-ink-soft)">
+        {copy.nextDesc}
+      </p>
+      <span class="mt-4 font-mono text-xs" style="color: var(--wm-primary)">{copy.nextCta}</span>
+    </a>
+  </div>
+
+  <section class="glass-card mt-10 !p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p class="wm-kicker !mb-1">{copy.whyKicker}</p>
+        <h2 class="text-lg font-semibold" style="color: var(--wm-ink)">{copy.whyTitle}</h2>
+        <p class="mt-1 max-w-2xl text-sm leading-relaxed" style="color: var(--wm-ink-soft)">
+          {copy.whyDesc}
+        </p>
+      </div>
+      <a
+        href="https://github.com/yahoofunny"
+        target="_blank"
+        rel="noreferrer noopener"
+        class="font-mono text-sm"
+        style="color: var(--wm-primary)">GitHub ↗</a>
+    </div>
+  </section>
+</PageLayout>

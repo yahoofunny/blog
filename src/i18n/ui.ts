@@ -21,6 +21,7 @@ export const ui = {
 	zh: {
 		// 导航
 		navChat: "Chat",
+		navProjects: "Projects",
 		navGames: "Games",
 		navArchives: "Archives",
 		navGadgets: "Gadgets",
@@ -60,6 +61,7 @@ export const ui = {
 		groupIelts: "IELTS · 雅思",
 		groupSsm: "软微考研",
 		groupCs: "CS · 计算机专业",
+		groupHardware: "硬件 · 电子制作",
 		groupEssay: "随笔",
 		groupTest: "测试",
 		postCount: "篇",
@@ -80,6 +82,7 @@ export const ui = {
 	},
 	en: {
 		navChat: "Chat",
+		navProjects: "Projects",
 		navGames: "Games",
 		navArchives: "Archives",
 		navGadgets: "Gadgets",
@@ -118,6 +121,7 @@ export const ui = {
 		groupIelts: "IELTS",
 		groupSsm: "PKU SSM",
 		groupCs: "CS · Computer Science",
+		groupHardware: "Hardware · Making",
 		groupEssay: "Essays",
 		groupTest: "Tests",
 		postCount: "posts",

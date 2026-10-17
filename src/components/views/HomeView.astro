@@ -1,8 +1,10 @@
 ---
-import PageLayout from "@/layouts/Base.astro";
+import ProjectCard from "@/components/ProjectCard.astro";
 import { getLocalizedPosts, type LocalizedPost } from "@/data/post";
+import { getProjects } from "@/data/project";
 import { type Locale, useTranslations } from "@/i18n/ui";
 import { localizePath } from "@/i18n/utils";
+import PageLayout from "@/layouts/Base.astro";
 import { siteConfig } from "@/site.config";
 
 interface Props {
@@ -22,18 +24,45 @@ const CS_TAGS = ["数据结构", "算法", "排序", "查找", "汇编语言", "
 const isIelts = (p: LocalizedPost) => p.tags.includes("雅思");
 const isSSM = (p: LocalizedPost) => p.tags.includes("北大软微");
 const isCS = (p: LocalizedPost) => p.tags.some((tag) => CS_TAGS.includes(tag));
+const HARDWARE_TAGS = ["esp32", "嵌入式", "硬件", "diy", "桌宠"];
+const isHardware = (p: LocalizedPost) => p.tags.some((tag) => HARDWARE_TAGS.includes(tag));
 const isTest = (p: LocalizedPost) => p.tags.includes("壁纸") || p.tags.includes("测试") || p.title.includes("壁纸测试");
 
 const groups = [
 	{ key: "ielts", label: t("groupIelts"), items: allPosts.filter(isIelts) },
 	{ key: "ssm", label: t("groupSsm"), items: allPosts.filter(isSSM) },
 	{ key: "cs", label: t("groupCs"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && isCS(p)) },
-	{ key: "essay", label: t("groupEssay"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && !isCS(p) && !isTest(p)) },
-	{ key: "test", label: t("groupTest"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && !isCS(p) && isTest(p)) },
+	{ key: "hardware", label: t("groupHardware"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && isHardware(p)) },
+	{ key: "essay", label: t("groupEssay"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && !isCS(p) && !isHardware(p) && !isTest(p)) },
+	{ key: "test", label: t("groupTest"), items: allPosts.filter((p) => !isIelts(p) && !isSSM(p) && !isCS(p) && !isHardware(p) && isTest(p)) },
 ].filter((g) => g.items.length > 0);
 
 const dateLocale = lang === "en" ? "en-US" : "zh-CN";
 const titleSort = lang === "en" ? "en" : "zh-CN";
+
+// 项目文件夹：只显示前两个（featured 优先），完整列表在 /projects/
+const projects = await getProjects();
+const showcaseProjects = [...projects]
+	.sort((a, b) => Number(b.data.featured) - Number(a.data.featured))
+	.slice(0, 2);
+const projectCopy =
+	lang === "en"
+		? {
+				kicker: "PROJECTS · FOLDER",
+				title: "Things I've built",
+				desc: "Hardware / tools / experiments — each project gets its own page",
+				open: "Open the project folder →",
+				more: "This folder will fill up",
+				moreCta: "View all projects →",
+			}
+		: {
+				kicker: "PROJECTS · 项目文件夹",
+				title: "做出来的东西",
+				desc: "硬件 / 工具 / 实验，每个项目一页自己的广告",
+				open: "打开项目文件夹 →",
+				more: "这个文件夹会越塞越满",
+				moreCta: "查看全部项目 →",
+			};
 ---
 
 <PageLayout meta={{ title: lang === "en" ? "Home" : "首页" }}>
@@ -45,6 +74,42 @@ const titleSort = lang === "en" ? "en" : "zh-CN";
     </h1>
     <p class="font-mono text-sm mb-4" style="color: var(--wm-muted)">{t("homeTagline")}</p>
   </section>
+
+  <!-- Projects folder -->
+  {projects.length > 0 && (
+    <section class="mb-10">
+      <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="wm-kicker mb-2">{projectCopy.kicker}</p>
+          <h2 class="text-2xl font-semibold uppercase tracking-tight" style="font-family: var(--font-display)">
+            {projectCopy.title}
+          </h2>
+          <p class="mt-1 font-mono text-xs" style="color: var(--wm-muted)">
+            {projectCopy.desc}
+          </p>
+        </div>
+        <a href={L("/projects/")} class="font-mono text-xs" style="color: var(--wm-primary)">{projectCopy.open}</a>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        {showcaseProjects.map((project) => <ProjectCard project={project} lang={lang} />)}
+        {projects.length < 2 && (
+        <a
+          href={L("/projects/")}
+          class="glass-card flex min-h-[260px] flex-col items-center justify-center !p-6 text-center"
+          style="border-style: dashed"
+        >
+          <span class="mb-2 text-2xl font-light" style="color: var(--wm-primary)">+</span>
+          <span class="wm-kicker !mb-1">MORE SOON</span>
+          <span class="text-sm font-semibold" style="color: var(--wm-ink)">{projectCopy.more}</span>
+          <span class="mt-2 font-mono text-[0.65rem]" style="color: var(--wm-muted)">
+            {projectCopy.moreCta}
+          </span>
+        </a>
+        )}
+      </div>
+    </section>
+  )}
 
   <!-- Sort buttons -->
   <div id="sort-bar" class="flex flex-wrap gap-2 mb-6" data-locale={titleSort}>

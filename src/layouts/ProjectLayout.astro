@@ -1,0 +1,177 @@
+---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
+import type { ProjectEntry } from "@/data/project";
+import { projectStatus } from "@/data/project";
+import type { Locale } from "@/i18n/ui";
+import { localizePath } from "@/i18n/utils";
+import BaseLayout from "./Base.astro";
+
+interface Props {
+	project: ProjectEntry;
+	lang?: Locale;
+}
+
+const { project, lang = "zh" } = Astro.props;
+const { title, tagline, description, cover, status, stack, repo, article, publishDate, updatedDate } =
+	project.data;
+const state = projectStatus[status];
+const { Content } = await render(project);
+const L = (path: string) => localizePath(path, lang);
+
+const copy =
+	lang === "en"
+		? {
+				home: "Home",
+				projects: "Projects",
+				status: state.labelEn,
+				repo: "GitHub repository ↗",
+				article: "Read the build log →",
+				published: "Published",
+				updated: "Updated",
+				slug: "Slug",
+				back: "← Back to projects",
+				next: "The next project is on the way.",
+				hint: "This project page is currently written in Chinese.",
+			}
+		: {
+				home: "首页",
+				projects: "项目文件夹",
+				status: state.label,
+				repo: "GitHub 仓库 ↗",
+				article: "读开发记录 →",
+				published: "发布",
+				updated: "更新",
+				slug: "标识",
+				back: "← 回到项目文件夹",
+				next: "下一个项目正在路上。",
+				hint: "",
+			};
+
+const dateText = publishDate.toLocaleDateString(lang === "en" ? "en-US" : "zh-CN", {
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+});
+const updatedText = updatedDate?.toLocaleDateString(lang === "en" ? "en-US" : "zh-CN", {
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+});
+---
+
+<BaseLayout meta={{ title: `${title} · Projects`, description }}>
+  <nav class="mb-6 font-mono text-xs" style="color: var(--wm-muted)">
+    <a
+      href={L("/")}
+      class="transition-colors"
+      style="color: var(--wm-muted)"
+      onmouseover="this.style.color='var(--wm-primary)'"
+      onmouseout="this.style.color='var(--wm-muted)'">{copy.home}</a>
+    <span class="mx-1">/</span>
+    <a
+      href={L("/projects/")}
+      class="transition-colors"
+      style="color: var(--wm-muted)"
+      onmouseover="this.style.color='var(--wm-primary)'"
+      onmouseout="this.style.color='var(--wm-muted)'">{copy.projects}</a>
+    <span class="mx-1">/</span>
+    <span style="color: var(--wm-ink-soft)">{title}</span>
+  </nav>
+
+  <header class="glass-card !p-7 md:!p-10">
+    <div class="grid items-center gap-8 md:grid-cols-[1.25fr_0.75fr]">
+      <div>
+        <p class="wm-kicker mb-3">PROJECT · {publishDate.getFullYear()}</p>
+        <h1 class="mb-3 text-3xl font-bold leading-tight md:text-4xl" style="font-family: var(--font-display)">
+          {title}
+        </h1>
+        <p class="mb-3 text-lg font-medium leading-relaxed" style="color: var(--wm-ink)">
+          {tagline}
+        </p>
+        <p class="mb-5 text-sm leading-relaxed" style="color: var(--wm-ink-soft)">{description}</p>
+
+        <div class="mb-5 flex flex-wrap items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-wide"
+            style={`color:${state.color};border-color:${state.color}`}
+          >
+            <span class="h-1.5 w-1.5 rounded-full" style={`background:${state.color}`}></span>
+            {copy.status}
+          </span>
+          {stack.map((item) => (
+            <span
+              class="rounded-md border px-2 py-1 font-mono text-[0.65rem]"
+              style="border-color: var(--wm-dotted); color: var(--wm-muted)"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          {repo && (
+            <a
+              href={repo}
+              target="_blank"
+              rel="noreferrer noopener"
+              class="inline-flex items-center gap-2 rounded-md px-4 py-2 font-mono text-sm font-semibold"
+              style="background: var(--wm-primary); color: #fff"
+            >
+              {copy.repo}
+            </a>
+          )}
+          {article && (
+            <a
+              href={L(article)}
+              class="inline-flex items-center gap-2 rounded-md border px-4 py-2 font-mono text-sm"
+              style="border-color: var(--wm-primary); color: var(--wm-primary)"
+            >
+              {copy.article}
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div class="flex justify-center md:justify-end">
+        <div
+          class="w-full max-w-[300px] overflow-hidden rounded-2xl border p-2"
+          style="border-color: var(--wm-dotted); background: radial-gradient(circle at 50% 35%, rgba(84, 97, 255, 0.14), transparent 62%), #07070c"
+        >
+          <Image
+            src={cover.src}
+            alt={cover.alt}
+            width={360}
+            height={360}
+            class="h-auto w-full rounded-xl"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="mt-7 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-dotted pt-4 font-mono text-[0.65rem]"
+      style="border-color: var(--wm-dotted); color: var(--wm-muted)"
+    >
+      <span>{copy.published} {dateText}</span>
+      {updatedText && updatedText !== dateText && <span>· {copy.updated} {updatedText}</span>}
+      <span>· {copy.slug} {project.id}</span>
+    </div>
+  </header>
+
+  {copy.hint && (
+    <p class="mt-4 font-mono text-xs" style="color: var(--wm-muted)">⚠︎ {copy.hint}</p>
+  )}
+
+  <article class="prose mt-10 max-w-none">
+    <Content />
+  </article>
+
+  <div
+    class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-dotted pt-6"
+    style="border-color: var(--wm-dotted)"
+  >
+    <a href={L("/projects/")} class="font-mono text-sm" style="color: var(--wm-primary)">{copy.back}</a>
+    <p class="font-mono text-xs" style="color: var(--wm-muted)">{copy.next}</p>
+  </div>
+</BaseLayout>

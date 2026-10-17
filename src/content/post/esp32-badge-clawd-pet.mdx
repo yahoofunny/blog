@@ -1,0 +1,222 @@
+---
+title: "ESP32 电子吧唧：把桌宠、小游戏和 AI 语音塞进 1.85 英寸圆屏"
+description: "从一块 Waveshare ESP32-S3 圆屏出发：双固件电子吧唧、绕过 LVGL 的启动器、七个养成形态、四个小游戏、BQ27220 电量计，以及一次从 16.6 到 27 fps 的实机优化。"
+publishDate: "2026-10-17"
+tags: ["ESP32", "嵌入式", "硬件", "桌宠", "DIY"]
+---
+
+import { Image } from "astro:assets";
+import launcher from "@/assets/esp32-badge/launcher.png";
+import petCare from "@/assets/esp32-badge/pet-care.png";
+import petWardrobe from "@/assets/esp32-badge/pet-wardrobe.png";
+import petVoice from "@/assets/esp32-badge/pet-voice.png";
+import gamesFolder from "@/assets/esp32-badge/games-folder.png";
+import snake from "@/assets/esp32-badge/snake.png";
+import bricks from "@/assets/esp32-badge/bricks.png";
+import hypno from "@/assets/esp32-badge/hypno.png";
+import music from "@/assets/esp32-badge/music.png";
+import photos from "@/assets/esp32-badge/photos.png";
+import wifi from "@/assets/esp32-badge/wifi-transfer.png";
+import wifiWeb from "@/assets/esp32-badge/wifi-transfer-web.png";
+import wifiWebCrop from "@/assets/esp32-badge/wifi-transfer-web-crop.png";
+import power from "@/assets/esp32-badge/power.png";
+
+<div style="border:4px solid #111;box-shadow:6px 6px 0 rgba(0,0,0,.25);padding:10px 14px;margin:1rem 0 1.5rem;background:var(--wm-card);font-family:var(--font-mono);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--wm-primary);display:inline-block;">✪ ESP32 BADGE · CLAWD PET</div>
+
+手里有一块 **Waveshare ESP32-S3-Touch-LCD-1.85B**：1.85 英寸、360×360 的圆屏，带触摸、六轴传感器、麦克风和扬声器接口。它看起来像一块智能手表，但比手表更适合做一件没用的东西——一只可以随身带着的电子吧唧。
+
+于是就有了 **CLAWD PET**：开机是一个可以拖转的应用圆环，里面有养成、相册、音乐、惯性摆钟、小游戏和设置；同一只像素宠物会跟着你吃饭、换装、进化，也能在小智语音里用同一个形象说话。源码在 [yahoofunny/esp32-badge](https://github.com/yahoofunny/esp32-badge)，项目主页在 [Projects 文件夹](/projects/esp32-badge/)。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={launcher} alt="ESP32 圆屏主页：六个应用围绕圆环排布，GAMES 文件夹处于选中状态" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">主页：应用环拖转、松手吸附、点击打开</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={petCare} alt="CLAWD PET 养成页，绿色像素宠物戴着花，顶部显示五项状态" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">CLAWD PET：需求、健康、成长和互动都在一页</figcaption>
+  </figure>
+</div>
+
+## 一块圆屏，和它周围的一圈硬件
+
+先看规格。这块板子的核心不是屏幕，而是它把常用外设几乎都塞进了一张名片大小的 PCB：
+
+| 项目 | 规格 |
+|---|---|
+| 主控 | ESP32-S3R8，双核 LX7，240MHz |
+| 内存 | 512KB SRAM + **8MB OPI PSRAM** |
+| 闪存 | **16MB** NOR |
+| 屏幕 | 1.85 英寸圆形 IPS，360×360，**ST77916**，QSPI，RGB565 |
+| 触摸 | **CST816S**，I²C `0x15` |
+| 六轴 | **QMI8658**，I²C `0x6B` |
+| 音频 | ES8311 编解码器 + ES7210 回声消除，双麦克风、扬声器焊盘 |
+| 其他 | PCF85063 RTC、BQ27220 电量计、microSD（4 位 SDMMC） |
+| 无线 | 2.4GHz Wi-Fi b/g/n + BLE 5 |
+| 供电 | USB-C 或 MX1.25 接口的 3.7V 锂电池，板载充电 |
+
+这块板子最反直觉的一点，是**只剩 3 个空闲 GPIO**（7、8、18），其余引脚已经被屏幕、触摸、音频、SD 卡和闪存/PSRAM 总线占满。想加东西，基本只能走引出的 I²C。知道这件事之后，很多“再加一个按键/传感器”的想法会自然消失，设计也会更克制。
+
+## 两个固件，共用一只宠物
+
+设备原厂就是双固件布局：`factory` 里是主应用，`ota_0` 里是一套完整的小智语音系统，不是空的 OTA 槽。这个项目没有推翻它，而是把 Arduino 启动器放进 `factory`，把改过界面的小智语音宠物放进 `ota_0`，沿用设备已有的分区表：
+
+```text
+factory   0x020000  6.88MB   Arduino 启动器 + 小游戏 + 相册
+ota_0     0x6C0000  4.00MB   ESP-IDF 小智语音宠物
+assets    0xAC0000  4.00MB   共享资源
+```
+
+启动器里点开 CLAWD PET，如果检测到语音固件，就写 `otadata` 并重启切到 `ota_0`；语音固件里长按 BOOT，再把 `factory` 设回启动分区。整个过程在设备上完成，不需要电脑，也不需要断电。
+
+这套布局的代价是：**不能用通用的整片烧录流程**。`idf.py flash` 自动生成的参数指向 `factory`，还会顺带写引导程序和分区表；一旦覆盖 `ota_0`，语音助手就没了，切换逻辑会陷入循环。项目里的 `deploy_game.sh` 只写 `factory` 应用，`install_voice_pet.py` 只写 `ota_0`，两个工具都刻意绕开了“一把梭”的烧录方式。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={petWardrobe} alt="衣柜页面：宠物戴着耳机，显示 04 / 21，底部有 BACK 和 WEAR" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">衣柜：20 种配饰叠加，身体比例始终一致</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={petVoice} alt="小智语音状态页，同一只宠物显示聆听表情" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">语音：形态、配饰和表情跟着同一只宠物走</figcaption>
+  </figure>
+</div>
+
+## 启动器没有用 LVGL
+
+大部分 ESP32 圆屏项目会直接上 LVGL。这个项目的启动器反而不：它把一帧 RGB565 直接画进 PSRAM 里的帧缓冲，再切成 DMA 条带送给 ST77916。每个应用实现同一个 `Game` 接口，文字、精灵、圆环和图标都用项目自己的绘制原语。
+
+这样做的好处是**完全掌控每一帧**：主页圆环的缓动、图标的呼吸环、游戏的场地和粒子的顺序，都在一个确定的绘制流程里；坏处是轮子得自己造，圆环描边、文字渲染和精灵旋转都要写。项目里甚至有一个把纯色图转成 2bpp 索引 C 头文件的脚本，还有一个把 24 个 GIF 原样嵌进 flash 的构建脚本——因为在这个内存尺度上，一张 RGBA 图片就是奢侈品。
+
+独立的小智语音固件则使用它自己的 LVGL 图片适配器。两套渲染路径并存，互不打扰；也正因为它们不是一个东西，性能数据不能互相套用。
+
+## 养一只住得进圆屏的宠物
+
+CLAWD PET 不是“一个会动的图标”。它有一套完整的小状态机：
+
+- **同一只宠物**：蛋、七种成长形态、喂食、抚摸、拖动、休息和清洁；对话时保留形态与配饰，显示表情和中文字幕。
+- **20 种像素配饰**：花朵、安全帽、耳机、巫师帽等叠加在原身体上，体型和比例保持一致；衣柜支持预览、取消和保存。
+- **轻量但完整**：饥饿、能量、心情、清洁、健康五项需求，加上成长值和图鉴收集；旧存档会迁移，不会因为加字段就从头养。
+
+配饰是“画”上去的，不是换一张更大的图。这样做省内存，也让每一件配饰都能和任何形态组合，而不是给每种形态各画一套。
+
+## 小游戏、相册、音乐和一块会晃的怀表
+
+GAMES 是一个独立的第二层圆环，里面住着四个小游戏：
+
+- **SNAKE**：15×15 网格，按蛇头相对位置点击转向，带转向队列、暂停和本次开机最高分。
+- **BRICKS**：20 块砖、三条命，左右半屏点击立即移动，按住超过约 180ms 连续移动。
+- **CLAWD ROLL / CLAWD TAP**：一个用六轴倾斜控制滚动，一个是点击反应游戏。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-3">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={gamesFolder} alt="GAMES 文件夹圆环，四个游戏和 BACK 图标" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">GAMES 文件夹</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={snake} alt="贪吃蛇游戏画面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">SNAKE</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={bricks} alt="打砖块游戏画面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">BRICKS</figcaption>
+  </figure>
+</div>
+
+PHOTOS 里内置了 24 个 Clawd 原始动图，也能读 SD 卡照片。左右滑动或点击两侧翻页，底部显示页码；长按约 650ms 在“全屏裁切”和“完整显示”之间切换。MUSIC 支持 MP3、WAV、M4A/AAC、FLAC、OGG，控制包括上一首/下一首、暂停、进度和音量；实测过一首 24 位 / 48kHz / 双声道的 FLAC，I²S 输出约 48,000 帧/秒、写入错误为 0。
+
+HYPNO 是一块用 QMI8658 驱动的金色怀表：设备左右晃动，摆锤跟着摆；停手后逐渐衰减；点击暂停，底部的减号、加号切换三档灵敏度。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-3">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={hypno} alt="HYPNO 金色怀表与同心圆界面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">HYPNO</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={music} alt="MUSIC 黑胶唱片播放器界面" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">MUSIC</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={photos} alt="PHOTOS 相册中的 Clawd 动图，底部显示页码 2 / 25" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">PHOTOS</figcaption>
+  </figure>
+</div>
+
+## 不拔卡，用网页传歌
+
+设置里打开独立热点，手机会看到一个 `BADGE-xxxx` Wi-Fi；连上后浏览器打开 `192.168.4.1`，就能批量上传音乐和照片。网页会把静态 JPG/PNG/WebP 转成最长边 1280 的 JPG，GIF 原样保留动画；音乐不重新压缩，单首上限 512MiB。上传由独立 HTTP 任务分块写卡，界面还能继续操作。
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-[1fr_1.1fr] sm:items-start">
+  <figure class="glass-card !p-3 !m-0">
+    <Image src={wifi} alt="设备端 WIFI 热点页面，显示热点名称、密码和启动按钮" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">设备端：开热点</figcaption>
+  </figure>
+  <figure class="glass-card !p-3 !m-0">
+    <a href={wifiWeb.src} target="_blank" rel="noreferrer noopener" class="block">
+      <Image src={wifiWebCrop} alt="手机浏览器中的吧唧传输页，包含音乐上传、照片上传和 SD 卡文件列表" width={260} />
+    </a>
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">
+      手机端：上传进度和 SD 卡内容（截取顶部，<a href={wifiWeb.src} target="_blank" rel="noreferrer noopener" style="color: var(--wm-primary)">完整截图 ↗</a>）
+    </figcaption>
+  </figure>
+</div>
+
+## 性能：从 16.6 fps 到 27 fps
+
+主页最早在实机上只有 **16.6 fps**。奇怪的是，绘制本身只占约 14.4ms，真正的大头是送屏：整屏 360 行、每条 DMA 传 8 行、共 45 批，一批传完才能复用缓冲，合计约 45ms。
+
+优化分两步：
+
+1. **少算一点**：主页的椭圆轨道坐标只初始化一次，每帧图标位置在排序和绘制之间复用；圆环描边只扫描两侧窄边，像素判定不变。绘制从约 14.42ms 降到 12.65ms。
+2. **少传几次**：把内部 DMA 缓冲从 8 行加到 32 行，整屏从 45 批降到 12 批；后来又推到总线允许的 40 行，降到 9 批。送屏从约 45ms 降到约 23ms。
+
+在同一块设备、同一套测试固件、相同转动轨迹下，主页从 **16.55 fps** 升到 **27.03 fps**，GAMES 文件夹从 **16.68 fps** 升到 **27.74 fps**。正常主循环另测约 8 秒，主页约 26.94 fps，GAMES 约 27.54 fps。
+
+这里有个容易吹过头的地方：主机上绘制耗时节省了约 45%，但设备整体 FPS 的提升主要来自送屏批次减少。只改绘制时，主页只有约 16.95 fps。**不要把主机 CPU 的收益直接写成实机收益。**
+
+后来又加了一条：主页静止时只有选中图标外那圈呼吸环在动，于是按时间把整屏刷新限到约 **15 Hz**；拖拽、倾斜转动和缓动未收敛时仍全速出帧。实测静止时的送屏量降到原来的约 **1/2.4**。
+
+相册则是另一个瓶颈。SD 卡里一千两百万像素的照片，每切一张都要重新解码，耗时 **427~625ms**，滑动就是半秒白屏。现在用 PSRAM 里的三帧缓存（上一张/当前/下一张，各 259KB）把切图变成 `memcpy`：实测切到下一张只要 **12ms**。这里面修了两个真 bug：
+
+- 换图时只旋转槽位标号、不搬 777KB 像素，结果三个槽位开始描述别人的像素，缓存会交出**错误的那张图**。现在指针和标号一起旋转，并用“缓存命中也报和解码相同的校验和”验证 28 张全部一致。
+- 预解码把图拷回帧缓冲时，如果用户刚好滑走，会盖掉新图。现在加了代数守卫：期间发生过切换就放弃恢复，重画当前图。
+
+预解码本身仍占用主循环 440~640ms，属于“用户正在看当前图”的空闲期；跟手滑动过渡还没做。
+
+## 电池：百分比会骗人
+
+BQ27220 的默认满电容量是 3000mAh，但这台设备实际装的是 **500mAh / 1.85Wh** 的电池。项目用串口命令 `C500` 备份原参数后，只改电量计 RAM 里的满电容量和设计容量，读回校验并重新估算；配置成功会写进 NVS，启动器发现电量计回到默认值时恢复。整个过程不烧 OTP，不改充电芯片、电流校准或电池保护参数。
+
+更麻烦的是充电状态。仅插线、或界面显示 100%，都不能证明正在充电；充电宝和普通充电器也不会发送 USB 主机数据包。所以 SETTINGS → POWER 分开显示 USB CONNECTED、CHARGING、DISCHARGING、FULL 和实际电流。重插电脑 USB 后，电量计曾持续报告 0mA；固件现在只在“电脑连接、读数有效、零电流、SLEEP 标志持续 2 秒”时尝试一次最多 4 秒的降负载恢复，屏幕可能短暂熄灭，随后回到原页面。实机恢复后读数为约 **+155mA**，状态显示 CHARGING。
+
+<div class="not-prose my-8 flex justify-center">
+  <figure class="glass-card !p-3 !m-0" style="max-width: 320px;">
+    <Image src={power} alt="POWER 页面：USB CONNECTED、84%、CHARGING、4040mV +180mA" width={360} />
+    <figcaption class="mt-2 px-1 font-mono text-xs" style="color: var(--wm-muted)">POWER：电压、电流和充电状态分开显示</figcaption>
+  </figure>
+</div>
+
+## 踩过的坑，比功能更值得记
+
+- **空闲 GPIO 只有 3 个**。7、8、18，其余全被板载外设和总线占用；扩展优先走 I²C。
+- **两套 LVGL 版本**。Arduino 示例附 LVGL 8.4.0，ESP-IDF 和原厂系统用 9.5.0，`lv_scr_act()` 和 `lv_screen_active()` 不兼容。复用示例前先确认版本。
+- **恢复原厂备份时不要让 esptool 改写镜像头**。原厂引导程序头标记为 DIO，运行时才升到 QIO；强行指定 `--flash_mode qio` 会让设备反复看门狗重启。恢复时用 `--flash_mode keep --flash_size keep --flash_freq keep`。
+- **USB 原生 CDC**。这块板没有 USB 转 UART 桥接芯片，启用 `CDCOnBoot=cdc` 才能在 USB 上看到 `Serial`；串口监视器要启用 DTR、保持 RTS 无效。
+- **Git Bash 调 ESP-IDF**。`cmd.exe /c` 会被 MSYS 改写路径，要写 `cmd.exe //c`；`MSYSTEM` 变量会让 `install.bat` 报错，项目脚本会先清掉它。
+
+## 自己做一块
+
+项目采用 **AGPL-3.0**，Clawd 美术素材来自另一个 AGPL-3.0 项目，第三方材料和条款都在 `NOTICE.md` 里。仓库不包含上游 SDK、闪存备份和编译产物，需要按 README 自己准备 Arduino / ESP-IDF 环境。
+
+**动手前先完整备份 16MB 闪存。** 这块板子的原厂系统、分区表和语音固件，比一块空白开发板值得保护得多。启动器用：
+
+```bash
+PARTITION_SCHEME=custom ./tools/build.sh compile system
+./tools/deploy_game.sh system COM3
+```
+
+语音宠物用 PowerShell 的 ESP-IDF 流程；详细步骤、分区说明和验证命令都在 [仓库 README](https://github.com/yahoofunny/esp32-badge) 里。
+
+---
+
+*设备端界面图由项目共享的 C++ 绘制代码生成，不是用手机拍屏幕；相册那张是设备 framebuffer 的读回，手机传歌页是浏览器截图。实机已经验证主页拖转、桌宠互动、语音联网对话、相册显示和小游戏操作；续航长测和更广泛的媒体兼容性还在继续。*
