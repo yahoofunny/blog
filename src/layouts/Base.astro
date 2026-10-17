@@ -192,9 +192,6 @@ const L = (path: string) => localizePath(path, lang);
       </a>
     </footer>
 
-    {/* 写全 index.html：`/bg-particle/` 这种目录地址 Astro 开发服务器不解析索引，
-        会 404（生产环境 Cloudflare Pages 会兜住，所以只在本地看着像坏了）。 */}
-    <iframe id="wm-particle" src="/bg-particle/index.html" title="" aria-hidden="true" tabindex="-1"></iframe>
     {!hidePet && (
       <>
     <div id="clawd-pet" class="clawd-pet" title={t("clawdHint")} data-chat={L("/chat/")} role="button" tabindex="0" aria-label={t("clawdHint")}><img id="clawd-img" src="/clawd/clawd-idle.gif" style="width:100px;height:100px" draggable="false" alt=""/></div>
