@@ -1,0 +1,530 @@
+
+《汇编语言程序设计 》考前练习
+
+
+一、问答题
+
+01执行如下两条指令的目的是什么？
+MOV  AL，43
+OR   AL，20
+目的是将AL寄存器的                                      
+
+设AX=1234H， SP=9FF0H， IP=1000H，执行下面指令后，AX，SP，IP的内容是多少？
+                MOV     AX，3FDH
+                PUSH    AX
+AX=           ，  SP=          ，  IP=          
+
+03  将DX的内容除以2，用一条指令去实现，这条指令是　              　
+
+串指令中的目的操作数地址是由__        ____提供。
+
+05 写出下列两个十进制数的8位二进制补码，并作运算，求出结果，回答CF和OF的值。
+ 75+（-58）
+
+06 请指出下列各条指令的源操作数的寻址方式是什么？
+（1）MOV    AL, 8
+（2）CMP    AX, BX
+（3）MOV    AX, BUF
+（4）MOV    BX, [SI] 
+（5）ADC    AH, A[SI]
+（6）SUB    AX, [SI+ BX]
+
+07 BUFF   DB  ‘AB1234’
+ARRAY  DW 1234H
+   用十六进制按字节标出（画出）以上数据在内存中的存放。
+
+
+08 写出伪指令，定义键盘输入缓冲区BUFF，缓冲区大小为9个字节。写出2条指令，使BX获得该缓冲区的偏移地址。
+
+09  子程序和宏的区别是什么？ 
+
+
+10 使用宏指令和使用子程序有何异同？一般你会如何选择？
+
+
+
+11  段寄存器的作用是什么？ 请分别写出四个段寄存器和名称。 
+
+
+12 FLAGS 是什么寄存器？它是存放什么的标志的寄存器。
+
+
+13  已知BX=4000H，SI=1034H，则指令MOV AX，[BX+SI+2]的源操作数在（    ）段的偏移量为（        ）中。　　
+
+
+
+填空题
+
+01  设段地址DS=2000H， 指令MOV  [400H]，AX的目的操作数物理地址是（        ），如果段地址是4000H，指令MOV  [200H]，AX的物理地址是（         ） 。
+
+在数据段中有定义语句如下：
+DA1     DB   55，8，103，15H，‘A10D’
+BUFFER  DB  80 DUP （？）
+L       EQU  BUFFER-DA1
+请回答L的值是多少？  L =      
+
+03  当源程序被汇编时,汇编程序将对每个宏调用做       。宏展开就是用          取代源程序中的宏指令名，而且用实元（实参）取代宏定义中的亚元（形参）。
+
+LOOP  指令循环得以继续循环的条件是（        ）
+
+05  一个有128个字的数据区，它的起始地址为12ABH：00ABH，请给出这个数据区最末一个字单元的物理地址是　         　　。12C59H　
+
+
+06  回答A0, LEN1，LEN2的值：
+    ORG  100H
+A0  DW  A1
+A1  DW  3  DUP(9)
+A2  DW  4，5
+LEN1= A2-A1
+LEN2 = $－A2
+ A0 的值=（      ）H ,LEN1 的值=（      ）H , LEN2 的值=（      ）H  
+ 
+
+07       MOV   AX，A
+         TEST  AX, 8000H
+JZ    P1
+NOT  AX
+ADD  AX,1
+P1： MOV  B,AX
+
+（1）解释该程序的功能.
+（2）如果A=7，则程序执行后B的值=（       ）H 
+（3）如果A=-7，则程序执行后B的值=（       ）H 
+
+
+　
+
+三、判断题
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   [DX]，AX           
+
+02  PUSH   DH             
+
+03  MOV   BX, VAL[BX][SI]   
+
+04  SHL  BX，4            
+
+05  JMP   LOOP             
+
+06  ADD BYTE PYR [DX],5
+
+07  ADD [BP],5
+
+08  PUSH  AH
+
+09  ADD   [BX],[SI]      
+
+10  如果AL=85H，CL=4，执行“SAR  AL，CL”时，AL=F8，CF=1。（     ）
+
+11  XOR  BL，0FH可以使BL中的低四位变反，高四位不变。(   )
+
+12  MOV   DS，DATA         
+
+13  CMP   25，BX           
+
+14  MOV   ES，AX           
+
+15  CBW： MOV   AX，VAL[DX] 
+
+16  MOV  [66H]， 34H  
+
+四、选择题
+
+01  设22000H、22001H单元分别存放的数据为12H、34H，若要读取22000H字单元中的数据，此时读出的数据是（  ）。
+A．12H      B．34H     C．3412H    D．1234H
+
+02  DS=400FH，最小可寻址的物理地址是（  ）
+A．40000H         B．4000H        C．400F0H     D．4000FH
+
+03  设SS=4000H, SP=0204H, 执行 CALL  FAR PTR  SUBPRO 后,  SP是（  ）
+A．0204H         B．0202H        C．0200H     D．0206H
+
+04  设DS=2000H，ES=3000H，BX=3000H，指令SUB  AL，[BX]的源操作数的物理 
+址为（　  ）。
+Ａ．23000H   B．2300H    C．33000H     D． 3000H
+
+05  若定义“BUF  DB  2，3，4”，执行MOV  AL，SIZE  BUF  后AL=（  ）。
+　　A．1    B．2    C．3    D．4
+
+06  AX=8900H,  BX=7900H, 执行指令ADD  AX,BX后， CF,OF=(   )
+A．0,1     B．0,0     C．1,0      D．1,1
+
+07  LOOPNZ  p1指令表示（  ）
+A．循环到p1                             B．不相等则循环到p1   
+C．不相等且CX不等于0则循环到p1        D．不为0且CX=0则循环到p1
+
+08  无符号数比较后，如果前者小于后者，则转移的指令是（  ）
+A．JB         B．JNC        C．JNB       D．JL      
+
+09  AL=81H, BL=1H,  用IMUL  BL指令后，AX=（  ）
+A．0081H         B．F081H       C．FF81H      D．8081H  
+
+10  AL=91H, CBW指令后， AX=（  ）
+A．0091H    B．FF91H      C．XX91H   D．9100H
+
+
+
+
+
+五、上机题
+01  上机概念（作出正确结果）
+（1）有小的语法错误的程序进行汇编，也会产生.obj文件。
+
+（2）除了在程序最后用功能号4CH的系统功能调用，没有其它办法使得程序正常终止。
+
+  （3）8086CPU 数据总线16位，所以在该机器上无法作32位数的运算。
+
+（4） 全面叙述汇编语言程序上机过程的一般步骤和需要应用哪几个软件。
+
+02  写出DEBUG程序中的如下调试命令是什么命令： 
+- D  
+- U  
+- T 
+- G  
+- R  
+
+03  用DEBUG调入PROG.EXE后,若程序列出如下:
+1B63:0100  B8621B   MOV  AX, 1B62
+1B63:0103  8ED8      MOV  DS, AX  
+1B63:0105  BA0000    MOV  DX，0000
+1B63:0108  B409       MOV  AH，09 
+1B63:010A  CD21      INT   21
+1B63:010C  B44C      MOV  AH，4C
+1B63:010E  CD21      INT   21
+列出上面程序的DEBUG命令是(       )
+寄存器CS的值为（       ）,第一条指令的物理地址为（           ）。
+如果要修改寄存器DX为1200H，应键入DEBUG命令(        )。
+如果执行DEBUG命令T=10A 后,寄存器 IP=(               )。
+
+04  设程序PROG.ASM的数据段有如下定义：
+Data  segment
+      Buff  db ‘my computer$’
+Data  ends
+
+用DEBUG调入PROG.EXE后,若程序列出如下:
+4321:0100  MOV  BX, 1746
+4321:0104  MOV  DS, BX
+4321:0107  MOV  DX, 0  
+4321:010A  MOV  AH, 9
+4321:010D  INT  21 
+4321:010F  RET
+
+列出上面程序的DEBUG命令是(           )
+寄存器CS的值为（    ）。
+BUFF的段地址是（     ），偏移地址是（    ）。
+如果要修改寄存器BX的值，应键入DEBUG命令(                  )。
+若要查看BUFF字符串，应键入DEBUG命令(                  )。
+如果从头运行程序使其停在RET指令处,应键入DEBUG命令(                 )。
+如果执行DEBUG命令T=100 后, 寄存器IP=(          )。
+如果执行DEBUG命令T=10D 后,寄存器 IP=(          )。
+程序的功能是什么?  （                                 ）  
+
+
+
+
+六、分析程序题（每小题5分，共20分）
+01  下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHL    DX，CL               
+        MOV   BL，AH
+        SHL   AX，CL
+        SHR   BL，CL
+        OR    DL，BL
+
+将（DX，AX）逻辑（或算术）左移4位
+
+
+MOV   CL，04
+        SHR   AX，CL
+        MOV   BH，DL
+        SHR   DX，CL
+        SHL   BH，CL
+        OR    AH，BH
+将（DX，AX）逻辑右移4位
+
+
+02  试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+CODESG      SEGMENT
+  ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+          ORG  100H
+BEGIN：  MOV  AX，01
+         MOV  BX，02
+          MOV  DX，03
+          MOV  CX，04
+L20：     INC  AX
+          ADD  BX，AX
+          SHR  DX，1
+          LOOPE   L20
+          RET
+CODESG    ENDS
+END   BEGIN
+（AX）= 05    ，（BX）=  10  ，（CX）= 0    ，（DX）=   0 
+
+03  数据定义如下：执行下列指令，填写寄存器的值
+ARRAY  LABEL  BYTE
+DA1  DW  2，9，14，3 
+      DA2  DB  7，‘ABCDEDFG’
+LEN = $－DA1                      
+MOV  AL，ARRAY+2          （AL）=（      ）H
+      ADD  AL，DA2+1             （AL）=（      ）H
+      MOV  AX，DA2-DA1          （AX）=（       ）H
+MOV  AX，DA1+1            （AX）=（       ）H
+MOV  BL，LEN               （BL）=（       ）H
+
+
+ 下列程序段为把BX中的二进制数用十六进制数形式显示出来.试补充空缺指令。 
+MOV    BX, 80ADH
+           MOV    CH, 4          ; 移位次数
+L0:  MOV    CL, 4          ; 4BIT 
+           ROL    BX, CL         ;移到低位
+           MOV    AL, BL      
+          (     )   AL, 0FH        
+          (                  )      ;转换为ASCII
+          (     )   AL, 3AH        ;是&gt;9 ?
+           JL      HDIG        ;是数字
+           ADD    AL, 7H         ;是A - F 
+HDIG:    MOV    DL, AL     
+           MOV    AH, 2
+           INT     21H            
+           DEC    CH
+JNZ    (          )   
+RET
+
+
+
+
+05  分析下列程序段，如果AX=1468H， BX=9981H时，问该程序的执行会转向哪里？
+ADD  AX，BX
+JNO  L1
+JNC  L2
+SUB  AX，BX
+JNC  L3
+JNO  L4
+JMP  L5
+AX，BX 给定为：
+应 转向   L1  
+
+06  两个双字长有符号数，分别在DX，AX和BX，CX中，下列程序段完成什么功能？
+CMP   DX，BX
+JG     X
+JL     Y
+CMP   AX，CX
+JA     X
+Y：   …
+           ……
+X：   …
+           ……
+实现的功能是：比较两个双字长有符号数大小。
+
+
+
+得分
+
+
+七、阅读程序题（本题XX分）
+
+下列程序完成什么功能？程序执行后数组A的数据排列如何？
+
+DATA   SEGMENT
+A  DW  24,15,16,84,32
+DATA  ENDS
+
+CODE  SEGMENT
+MAIN    PROC  FAR
+ASSUME  CS:CODE , DS:DATA
+START:
+    PUSH  DS
+    SUB   AX,   AX
+    PUSH  AX               
+    MOV   AX,  DATA
+    MOV   DS,  AX          ;DS= DATA   段址
+    MOV   DI,  4            ;DI=N-1 比较遍数
+LP1:   MOV   CX,  DI
+    MOV   BX,   0           ；数组下标
+LP2:   MOV   AX,   A[BX]
+    CMP   AX,   A[BX+2]
+    JGE   CONT
+       XCHG  AX,  A[BX+2] 
+       MOV   A[BX],  AX
+CONT: ADD   BX,    2
+    LOOP   LP2
+       DEC   DI
+       JNZ   LP1
+       RET
+MAIN  ENDP
+CODE  ENDS
+END  START
+
+解：完成对数组A从大到小的降序排列功能。                 （10分）
+程序执行后数组A的数据排列为：84，32，24，16，15    （5分） 
+
+02  下列程序完成什么功能？ 
+
+DATAREA  SEGMENT
+CSTRING   DB  27 dup（？）
+DATAREA  ENDS 
+PROGNAM  SEGMENT
+MAIN  PROC  FAR
+ASSUME   CS：PROGNAM，DS：DATAREA 
+START：  PUSH  DS
+           SUB   AX，AX
+           PUSH  AX
+MOV   AX，DATAREA
+MOV   DS，AX
+MOV   CX，27
+MOV   BX,0   
+INPUT:     MOV   AH, 01 
+           INT     21H 
+CMP   AL，20H
+JZ     NEXT
+CMP   AL，41H
+JL     INPUT
+CMP   AL，5AH
+JG     INPUT  
+NEXT：    MOV   CSTRING[BX]，AL
+INC    BX
+LOOP  INPUT  
+
+MOV   DL，[CSTRING]
+MOV   AH，02
+INT     21H
+MOV   DL，[CSTRING+08H]
+MOV   AH，02
+INT     21H   
+RET
+MAIN  ENDS
+PROGNAM  ENDS
+       ENDS  START    
+解：
+从键盘输入一个字母为大写、字符个数为27的字符串（约定：空格为字符，键盘输入过程中非大写字母或不是空格字符，则跳过重输）如：“THIS IS A PERSONAL COMPUTER”，依次存放在起始地址为CSTRING的字符单元中。然后将字符串的第1个（T）和第9个（A）字符在屏幕上显示。
+
+
+
+
+
+
+
+
+八、编写程序
+01  编制一个汇编程序，求首地址为ARRAY的50个非零无符号字数组中最大偶数，并把它存放在AX寄存器中。如果数组中无偶数，则AX中置0。
+解：
+DATA  SEGMENT
+ARRAY  DW  50 DUP（？）
+DATA  ENDS
+CODE SEGMENT
+      ASSUME CS：CODE，DS：DATA
+  SAT：MOV  AX，DATA
+MOV  DS，AX
+MOV  CX，50
+MOV  AX，0
+MOV  BX，0
+NEXT： MOV  DX，ARRAY[BX]
+SHR  DX，1
+JC   L0
+CMP  AX，ARRAY[BX]
+JAE  L0
+MOV  AX，ARRAY[BX]
+  L0： ADD  BX，2
+LOOP  NEXT
+MOV  AH，4CH
+INT  21H
+CODE  ENDS
+      END STA
+
+ 写一程序，将BUF中的10字节按相反方向存放到STRS中。
+DATA  SEGMENT
+BUF DB‘ABCDEFGHIG’
+STRS DB  10  DUP (?)
+DATA  ENDS
+
+CODE    SEGMENT
+        ASSUME CS:CODE,DS:DATA
+START:
+MOV  AX,DATA
+MOV  DS,AX
+MOV  CX,10
+LEA  SI,STRS+9
+LEA  DI,BUF         ；以上初始化4分
+NEXT:   MOV  AL,[SI]
+MOV  [DI],AL
+DEC  SI
+INC  DI
+LOOP  NEXT          
+ MOV  AH,4CH
+ INT  21H
+CODE    ENDS
+END  START           ；以上循环5分 
+03  编写一个宏定义compares MACRO  buff1,buff2,length。实现比较2个字符串是否相等，其中参数buff1,buff2为字符串，length为串的长度。编制程序，使用你定义的宏指令compares对数据段中的2个字符串STR1和STR2实现比较,若相等就显示字符‘Y’，否则显示字符‘N’。
+found MACRO  buff,length,char
+LOCAL YES,EXIT
+MOV  AL,CHAR
+        MOV  CX,LENGTH
+LEA  DI,BUFF
+REPNE  SCASB 
+JZ   YES            ；6分
+MOV  DL, ‘N’
+JMP  EXIT
+YES:  MOV  DL,’Y’
+EXIT:  MOV AH,2
+INT  21H     
+ENDM                ；5分
+
+
+04  编写一程序，要求先从键盘上输入三个无符号数字到数组ARRAY中，然后比较数组ARRAY中的三个数，并根据比较结果在显示器上显示如下信息：
+（1）如果三个数都不相等，则显示 0；
+（2）如果三个数有两个相等，则显示 1；
+（3）如果三个数都相等，则显示 2。
+解：
+datarea  segment
+  ARRAY  dB  3  dup(?)
+Datarea  ends                                        （3分）
+Code   segment
+Main   proc  far
+   Assume  cs:code, ds:datarea
+Start: Push  ds
+Sub   ax,ax
+Push  ax
+Mov   ax,datarea
+Mov   ds,ax                                    （3分）
+Mov   bx,0
+Mov   cx,3                                      （1分）
+Next :   Mov   ah,01
+Int     21h
+Sub   al,30h
+Mov   ARRAY[bx],al
+Inc    bx
+Loop  Next                                     （5分）
+Mov   bx,0
+Cmp   al,ARRAY[bx]
+Je     l1
+Cmp   al,ARRAY[BX+1]
+Je     l3
+Mov   al,ARRAY[bx]
+Cmp   al,ARRAY[BX+1]
+Je     l3
+Mov   dl,30h
+Jmp   outp
+L1:      Cmp   al,ARRAY[BX+1]
+Je     l2
+L3:      mov   dl,31h
+         Jmp   outp
+L2:      mov   dl,32h                                   （10分）
+Outp:    mov   ah,02
+Int     21h
+Ret                                            （2分）
+Main   endp
+Code   ends
+      End  start                           
+
+05 要求测试在STATUS中的一个字节，如果第1，3，5位均为1，则转移到L1；如果此三位中有两位为1，则转移到L2；如果此三位中只有一位为1，则转移到L3；如果此三位全为0，则转移到L4。并编制相应的程序段。(例10分)
+程序段为：
+MOV    AL，[STATUS]
+AND    AL，2AH          ；2AH= 0010 1010(3分)
+JZ      L4                                  (1分)
+CMP    AL，2AH                            (2分)
+JE      L1
+JPE     L2                                 (1分)
+L3： ┇                                            (1分)
+L1： ┇
+L2： ┇
+L4： ┇                                            (2分)

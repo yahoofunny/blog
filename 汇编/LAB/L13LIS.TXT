@@ -1,111 +1,70 @@
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
                                                              Page     1-1
 
 
 				;==============================================
 				======================= 
-				; L13DIR.ASM   第 13 课   伪指令与数据�
-				��义: 把"内存布局题"真跑一遍 
+				; L13DIR.ASM    13    : "" 
 				;==============================================
 				======================= 
-				; [为什么加这一课] 
-				;   翻你们的历年试卷, 有一个题型�
-				�乎年年出现: 
+				; [] 
+				;   , : 
 				;     "BUFF DB '34',-6,$   ARRAY DW 1234H 
-				;      用十六进制按字节标出以上数�
-				��在内存中的存放"        (2012A 三.3) 
-				;     "ORG $+20H ... 变量 DA1 分配了几个
-				字节? BUF 偏移多少?" (2022-2023 一.6) 
-				;   这类题光背结论很容易记混 ——
-				 本课把数据段的每个字节"打印出来
-				给你看", 
-				;   眼见为实, 以后考场上脑子里能�
-				�录像。 
+				;      "        (2012A .3) 
+				;     "ORG $+20H ...  DA1 ? BUF ?" (2022-2023 .
+				6) 
+				;     "", 
+				;   , 
 				; 
-				; [本课知识点] 
-				;   1. DB/DW/DD: 一个数据单位分别占 1/
-				2/4 字节; 字和双字都是"小端序"存放
-				 
-				;      (低字节放低地址) —— 所以 dw
-				 1234H 在内存里是 34 12 
-				;   2. '$' : 汇编时的"当前偏移地址" (
-				不是钱的符号!)  
-				;      db $ 存进去的就是这一格自己�
-				�偏移 (低字节) 
-				;   3. ORG $+20H: 把定位计数器("当前位
-				置")往后挪 20H 个字节, 
-				;      制造一段空隙 —— 所以它会�
-				�后面所有变量的偏移都推后 
-				;   4. 四个"取值运算符" (考点! 考试�
-				��考它们的返回值): 
-				;        OFFSET 变量  → 变量的偏移地�
-				�� 
-				;        SEG    变量  → 变量的段地址 
-				;        TYPE   变量  → 每个数据单位�
-				��的字节数 (DB=1, DW=2, DD=4) 
-				;        LENGTH 变量  → 第一个 DUP 的�
-				�复次数 (没有 DUP 时是 1! ★大坑) 
-				;        SIZE   变量  → TYPE × LENGTH (★
-				这也是个坑) 
-				;   5. EQU: 数字等价伪指令, 可以用 $ 
-				和表达式计算 (如 KEQU d2-d1) 
+				; [] 
+				;   1. DB/DW/DD:  1/2/4 ; "" 
+				;      ()   dw 1234H  34 12 
+				;   2. '$' : "" (!) 
+				;      db $  () 
+				;   3. ORG $+20H: ("") 20H , 
 				; 
-				; [运行结果] (跑一下, 和你自己算的
-				对照!) 
-				;   1) t1 的 3 个字节: 33 34 FA     ← '3'
-				 '4' 和 -6 的补码 
-				;   2) t2 的 2 个字节: 34 12        ← 小
-				端序! 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
+				;   4. "" (! ): 
+				;        OFFSET 
+				;        SEG 
+				;        TYPE       (DB=1, DW=2, DD=4) 
+				;        LENGTH     DUP  ( DUP  1! ) 
+				;        SIZE      TYPE  LENGTH () 
+				;   5. EQU: ,  $  ( KEQU d2-d1) 
+				; 
+				; [] (, !) 
+				;   1) t1  3 : 33 34 FA      '3' '4'  -6 
+				;   2) t2  2 : 34 12         ! 
+				;   3) t3  4 : 44 33 22 11 
+				;   4) wnd  2 : 09 00        $  0009H! 
+				;      ( `DB '34',-6,$`  $ , "") 
+				;   5) ORG : gap  = 2BH,  buf  = 3CH 
+				;   6) TYPE/SIZE/LENGTH  ( d1  LENGTH  1  4!) 
+				; 
+				; [ $  (, )] 
+				;   * MASM 5.0  `DB '34',-6,$`    error A2042: 
+				;     Constant expected! (, , ) 
+				;   *  `DW $` , "" 
+				;     (, ) 
+				;   *  2012A  $  04H, 
+				;      03H   1 "": "", 
+				;     "" (04H); 
+				;     , 
+				; 
+				; [  ] 
+				;   (1) 2022-2023 .6: ORG $+20H / DA1 DB 10H DU
+				P(2,3) / DA2 DW 10H DUP(2,3) 
+				;       : DA1 ? DA2 ?  ORG $+20H  BUF ? 
+				;       :  T.ASM,  OFFSET 
+				;   (2) 2012A .1: A0 DW A1 / A1 DB 3 DUP(9) / A
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
                                                              Page     1-2
 
 
-				;   3) t3 的 4 个字节: 44 33 22 11 
-				;   4) wnd 的 2 个字节: 09 00       ← ★
-				$ 存的就是它自己的偏移 0009H! 
-				;      (考卷里 `DB '34',-6,$` 那个 $ 同�
-				�, 想存的是"那个字节自己的偏移") 
-				;   5) ORG 演练: gap 的偏移 = 2BH,  buf �
-				�偏移 = 3CH 
-				;   6) TYPE/SIZE/LENGTH 的真实值 (尤其注
-				意 d1 的 LENGTH 是 1 不是 4!) 
-				; 
-				; [★关于 $ 的一个大实话 (实测, 不�
-				��书上抄的)] 
-				;   * MASM 5.0 不接受 `DB '34',-6,$` 这种�
-				��法 —— 会报 error A2042: 
-				;     Constant expected! (老师说考卷上可
-				以写, 但你们的实验环境编不过, 别�
-				��) 
-				;   * 但 `DW $` 可以, 而且实测存的就�
-				��"本条数据自己的偏移" 
-				;     (本程序会把它打印出来, 眼见�
-				�实) 
-				;   * 你们 2012A 标准答案里这道题的 
-				$ 字节写的是 04H, 而按汇编器实测 
-				;     应是 03H —— 差 1 的原因是"口�
-				��": 老师按"本条语句结束后的位置"�
-				��, 
-				;     汇编器按"数据项自己的偏移"算
-				。考试按老师口径填 (04H); 
-				;     做实验按实测为准。两边都记�
-				�, 这题就永远错不了。 
-				; 
-				; [练习 —— 就是你们的真题] 
-				;   (1) 2022-2023 一.6: ORG $+20H / DA1 DB 10H
-				 DUP(2,3) / DA2 DW 10H DUP(2,3) 
-				;       手算: DA1 几个字节? DA2 几个字
-				节? 最后 ORG $+20H 后 BUF 偏移多少? 
-				;       用本课的思路验证: 复制数据�
-				��义到 T.ASM, 用 OFFSET 打印验证 
-				;   (2) 2012A 四.1: A0 DW A1 / A1 DB 3 DUP(9) 
-				/ A2 DW 4,5 
-				;       LEN1 = A2-A1 和 LEN2 = $-A2 分别是�
-				��少? 写程序打印验证 
-				;   (3) 09级: BUF DB 2,3,4; 执行 MOV AL,SIZE
-				 BUF 后 AL=? 
-				;       (把 SIZE 理解成"总字节数"就上
-				当了 —— 看看本课 d1 的实测值) 
+				2 DW 4,5 
+				;       LEN1 = A2-A1  LEN2 = $-A2 ? 
+				;   (3) 09: BUF DB 2,3,4;  MOV AL,SIZE BUF  AL=
+				? 
+				;       ( SIZE ""   d1 ) 
 				;==============================================
 				======================= 
 				 
@@ -114,47 +73,35 @@
 	   00			
 			 ]	
 				
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
-                                                             Page     1-3
-
-
  0200				stack ends 
 				 
  0000				data segment 
-				     ;===== 实验区 1: 复刻 2012A 的内存
-				布局题 ===== 
-				     ;  考卷原文是:  BUFF DB '34',-6,$ 
-				     ;  但 MASM 5.0 实测不接受 db 里直�
-				��写 $ (error A2042)! 
-				     ;  所以这里拆成两半演示: '34',-6
-				 照旧; $ 用 dw 版本实测 (见 wnd) 
- 0000  33 34 FA			     t1   db '34', -6                   ; 3 字
-				节: 字符'3' '4', -6的补码 FA 
- 0003  1234			     t2   dw 1234h                      ; 2 字
-				节: 小端 34 12 
- 0005  44332211			     t3   dd 11223344h                  ; 4 字
-				节: 小端 44 33 22 11 
- 0009  0009 R			     wnd  dw $                          ; 2 字
-				节: ★$ = 本数据项自己的偏移 (实测
-				!) 
+				     ;=====  1:  2012A  ===== 
+				     ;  :  BUFF DB '34',-6,$ 
+				     ;   MASM 5.0  db  $ (error A2042)! 
+				     ;  : '34',-6 ; $  dw  ( wnd) 
+ 0000  33 34 FA			     t1   db '34', -6                   ; 3 : '
+				3' '4', -6 FA 
+ 0003  1234			     t2   dw 1234h                      ; 2 :  
+				34 12 
+ 0005  44332211			     t3   dd 11223344h                  ; 4 :  
+				44 33 22 11 
+ 0009  0009 R			     wnd  dw $                          ; 2 : $
+				 =  (!) 
 				 
-				     ;===== 实验区 2: ORG 演练 (2022 真�
-				�题型) ===== 
- 002B				     org  $+20h                         ; 当�
-				�位置往后空 20H 字节 
- 002B  41			     gap  db 'A'                        ; 它�
-				�偏移 = 0BH+20H = 2BH 
- 003C				     org  $+10h                         ; 再�
-				� 10H 字节 
- 003C  1234			     buf  dw 1234h                      ; 它�
-				�偏移 = 2CH+10H = 3CH 
+				     ;=====  2: ORG  (2022 ) ===== 
+ 002B				     org  $+20h                         ;  20H 
+ 002B  41			     gap  db 'A'                        ;  = 0B
+				H+20H = 2BH 
+ 003C				     org  $+10h                         ;  10H 
+ 003C  1234			     buf  dw 1234h                      ;  = 2C
+				H+10H = 3CH 
 				 
-				     ;===== 实验区 3: TYPE/SIZE/LENGTH 的�
-				�面目 ===== 
- 003E  01 02 03 04		     d1   db 1,2,3,4                    ; 无 D
-				UP → LENGTH=1, SIZE=1 (★反直觉!) 
- 0042  0004[			     d2   dw 4 dup(1)                   ; 有 D
-				UP → LENGTH=4, SIZE=8 
+				     ;=====  3: TYPE/SIZE/LENGTH  ===== 
+ 003E  01 02 03 04		     d1   db 1,2,3,4                    ;  DUP 
+				 LENGTH=1, SIZE=1 (!) 
+ 0042  0004[			     d2   dw 4 dup(1)                   ;  DUP 
+				 LENGTH=4, SIZE=8 
 	   0001			
 			 ]	
 				
@@ -163,19 +110,19 @@
 	   78			
 			 ]	
 				
- = 0004				     DIFF equ d2 - d1                   ; EQU �
-				��指令做减法: 两个偏移之差 
+ = 0004				     DIFF equ d2 - d1                   ; EQU :
 				 
-				     ;===== 打印用的字符串 ===== 
+				 
+				     ;=====  ===== 
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
+                                                             Page     1-3
+
+
  0054  0D 0A 31 29 20 74 31	     s1   db 0dh,0ah,'1) t1: $' 
        3A 20 24			
  005E  0D 0A 20 20 20 74 32	     s2   db 0dh,0ah,'   t2: $' 
        3A 20 24			
  0068  0D 0A 20 20 20 74 33	     s3   db 0dh,0ah,'   t3: $' 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
-                                                             Page     1-4
-
-
        3A 20 24			
  0072  0D 0A 20 20 20 77 6E	     s18  db 0dh,0ah,'   wnd: $' 
        64 3A 20 24		
@@ -225,44 +172,41 @@
  0000				start: 
  0000  B8 ---- R		     mov ax, data 
  0003  8E D8			     mov ds, ax 
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
+                                                             Page     1-4
+
+
 				 
-				     ;==================== 1. 逐个字节打�
-				� t1 ==================== 
+				     ;==================== 1.  t1 =============
+				======= 
  0005  BA 0054 R		     mov dx, offset s1 
  0008  E8 0139 R		     call printstr 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
-                                                             Page     1-5
-
-
  000B  A0 0000 R		     mov al, t1                         ; '3' =
 				 33H 
  000E  E8 010F R		     call printbyte 
  0011  A0 0001 R		     mov al, t1+1                       ; '4' =
-				 34H ('+1' 就是下一个字节!) 
+				 34H ('+1' !) 
  0014  E8 010F R		     call printbyte 
- 0017  A0 0002 R		     mov al, t1+2                       ; -6 �
-				�补码 = FAH 
+ 0017  A0 0002 R		     mov al, t1+2                       ; -6  =
+				 FAH 
  001A  E8 010F R		     call printbyte 
 				 
-				     ;==================== 2. t2 的 2 个字�
-				� (小端序!) ==================== 
-				     ;   ★dw/dd 的数据想按"字节"取, �
-				��写 byte ptr 强转 ——  
-				     ;     不写会报 "Operand types must mat
-				ch"(类型不匹配警告), 
-				     ;     这正是考卷"找错题"最爱考�
-				��类型问题 
+				     ;==================== 2. t2  2  (!) ======
+				============== 
+				     ;   dw/dd "",  byte ptr 
+				     ;      "Operand types must match"(), 
+				     ;     "" 
  001D  BA 005E R		     mov dx, offset s2 
  0020  E8 0139 R		     call printstr 
- 0023  A0 0003 R		     mov al, byte ptr t2                ; 低�
-				�节在前: 34H 
+ 0023  A0 0003 R		     mov al, byte ptr t2                ; : 34H
+				 
  0026  E8 010F R		     call printbyte 
- 0029  A0 0004 R		     mov al, byte ptr t2+1              ; 高�
-				�节在后: 12H 
+ 0029  A0 0004 R		     mov al, byte ptr t2+1              ; : 12H
+				 
  002C  E8 010F R		     call printbyte 
 				 
-				     ;==================== 3. t3 的 4 个字�
-				� ==================== 
+				     ;==================== 3. t3  4  ==========
+				========== 
  002F  BA 0068 R		     mov dx, offset s3 
  0032  E8 0139 R		     call printstr 
  0035  A0 0005 R		     mov al, byte ptr t3 
@@ -274,29 +218,26 @@
  0047  A0 0008 R		     mov al, byte ptr t3+3 
  004A  E8 010F R		     call printbyte 
 				 
-				     ;==================== 3.5 wnd: 看 $ 存�
-				�去的真实值 ==================== 
+				     ;==================== 3.5 wnd:  $  =======
+				============= 
  004D  BA 0072 R		     mov dx, offset s18 
  0050  E8 0139 R		     call printstr 
- 0053  A0 0009 R		     mov al, byte ptr wnd                ; 低�
-				��节 
+ 0053  A0 0009 R		     mov al, byte ptr wnd                ; 
  0056  E8 010F R		     call printbyte 
- 0059  A0 000A R		     mov al, byte ptr wnd+1              ; 高�
-				��节 
+ 0059  A0 000A R		     mov al, byte ptr wnd+1              ; 
  005C  E8 010F R		     call printbyte 
-				     ; (小端序读出来是 0900H → 也就�
-				�� 0009H, 正好是 wnd 自己的偏移!) 
+				     ; ( 0900H   0009H,  wnd !) 
 				 
-				     ;==================== 4. ORG 之后两个�
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
-                                                             Page     1-6
+				     ;==================== 4. ORG  ============
+				======== 
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
+                                                             Page     1-5
 
 
-				��量的真实偏移 ==================== 
  005F  BA 007D R		     mov dx, offset s4 
  0062  E8 0139 R		     call printstr 
- 0065  B8 002B R		     mov ax, offset gap                 ; 一�
-				� word 的偏移, 用两个字节打印 
+ 0065  B8 002B R		     mov ax, offset gap                 ;  word
+				 , 
  0068  50			     push ax 
  0069  8A C4			     mov al, ah 
  006B  E8 010F R		     call printbyte 
@@ -312,7 +253,7 @@
  0082  E8 010F R		     call printbyte 
 				 
 				     ;==================== 5. TYPE/SIZE/LENGTH 
-				实测 ==================== 
+				 ==================== 
  0085  BA 00A1 R		     mov dx, offset s6 
  0088  E8 0139 R		     call printstr 
  008B  B0 01			     mov al, type d1 
@@ -323,8 +264,8 @@
  0098  E8 010F R		     call printbyte 
  009B  BA 00BF R		     mov dx, offset s8 
  009E  E8 0139 R		     call printstr 
- 00A1  B0 01			     mov al, length d1                  ; ★�
-				�喜: 不是 4, 是 1! 
+ 00A1  B0 01			     mov al, length d1                  ; :  4,
+				  1! 
  00A3  E8 010F R		     call printbyte 
  00A6  BA 00CF R		     mov dx, offset s9 
  00A9  E8 0139 R		     call printstr 
@@ -346,11 +287,11 @@
 				 
  00D3  BA 00FF R		     mov dx, offset s13 
  00D6  E8 0139 R		     call printstr 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
-                                                             Page     1-7
-
-
  00D9  B0 01			     mov al, type d3 
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
+                                                             Page     1-6
+
+
  00DB  E8 010F R		     call printbyte 
  00DE  BA 010F R		     mov dx, offset s14 
  00E1  E8 0139 R		     call printstr 
@@ -376,8 +317,7 @@
 				 
 				;==============================================
 				======================= 
-				; printbyte -- 打印 AL 的两位十六进制 
-				(查表法, L08 的老朋友) 
+				; printbyte --  AL  (, L08 ) 
 				;==============================================
 				======================= 
  010F				printbyte: 
@@ -404,18 +344,17 @@
  0132  CD 21			     int 21h 
  0134  5A			     pop dx 
  0135  59			     pop cx 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
-                                                             Page     1-8
-
-
  0136  5B			     pop bx 
  0137  58			     pop ax 
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
+                                                             Page     1-7
+
+
  0138  C3			     ret 
 				 
 				;==============================================
 				======================= 
-				; printstr -- 打印 DX 指向的 '$' 结尾字
-				符串 
+				; printstr --  DX  '$' 
 				;==============================================
 				======================= 
  0139				printstr: 
@@ -426,7 +365,7 @@
  013F  C3			     ret 
  0140				code ends 
 				end start 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
                                                              Symbols-1
 
 
@@ -484,7 +423,7 @@ T3 . . . . . . . . . . . . . . .  	L DWORD	0005	DATA
 
 WND  . . . . . . . . . . . . . .  	L WORD	0009	DATA
 
-Microsoft (R) Macro Assembler Version 5.00                  10/13/26 19:43:03
+Microsoft (R) Macro Assembler Version 5.00                  10/20/26 15:31:48
                                                              Symbols-2
 
 
@@ -495,7 +434,7 @@ WND  . . . . . . . . . . . . . .  	L WORD	0009	DATA
     269 Total   Lines
      38 Symbols
 
-  51060 + 449084 Bytes symbol space free
+  51008 + 422512 Bytes symbol space free
 
       0 Warning Errors
       0 Severe  Errors

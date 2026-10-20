@@ -1,0 +1,129 @@
+
+安徽大学20 11  —20 12  学年第 2 学期
+                 《汇编语言》（A卷）考试试题参考答案及评分标准
+一、判断题（每小题1分，共10分）
+×, √, ×,  ×, ×,  ×, ×,  ×,  √, √
+二、选择题（每小题2分，共20分）
+B, C, B, A,  A, D, A, A, C, C
+三、问答题（每小题6分，共30分）
+1.  01010101+11000110=00011011,（4分）  CF=1，OF=0 （2分）
+2.  立即数，寄存器，直接，寄存器间接，寄存器相对，基址变址
+3.  33,34，FA,04,34,12
+4. BUFF  DB 9，?, 9 DUP(?)   （3分）
+   LEA  DX,BUFF
+   MOV  AX,SEG DATA
+   MOV  DS,AX
+5. 宏指令可以带参数，而子程序则不能，喜欢用宏指令。 
+四、程序分析题（每小题6分，共12分）
+1. 102，3, 4
+2.求A的绝对值并送B单元, 3, 3
+五、程序实验题（每小题1分，共10分）
+U, 4321，1746, 0， RBX,  D1746:0， G=100 10F,  104， P， 显示buff。
+六、程序设计题（每小题9分，共18分）
+1.  
+CODE    SEGMENT
+        ASSUME CS:CODE,DS:DATA
+START:
+MOV  AX,DATA
+MOV  DS,AX
+MOV  CX,9
+LEA  SI,STRS+8
+LEA  DI,BUF         ；以上初始化4分
+NEXT:   MOV  AL,[SI]
+MOV  [DI],AL
+DEC  SI
+INC  DI
+LOOP  NEXT          
+   MOV  AH,4CH
+   INT  21H
+CODE    ENDS
+END  START           ；以上循环5分   
+2.
+founds MACRO  buff,char,length
+        MOV  CX,LENGTH
+LEA  DI,BUFF
+MOV  AL,CHAR
+CLD
+REPNE  SCASB
+ENDM                         ；以上宏定义4分
+DATA    SEGMENT
+   MYSTR  DB ‘XXXXXXXXXX’
+        LEN=$-MYSTR
+DATA    ENDS
+CODE    SEGMENT
+        ASSUME CS:CODE,ES:DATA
+START:
+MOV  AX,DATA
+MOV  ES,AX
+founds  MYSTR,20H,LEN         ；以上宏调用2分
+JZ   YES
+MOV  DL, ‘N’
+JMP  EXIT
+YES:  MOV  DL,’Y’
+EXIT:   MOV AH,2
+INT  21H     
+   MOV  AH,4CH
+   INT  21H
+CODE    ENDS
+END  START                   ；以上显示3分
+
+
+
+                    安徽大学20 11  —20 12  学年第 2 学期
+                 《汇编语言》（B卷）考试试题参考答案及评分标准
+一、判断题（每小题1分，共10分）
+    √, √, √, √, √ ×, √,×,  ×, ×
+二、选择题（每小题2分，共20分）
+    B, C, A, C, B, C, C, D, C, B
+三、问答题（每小题4分，共32分）
+1.  00101101,11001010,11110111
+2.  78,56,0E,00,FB,FF,CD,AB
+3.  MOV BX, OFFSET DAT, LEA BX,DAT
+4.  字符串指令
+5.  buff db 9，？，9 dup(?).
+6.  mov AH,BYTE PTR var+1
+7. and  ax,0  ;  xor ax,ax
+8. AX,BX,CX,DX,BP,SP,SI,DI,CS,DS,ES,SS,IP,FLAGS
+
+四、程序实验题（每问1分，共8分）
+U, 1256，0， RBX,  D1256:0， G=100 10E,   104， 不知。
+
+五、程序分析题（每小题4分，共8分）
+1. 3，4
+2. 键盘输入单字符，若回车则退出，否则显示该字符。
+
+六、程序设计题（每小题11分，共22分）
+1.
+compare MACRO  x,y, max
+        LOCAL PY,EXIT
+        MOV  AX,X
+        MOV  DX,Y
+        CMP  AX,DX
+        JL   PY              ；6分
+        MOV  MAX,AX
+        JMP  EXIT
+        PY:  MOV MAX,DX
+        EXIT:
+        ENDM                 ；5分
+
+
+
+
+
+2.
+found MACRO  buff,length,char
+        LOCAL YES,EXIT
+        MOV  AL,CHAR
+        MOV  CX,LENGTH
+        LEA  DI,BUFF
+        REPNE  SCASB
+        JZ   YES            ；6分
+        MOV  DL, ‘N’
+        JMP  EXIT
+        YES:  MOV  DL,’Y’
+        EXIT:  MOV AH,2
+        INT  21H
+        ENDM                ；5分
+
+
+

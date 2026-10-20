@@ -1,0 +1,235 @@
+
+安徽大学2010—2011学年第 2 学期
+                     《汇编语言程序设计 》考试试卷（A卷）
+                               （时间120分钟）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题2分，共10分）
+
+01  子程序和宏的区别是什么？
+
+
+
+
+
+
+
+
+02  段寄存器的作用是什么？ 请分别写出四个段寄存器和名称。
+
+
+
+
+
+
+03 FLAGS 是什么寄存器？它是存放什么的标志的寄存器。
+
+
+
+
+
+
+04  全面叙述汇编语言程序上机过程的一般步骤和需要应用哪几个软件
+
+
+
+
+
+
+05.              知BX=4000H，SI=1034H，则指令MOV AX，[BX+SI+2]的源操作数在（
+   ）段的偏移量为（        ）中。　　
+
+
+|得分   |         |
+
+
+ 2. 填空题（每小题2分，共10分）
+
+01     设段地址DS=2000H，    指令MOV      [400H]，AX的目的操作数物理地址是（
+），如果段地址是4000H，指令MOV  [200H]，AX的物理地址是（         ） 。
+
+02. 在数据段中有定义语句如下：
+      DA1     DB   55，8，103，15H，‘A10D’
+      BUFFER  DB  80 DUP （？）
+      L       EQU  BUFFER-DA1
+      请回答L的值是多少？  L =
+
+03       当源程序被汇编时,汇编程序将对每个宏调用做            。宏展开就是用
+取代源程序中的宏指令名，而且用实元（实参）取代宏定义中的亚元（形参）。
+
+
+  04. LOOP  指令循环得以继续循环的条件是（        ）
+
+
+05
+一个有128个字的数据区，它的起始地址为12ABH：00ABH，请给出这个数据区最末一个字
+单元的物理地址是　         　　。
+
+　
+|得分   |         |
+
+
+三、判断题（每小题2分，共10分）
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   [DX]，AX
+
+02  PUSH   DH
+
+03  MOV   BX, VAL[BX][SI]
+
+04  SHL  BX，4
+
+05  JMP   LOOP
+
+|得分   |         |
+
+四、上机题（每小题5分，共10分）
+01  写出DEBUG程序中的如下调试命令是什么命令：
+    - D
+    - U
+    - T
+    - G
+    - R
+
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1B63:0100  B8621B   MOV  AX, 1B62
+      1B63:0103  8ED8      MOV  DS, AX
+      1B63:0105  BA0000    MOV  DX，0000
+      1B63:0108  B409       MOV  AH，09
+      1B63:010A  CD21      INT   21
+      1B63:010C  B44C      MOV  AH，4C
+      1B63:010E  CD21      INT   21
+列出上面程序的DEBUG命令是(       )
+寄存器CS的值为（       ）,第一条指令的物理地址为（           ）。
+如果要修改寄存器DX为1200H，应键入DEBUG命令(        )。
+如果执行DEBUG命令T=10A 后,寄存器 IP=(               )。
+
+|得分   |         |
+
+五、分析程序题（每小题5分，共20分）
+01  下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHL    DX，CL
+        MOV   BL，AH
+        SHL   AX，CL
+        SHR   BL，CL
+        OR    DL，BL
+
+
+
+02  试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                LOOPE   L20
+                RET
+
+      CODESG    ENDS
+
+            END   BEGIN
+
+（AX）=     ，（BX）=      ，（CX）=     ，（DX）=
+
+
+03  数据定义如下：执行下列指令，填写寄存器的值
+
+      ARRAY  LABEL  BYTE
+
+      DA1  DW  2，9，14，3
+      DA2  DB  7，‘ABCDEDFG’
+       LEN = $－DA1
+       MOV  AL，ARRAY+2          （AL）=（      ）H
+      ADD  AL，DA2+1             （AL）=（      ）H
+      MOV  AX，DA2-DA1          （AX）=（       ）H
+       MOV  AX，DA1+1            （AX）=（       ）H
+       MOV  BL，LEN               （BL）=（       ）H
+
+
+
+
+04.  下列程序段为把BX中的二进制数用十六进制数形式显示出来.试补充空缺指令。
+                MOV    BX, 80ADH
+               MOV    CH, 4          ; 移位次数
+    L0:        MOV    CL, 4          ; 4BIT
+               ROL    BX, CL         ;移到低位
+               MOV    AL, BL
+              (     )   AL, 0FH
+              (                  )      ;转换为ASCII
+              (     )   AL, 3AH        ;是>9 ?
+               JL      HDIG        ;是数字
+               ADD    AL, 7H         ;是A - F
+    HDIG:    MOV    DL, AL
+               MOV    AH, 2
+               INT     21H
+               DEC    CH
+                JNZ    (          )
+                RET
+
+|得分   |         |
+
+六、阅读程序题（本题15分）
+
+
+下列程序完成什么功能？程序执行后数组A的数据排列如何？
+DATA   SEGMENT
+    A  DW  24,15,16,84,32
+DATA  ENDS
+
+CODE  SEGMENT
+MAIN    PROC  FAR
+    ASSUME  CS:CODE , DS:DATA
+START:
+        PUSH  DS
+        SUB   AX,   AX
+        PUSH  AX
+        MOV   AX,  DATA
+        MOV   DS,  AX          ;DS= DATA   段址
+        MOV   DI,  4            ;DI=N-1  比较遍数
+LP1:   MOV   CX,  DI
+        MOV   BX,   0           ；数组下标
+LP2:   MOV   AX,   A[BX]
+        CMP   AX,   A[BX+2]
+        JGE   CONT
+       XCHG  AX,  A[BX+2]
+       MOV   A[BX],  AX
+
+CONT: ADD   BX,    2
+
+        LOOP   LP2
+       DEC   DI
+       JNZ   LP1
+       RET
+MAIN  ENDP
+CODE  ENDS
+    END  START
+
+解： 功能是：
+    程序执行后数组A的数据排列为：
+
+
+
+
+    |得分   |         |
+
+七、编写程序（本题25分）
+     编制一个汇编程序，求首地址为ARRAY的50个非零无符号字数组中最大偶数，并把
+ 它存放在AX寄存器中。如果数组中无偶数，则AX中置0。
+ 解：
+
+
+
+

@@ -1,0 +1,105 @@
+
+
+                        安徽大学2009—2010学年第二学期
+《汇编语言程序设计》(B卷)考试试题参考答案及评分标准
+一、选择题（每小题2分，共20分）
+1、D   2、B   3、A  4、C   5、B  6、C   7、D  8、B   9、D   10、D
+二、填空题（每空1分，共10分）
+1、0014H
+2、31H    32H
+3、0030H
+4、1
+5、0 1 2 1 2 0 3
+6、字节
+7、CX=0   ZF=0
+8、CX≠0且ZF=1
+三、判断题（每小题1分，共10分）
+1、√   2、√   3、√  4、×   5、×  6、√   7、×  8、×   9、×   10、×
+四、程序分析题（每小题6分，共30分）
+1、01H   (2分)
+   1       (2分)
+   0       (2分)
+2、8   (3分)
+   8   (3分)
+3、MOV   DL, ‘A’    (2分)
+   MOV   AH，2    (2分)
+   INT    21H       (2分)
+4、(1) 将AL中的八位数分高低4位分别存放在A和B中。(3分)
+   (2) A=05H，B=06H(3分)
+5、(1)两数1234H和60H相加，结果存放在AX中。(3分)
+   (2)1294H(3分)
+五、实验题（每空1分，共10分）
+1、U
+2、1560H   15700H
+3、R BX
+4、A 104
+5、D ds:4000
+6、G =100   110
+7、104H
+8、21H中断入口地址
+9、从键盘上接收一个字符并将该字符在显示器上显示出来
+六、编程题（每小题10分，共20分）
+1、
+code segment
+  assume cs:code
+start:
+  mov ah,1h
+  int 21h
+  cmp al,61h
+  jl exit
+  cmp al,7ah
+  jg exit
+  mov dl,al
+  sub dl,20h
+  mov ah,2
+  int 21h
+exit:
+  mov ah,4ch
+  int 21h
+code ends
+  end start
+评分要点：
+正确定义代码段                             (2分)
+键盘输入正确                               (2分)
+小写到大写转换正确                         (2分)
+正确输出                                   (2分)
+结束程序                                   (2分)
+2、
+                     DATA      SEGMENT
+                     BUF        DB      ‘AI39*5867Jfe=KJYKGNGK339385’
+                     C            =            ＄－BUF
+                     N1          DB          0
+                     N2          DB          0
+                     DATA      ENDS
+                     CODE     SEGMENT
+                     ASSUME CS：CODE，DS：DATA
+                     START：       MOV      AX，DATA
+                 　               　　 MOV      DS，AX
+　　　　　　　　　　　  MOV      CX，C
+　　　　　　　　　　　　LEA        SI，BUF
+　　　　　　　　L：        MOV      AL，[SI]
+　　　　　　　　　　　　CMP       AL，30H
+　　　　　　　　　　　　JB           NEXT
+　　　　　　　　　　　　CMP         AL，39H
+　　　　　　　　　　　　JA          NEXT
+　　　　　　　　　　　  INC        N1
+　　　　　　　　　　　　JMP        CONT
+                     NEXT： 　　INC        N2
+                     CONT： 　　INC        SI
+　　　　　　　　　　　  LOOP    L
+　　　　　　　　　　　　MOV      AH，4CH
+　　　　　　　　　　　  INT        21H
+                     CODE      ENDS
+                                END       START
+评分要点：
+正确定义数据段                             (2分)
+程序正确初始化                             (2分)
+字符串正确操作                             (2分)
+N1/N2的正确操作                            (2分)
+其它程序格式                               (2分)
+
+-----------------------
+|得分 |     |
+
+
+

@@ -1,0 +1,605 @@
+
+                       安徽大学2006—2007学年第 2 学期
+                     《汇编语言程序设计 》考试试卷（B卷）
+                               （时间120分钟）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题2分，共10分）
+
+01  对子程序的属性NEAR和FAR，确定原则是什么？
+
+
+
+
+
+
+02  段寄存器的作用是什么？ 请分别写出DS、CS、ES和SS的名称。
+
+
+
+
+
+
+03  请说明如何正确使用AX，BX，CX，DX四个数据寄存器。
+
+
+
+
+
+
+04. 指令中的物理地址是怎样计算的？
+         物理地址 =
+
+05.  8086CPU在基址加变址的寻址方式中，变址寄存器可以是（　          　）　
+
+
+         |得分   |         |
+
+二、填空题（每小题2分，共10分）
+01  设SS=2000H, SP=2100H, AX=8000H, 执行 PUSH  AX 后,存放数据低字节00H的
+物理地址是（            ）
+02. 执行如下两条指令的目的是什么？
+    MOV  AL，43
+    OR   AL，20
+    目的是将AL寄存器的
+
+
+03.                         设AX=1234H，                          SP=9FF0H，
+    IP=1000H，执行下面指令后，AX，SP，IP的内容是多少？
+                MOV   AX，3FDH
+                PUSH  AX
+    AX=           ，  SP=          ，  IP=
+
+
+04  将DX的内容除以2，用一条指令去实现，这条指令是　              　
+
+
+05. 串指令中的目的操作数地址是由__        ____提供。
+
+|得分   |         |
+
+三、判断题（每小题2分，共10分）
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   DS，DATA
+02  CMP   25，BX
+03  MOV   ES，AX
+04  CBW： MOV   AX，VAL[DX]
+05  MOV  [66H]， 34H
+
+|得分   |         |
+
+四、上机题（每小题5分，共10分）
+
+
+01  使用DEBUG程序，在程序运行中如何设置断点（即程序执行到此暂停）。
+
+
+
+
+
+
+
+
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+若要查看DS：[4000]中的数据，应键入DEBUG命令(            )。
+如果从头运行程序使其停在RET指令处,应键入DEBUG命令 (                 )。
+如果执行DEBUG命令T=100 后, 寄存器IP=(         )。
+如果执行DEBUG命令T=108 后,寄存器 IP=(                   )。
+从偏移地址为0106H处开始程序功能是什么?
+(                                                          )。
+
+|得分   |         |
+
+五、分析程序题（每小题5分，共20分）
+01  下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHL   AX，CL
+        MOV   DL，BH
+        SHL   BX，CL
+        SHR   DL，CL
+        OR    AL，DL
+
+
+解：
+
+02  试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                LOOP  L20
+                RET
+
+      CODESG    ENDS
+
+            END   BEGIN
+
+
+
+
+（AX）=         ，（BX）=        ，（CX）=       ，（DX）=
+
+
+03  分析下列程序段，如果AX=1468H， BX=9981H时，问该程序的执行会转向哪里？
+       ADD  AX，BX
+       JNO  L1
+       JNC  L2
+       SUB  AX，BX
+       JNC  L3
+       JNO  L4
+       JMP  L5
+
+
+       应 转向
+
+
+
+
+
+
+04  两个双字长有符号数，分别在DX，AX和BX，CX中，下列程序段完成什么功能？
+            CMP   DX，BX
+            JG     X
+            JL     Y
+            CMP   AX，CX
+            JA     X
+      Y：   …
+           ……             解：实现的功能是：
+      X：   …
+           ……
+
+
+|得分   |         |
+
+六、阅读程序（本题15分）
+下列程序完成什么功能？
+
+DATAREA  SEGMENT
+       CSTRING   DB  27 dup（？）
+DATAREA  ENDS
+
+PROGNAM  SEGMENT
+
+MAIN  PROC  FAR
+       ASSUME   CS：PROGNAM，DS：DATAREA
+START：  PUSH  DS
+           SUB   AX，AX
+
+           PUSH  AX
+
+            MOV   AX，DATAREA
+            MOV   DS，AX
+            MOV   CX，27
+            MOV   BX,0
+
+INPUT:     MOV   AH,01
+
+           INT     21H
+            CMP   AL，20H
+            JZ     NEXT
+            CMP   AL，41H
+            JL     INPUT
+            CMP   AL，5AH
+            JG     INPUT
+NEXT：    MOV   CSTRING[BX]，AL
+
+            INC    BX
+
+            LOOP  INPUT
+            MOV   DL，[CSTRING]
+            MOV   AH，02
+            INT     21H
+            MOV   DL，[CSTRING+08H]
+            MOV   AH，02
+            INT     21H
+            RET
+MAIN  ENDS
+PROGNAM  ENDS
+       ENDS  START
+
+解：
+
+
+
+
+
+
+|得分   |         |
+
+七、编写程序（本题25分）
+
+     编制一个汇编程序，求首地址为DATA的60个非零无符号字数组中最大偶数，并把它
+ 存放在AX寄存器中。如果数组中无偶数，则AX中置0。
+ 解：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                       安徽大学2006—2007学年第 2 学期
+            《汇编语言程序设计 》考试试题参考答案及评分标准（B卷）
+                               （时间120分钟）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题2分，共10分）
+
+01  对子程序的属性NEAR和FAR，确定原则是什么？
+    解：如果调用程序和该子程序（或过程）在同一代码段，则使用NEAR属性；如果调用
+程序和该子程序（或过程）不在同一代码段，则使用FAR属性。
+
+
+02  段寄存器的作用是什么？ 请分别写出DS、CS、ES和SS的名称。
+  段寄存器的作用是专用于存储器寻址，用来直接或间接地存放段地址。数据段寄存器、
+代码段寄存器、附加段寄存器和堆栈段寄存器。
+
+
+03  请说明如何正确使用AX，BX，CX，DX四个数据寄存器。
+ AX：作为累加器，是算术运算的主要寄存器。在乘除等指令中存放操作数，在I/O指令
+      中使用它与外部设备传送信息。
+BX：当通用寄存器使用，在计算存储器地址时，作基址寄存器使用。
+CX：当通用寄存器使用，此外常用来保存计数值，当计数器使用。
+DX：当通用寄存器使用，一般在作双字长运算时把DX和AX组合使用，对某些I/O操作，D
+X用来存放I/O的端口地址。
+
+06. 指令中的物理地址是怎样计算的？
+         物理地址 = 16d x (段寄存器值) + EA（有效地址）
+
+06.  8086CPU在基址加变址的寻址方式中，变址寄存器可以是（　SI或者DI　）　
+
+
+         |得分   |         |
+
+二、填空题（每小题2分，共10分）
+
+01  设SS=2000H, SP=2100H, AX=8000H, 执行 PUSH  AX 后,存放数据低字节00H的
+物理地址是（ 220FEH ）
+
+02.  行如下两条指令的目的是什么？
+    MOV  AL，43
+    OR   AL，20
+    目的是将AL寄存器的  第5位置1，其余位保持不变。
+
+
+03.                           AX=1234H，                          SP=9FF0H，
+   IP=1000H，执行下面指令后，AX，SP，IP的内容是多少？
+                MOV   AX，3FDH
+                PUSH  AX
+    AX=  03FDH   ，  SP= 9FEEH    ，  IP= 1005H
+
+
+04  将DX的内容除以2，用一条指令去实现，这条指令是　SAR DX，1　
+
+
+
+05串指令中的目的操作数地址是由__ ES：[DI] ____提供。
+
+
+|得分   |         |
+
+三、判断题（每小题2分，共10分）
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   DS，DATA         错，不能将地址直接传送给段寄存器DS
+02  CMP   25，BX           错，没有操作数为imm，reg指令
+03  MOV   ES，AX            合法
+04  CBW： MOV   AX，VAL[DX]  错，标号不能是指令操作码CBW
+05  MOV  [66H]， 34H       ×，指令中目标操作数不能是常数。
+
+
+|得分   |         |
+
+四、上机题（每小题5分，共10分）
+
+
+01  使用DEBUG程序，在程序运行中如何设置断点（即程序执行到此暂停）。
+     格式：G[=地址][地址]…[地址]
+     该命令可以在程序运行中设置断点。
+       1.
+          第一个参数“=地址”规定了执行的起始地址，以CS内容作段地址，以等号后面的
+          地址值作为地址偏移量，=不能省掉。
+       2. 若省掉起始地址，则以CS：IP作为起始地址。
+       3. 后面的地址数是断点地址，最多可设置10个断点
+       4. 地址参数所指的单元，必须包含有有效的8088指令
+       5. 堆栈必须至少包含有6个可用字节。
+       6. 若断点地址只包含地址偏移量，则段地址在段寄存器CS中。
+
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+若要查看DS：[4000]中的数据，应键入DEBUG命令(  D 4000H  )。
+如果从头运行程序使其停在RET指令处,应键入DEBUG命令 (   G[=100][110]   )。
+如果执行DEBUG命令T=100 后, 寄存器IP=(  0104H   )。
+如果执行DEBUG命令T=108 后,寄存器 IP=(  21H中断入口地址   )。
+从偏移地址为0106H处开始程序功能是什么?
+(  从键盘上接收一个字符并将该字符在显示器上显示出来  )。
+
+|得分   |         |
+
+五、分析程序题（每小题5分，共20分）
+01  下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHL   AX，CL
+        MOV   DL，BH
+        SHL   BX，CL                 将（AX，BX）逻辑左移4位
+        SHR   DL，CL
+        OR    AL，DL
+
+
+
+
+
+02  试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                LOOP  L20
+                RET
+
+      CODESG    ENDS
+
+            END   BEGIN
+
+
+
+
+解：  （AX）=05H，（BX）=10H，（CX）=0，（DX）=0
+
+
+
+03  分析下列程序段，如果AX=1468H， BX=9981H时，问该程序的执行会转向哪里？
+       ADD  AX，BX
+       JNO  L1
+       JNC  L2
+       SUB  AX，BX
+       JNC  L3
+       JNO  L4
+       JMP  L5
+       AX，BX 给定为：
+       应 转向   L1
+
+
+
+
+04  两个双字长有符号数，分别在DX，AX和BX，CX中，下列程序段完成什么功能？
+            CMP   DX，BX
+            JG     X
+            JL     Y
+            CMP   AX，CX
+            JA     X
+      Y：   …
+           ……
+      X：   …
+           ……
+实现的是：比较两个双字长有符号数的功能。
+
+
+
+|得分   |         |
+
+六、阅读程序（本题15分）
+下列程序完成什么功能？
+
+DATAREA  SEGMENT
+       CSTRING   DB  27 dup（？）
+DATAREA  ENDS
+
+PROGNAM  SEGMENT
+
+MAIN  PROC  FAR
+       ASSUME   CS：PROGNAM，DS：DATAREA
+START：  PUSH  DS
+           SUB   AX，AX
+
+           PUSH  AX
+
+            MOV   AX，DATAREA
+            MOV   DS，AX
+            MOV   CX，27
+            MOV   BX,0
+
+INPUT:     MOV   AH, 01
+
+           INT     21H
+            CMP   AL，20H
+            JZ     NEXT
+            CMP   AL，41H
+            JL     INPUT
+            CMP   AL，5AH
+            JG     INPUT
+NEXT：    MOV   CSTRING[BX]，AL
+
+            INC    BX
+
+            LOOP  INPUT
+
+
+            MOV   DL，[CSTRING]
+            MOV   AH，02
+            INT     21H
+            MOV   DL，[CSTRING+08H]
+            MOV   AH，02
+            INT     21H
+            RET
+MAIN  ENDS
+PROGNAM  ENDS
+       ENDS  START
+解：
+从键盘输入一个字母为大写、字符个数为27的字符串（约定：空格为字符，键盘输入过
+程中非大写字母或不是空格字符，则跳过重输）如：“THIS    IS     A     PERSONAL
+COMPUTER”，依次存放在起始地址为CSTRING的字符单元中。然后将字符串的第1个（T）
+和第9个（A）字符在屏幕上显示。
+|得分   |         |
+
+七、编写程序（本题25分）
+
+     编制一个汇编程序，求首地址为DATA的60个非零无符号字数组中最大偶数，并把它
+ 存放在AX寄存器中。如果数组中无偶数，则AX中置0。
+  解：
+  datarea  segment
+    DATA  dw  60  dup(?)
+
+  Datarea  ends                            （3分）
+
+  Code   segment
+
+  Main   proc  far
+
+     Assume  cs:code, ds:datarea
+  Start:
+       Push  ds
+
+       Sub   ax,ax
+
+        Push  ax
+        Mov   ax,datarea
+        Mov   ds,ax                       （3分）
+        Mov   SI,0
+        Mov   cx,60
+        Mov   ax,0                         （2分）
+Next:  Mov   bx,data[SI]
+        Mov   dx,bx
+        Sar    bx,1
+        Jc     L1
+        Cmp   ax,dx
+        Jae    L1
+        Mov   ax,dx                        （10分）
+L1:    Add   SI,2
+       Loop  Next                         （5分）
+        Ret
+
+Main   endp                               （1分）
+
+Code   ends
+      End  start                           （1分）
+
+
+
+
+
+

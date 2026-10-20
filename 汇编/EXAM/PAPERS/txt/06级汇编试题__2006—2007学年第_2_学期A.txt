@@ -1,0 +1,628 @@
+
+                       安徽大学2006—2007学年第 2 学期
+                     《汇编语言程序设计 》考试试卷（A卷）
+                               （时间120分钟）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题2分，共10分）
+
+01  什么叫做子程序？
+
+
+
+
+
+
+
+
+02  为何针对有符号和无符号数须用不同指令？
+
+
+
+
+
+
+03 FLAGS 是什么寄存器？它是存放什么的标志的寄存器。
+
+
+
+
+
+
+04  全面叙述汇编语言程序上机过程的一般步骤和需要应用哪几个软件
+
+
+
+
+
+
+05.                知BX=2000H，SI=1234H，则指令MOV AX，[BX+SI+2]的源操作在（
+   ）段的偏移量为（        ）中。　　
+
+
+|得分   |         |
+
+
+ 2. 填空题（每小题2分，共10分）
+
+01     设段地址DS=4000H，    指令MOV      [400H]，AX的目的操作数物理地址是（
+），如果段地址是4020H，指令MOV  [200H]，AX的物理地址是（        ） 。
+
+02. 在数据段中有定义语句如下：
+      DA1     DB   44，8，37，15，‘A104’
+      BUFFER  DB  80 DUP （？）
+      L       EQU  BUFFER-DA1
+      请回答L的值是多少？  L =
+
+03       当源程序被汇编时,汇编程序将对每个宏调用做            。宏展开就是用
+取代源程序中的宏指令名，而且用实元（实参）取代宏定义中的亚元（形参）。
+
+
+  04. LOOP  指令循环得以继续循环的条件是（        ）
+
+
+05
+一个有128个字的数据区，它的起始地址为12ABH：00ABH，请给出这个数据区最末一个字
+单元的物理地址是　         　　。
+
+　
+|得分   |         |
+
+
+三、判断题（每小题2分，共10分）
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   CX，AX
+
+02  PUSH   AL
+
+03  MOV   BX, VAL[BX][SI]
+
+04  SHL  BX，4
+
+05  JMP   LOOP
+
+|得分   |         |
+
+四、上机题（每小题5分，共10分）
+
+01  写出DEBUG程序中的如下调试命令是什么命令：
+    - D
+    - E
+    - T
+    - G
+    - A
+
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+列出上面程序的DEBUG命令是(       )
+寄存器CS的值为（       ）,第一条指令的物理地址为（           ）。
+如果要修改寄存器BX为1200H，应键入DEBUG命令(        )。
+若要修改第二条指令中的BP为BX,应键入DEBUG命令(          ) 。
+
+|得分   |         |
+
+五、分析程序题（每小题5分，共20分）
+01  下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHL    DX，CL
+        MOV   BL，AH
+        SHL   AX，CL
+        SHR   BL，CL
+        OR    DL，BL
+
+
+
+
+
+
+
+02  试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                LOOPE   L20
+                RET
+
+      CODESG    ENDS
+
+            END   BEGIN
+
+
+
+
+ （AX）=     ，（BX）=      ，（CX）=     ，（DX）=
+
+
+
+03  数据定义如下：执行下列指令，填写寄存器的值
+
+      ARRAY  LABEL  BYTE
+
+      DA1  DW  2，9，14，3
+      DA2  DB  7，‘ABCDEDF’
+       LEN = $－DA1
+       MOV  AL，ARRAY+2          （AL）=（      ）H
+      ADD  AL，DA2+1             （AL）=（      ）H
+      MOV  AX，DA2-DA1          （AX）=（       ）H
+       MOV  AX，DA1+1            （AX）=（       ）H
+       MOV  BL，LEN               （BL）=（       ）H
+
+
+
+
+04  下列程序段为把BX中的二进制数用十六进制数形式显示出来.试补充空缺指令。
+                MOV    BX, 0001001101101010B      ；显示136A
+               MOV    CH, 4          ; 4位数
+    ROTATE:
+               MOV    CL, 4          ; 4BIT
+               ROL    BX, CL         ;移到低位
+               MOV    AL, BL
+              (     )   AL, 0FH
+              (                  )      ;转换为ASCII
+               CMP    AL, 3AH        ;是>9 ?
+               JL      PRINTIT        ;是数字
+               ADD    AL, 7H         ;是A - F
+    PRINTIT:  MOV    DL, AL
+               MOV    AH, 2
+               INT     21H
+               DEC    CH
+                JNZ    (          )
+                RET
+
+
+|得分   |         |
+
+六、阅读程序题（本题15分）
+
+
+下列程序完成什么功能？程序执行后数组A的数据排列如何？
+DATA   SEGMENT
+    A  DW  24,15,16,84,32
+DATA  ENDS
+
+CODE  SEGMENT
+MAIN    PROC  FAR
+    ASSUME  CS:CODE , DS:DATA
+START:
+        PUSH  DS
+        SUB   AX,   AX
+        PUSH  AX
+        MOV   AX,  DATA
+        MOV   DS,  AX          ;DS= DATA   段址
+        MOV   DI,  4            ;DI=N-1  比较遍数
+LP1:   MOV   CX,  DI
+        MOV   BX,   0           ；数组下标
+LP2:   MOV   AX,   A[BX]
+        CMP   AX,   A[BX+2]
+        JGE   CONT
+       XCHG  AX,  A[BX+2]
+       MOV   A[BX],  AX
+
+CONT: ADD   BX,    2
+
+        LOOP   LP2
+       DEC   DI
+       JNZ   LP1
+       RET
+MAIN  ENDP
+CODE  ENDS
+    END  START
+
+解： 功能是：
+    程序执行后数组A的数据排列为：
+
+
+
+
+    |得分   |         |
+
+七、编写程序（本题25分）
+    1、编写一程序，要求先从键盘上输入三个无符号数字到数组ARRAY中，然后比较数组
+ARRAY中的三个数，并根据比较结果在显示器上显示如下信息：
+   （1）如果三个数都不相等，则显示 0；
+   （2）如果三个数有两个相等，则显示 1；
+   （3）如果三个数都相等，则显示 2。
+  解：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                       安徽大学2006—2007学年第 2 学期
+            《汇编语言程序设计 》考试试题参考答案及评分标准（A卷）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题2分，共10分）
+
+01  什么叫做子程序？
+   在模块化程序设计中，经常把某些具有独立功能的部分编写成独立的程序模块，称为
+子程序。
+
+
+02  为何针对有符号和无符号数须用不同指令？
+    解：比如8位二进制0FFH                   和00H                   ,哪个大?
+若为无符号数,0FFH大,若为有符号数,00H大。所以，处理有符号和无符号数时须用不同
+指令。
+
+
+03 FLAGS 是什么寄存器？它是存放什么的标志的寄存器。
+   为标志寄存器，又称程序状态寄存器。它是存放条件码标志、控制标志和系统标志的
+寄存器。
+
+
+04  全面叙述汇编语言程序上机过程的一般步骤和需要应用哪几个软件
+      解：(1)用编辑程序EDIT建立 .ASM源文件
+          (2)用汇编程序MASM把.ASM文件原文件汇编成.OBJ文件
+          (3)用连接程序LINK将.OBJ文件转换成.EXE文件
+          (4)在DOS下直接运行.EXE文件或在DEBUG下调试该.EXE文件
+
+04.
+   已知BX=2000H，SI=1234H，则指令MOV AX，[BX+SI+2]的源操作在（数据）段的偏移量
+   为（3236H ）中。
+|得分   |         |
+
+
+    2. 填空题（每小题2分，共10分）
+
+01  设段地址DS=4000H，  指令MOV   [400H]，AX的目的操作数物理地址是（  40400H
+），如果段地址是4020H，指令MOV  [200H]，AX的物理地址是（ 40400H ）。
+
+02.  数据段中有定义语句如下：
+      DA1     DB   44，8，37，15，‘A104’
+      BUFFER  DB  80 DUP （？）
+      L       EQU  BUFFER-DA1
+      请回答L的值是多少？  L =  8
+
+
+
+03     当源程序被汇编时,汇编程序将对每个宏调用做    宏展开    。宏展开就是用
+宏定义体
+取代源程序中的宏指令名，而且用实元（实参）取代宏定义中的亚元（形参）。
+
+
+04  L OOP  指令循环得以继续循环的条件是（CX≠0 ）
+
+
+05
+一个有128个字的数据区，它的起始地址为12ABH：00ABH，请给出这个数据区最末一个字
+单元的物理地址是　12C59H　　
+
+
+|得分   |         |
+
+
+三、判断题（每小题2分，共10分）
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   CX，AX           错，AX可传送给DS、ES，不能传送给CS
+02  PUSH   AL              错，指令PUSH为字操作指令，AL为字节
+
+03  MOV   BX, VAL[BX][SI]   合法
+
+04  SHL  BX，4             错，4应改为CL
+
+05  JMP   LOOP             错，标号不能是指令操作码LOOP
+
+|得分   |         |
+
+四、上机题（每小题5分，共10分）
+
+01  写出DEBUG程序中的如下调试命令是什么命令：
+    - D  显示内存内容
+    - E  修改内存单元内容
+    - T  跟踪命令
+    - G  运行命令
+    - A  汇编命令
+
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+列出上面程序的DEBUG命令是(  U    )
+寄存器CS的值为（ 1234H  ）,第一条指令的物理地址为（ 12440H ）。
+如果要修改寄存器BX为1200H，应键入DEBUG命令(   R BX       )。
+若要修改第二条指令中的BP为BX,应键入DEBUG命令(  A [0104]   ) 。
+
+|得分   |         |
+
+五、分析程序题（每小题5分，共20分）
+1、下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHL   DX，CL
+        MOV   BL，AH
+        SHL   AX，CL
+        SHR   BL，CL
+        OR    DL，BL
+         将（DX，AX）逻辑左移4位
+
+
+
+2、试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                LOOPE   L20
+                RET
+
+      CODESG    ENDS
+
+          END   BEGIN
+
+LOOPE   L20：
+
+
+          （AX）=02H，（BX）=04H，（CX）=03H，（DX）=01H
+
+
+
+3、数据定义如下：执行下列指令，填写寄存器的值
+
+     ARRAY  LABEL  BYTE
+
+     DA1  DW  2，9，14，3
+      DA2  DB  7，‘ABCDEDF’
+      LEN = $－DA1
+      MOV  AL，ARRAY+2          （AL）=（  09  ）H
+      ADD  AL，DA2+1             （AL）=（  41  ）H
+      MOV  AX，DA2-DA1          （AX）=（  0008 ）H
+      MOV  AX，DA1+1             （AX）=（ 0900  ）H
+      MOV  BL，LEN               （BL）=（  10   ）H
+
+
+
+
+4、下列程序段为把BX中的二进制数用十六进制数形式显示出来.试补充空缺指令。
+             MOV    BX, 0001001101101010B      ；显示136A
+               MOV    CH, 4          ; 4位数
+    ROTATE:
+               MOV    CL, 4          ; 4BIT
+               ROL    BX, CL         ;移到低位
+               MOV    AL, BL
+              ( AND)   AL, 0FH
+              ( ADD    AL，30H )      ;转换为ASCII
+               CMP    AL, 3AH        ;是>9 ?
+               JL      PRINTIT        ;是数字
+               ADD    AL, 7H         ;是A - F
+    PRINTIT:  MOV    DL, AL
+               MOV    AH, 2
+               INT     21H
+               DEC    CH
+             JNZ    ( ROTATE  )
+             RET
+
+|得分   |         |
+
+六、阅读程序题（本题15分）
+
+
+下列程序完成什么功能？程序执行后数组A的数据排列如何？
+DATA   SEGMENT
+    A  DW  24,15,16,84,32
+DATA  ENDS
+
+CODE  SEGMENT
+MAIN    PROC  FAR
+    ASSUME  CS:CODE , DS:DATA
+START:
+        PUSH  DS
+        SUB   AX,   AX
+        PUSH  AX
+        MOV   AX,  DATA
+        MOV   DS,  AX          ;DS= DATA   段址
+        MOV   DI,  4            ;DI=N-1  比较遍数
+LP1:   MOV   CX,  DI
+        MOV   BX,   0           ；数组下标
+LP2:   MOV   AX,   A[BX]
+        CMP   AX,   A[BX+2]
+        JGE   CONT
+       XCHG  AX,  A[BX+2]
+       MOV   A[BX],  AX
+CONT: ADD   BX,    2
+        LOOP   LP2
+       DEC   DI
+       JNZ   LP1
+       RET
+MAIN  ENDP
+CODE  ENDS
+    END  START
+
+解：完成对数组A从大到小的降序排列功能。                 （10分）
+    程序执行后数组A的数据排列为：84，32，24，16，15    （5分）
+
+
+    |得分   |         |
+
+七、编写程序（本题25分）
+    1、编写一程序，要求先从键盘上输入三个无符号数字到数组ARRAY中，然后比较数组
+ARRAY中的三个数，并根据比较结果在显示器上显示如下信息：（25分）
+   （1）如果三个数都不相等，则显示 0；
+   （2）如果三个数有两个相等，则显示 1；
+   （3）如果三个数都相等，则显示 2。
+  解：
+  datarea  segment
+    ARRAY  dB  3  dup(?)
+  Datarea  ends                                        （3分）
+  Code   segment
+  Main   proc  far
+     Assume  cs:code, ds:datarea
+  Start:
+         Push  ds
+        Sub   ax,ax
+        Push  ax
+        Mov   ax,datarea
+        Mov   ds,ax                                    （3分）
+        Mov   bx,0
+        Mov   cx,3                                      （1分）
+Next :   Mov   ah,01
+        Int     21h
+        Sub   al,30h
+        Mov   ARRAY[bx],al
+        Inc    bx
+        Loop  Next                                     （5分）
+        Mov   bx,0
+        Cmp   al,ARRAY[bx]
+        Je     l1
+        Cmp   al,ARRAY[BX+1]
+        Je     l3
+       Mov   al,ARRAY[bx]
+       Cmp   al,ARRAY[BX+1]
+       Je     l3
+       Mov   dl,30h
+       Jmp   outp
+L1:    Cmp   al,ARRAY[BX+1]
+       Je     l2
+L3:    mov   dl,31h
+       Jmp   outp
+L2:    mov   dl,32h                                   （10分）
+Outp:  mov   ah,02
+       Int     21h
+       Ret                                            （2分）
+Main   endp
+Code   ends
+      End  start                                      （1分）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

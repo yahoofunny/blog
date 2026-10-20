@@ -1,0 +1,10 @@
+
+1) t1: 3334FA
+   t2: 3412
+   t3: 44332211
+   wnd: 0900
+2) OFFSET gap = 002BH, OFFSET buf = 003C
+3) TYPE d1 = 01h, SIZE d1 = 01h, LENGTH d1 = 01h
+   TYPE d2 = 02h, SIZE d2 = 08h, LENGTH d2 = 04h
+   TYPE d3 = 01h, SIZE d3 = 0Ah, LENGTH d3 = 0Ah
+   DIFF(d2-d1) = 04

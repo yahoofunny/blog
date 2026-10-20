@@ -1,0 +1,151 @@
+
+
+                        安徽大学2009—2010学年第二学期
+《汇编语言程序设计》(A卷)考试试题参考答案及评分标准
+一、选择题（每小题2分，共20分）
+1、B   2、C   3、D  4、C   5、D  6、C   7、D  8、B   9、B   10、D
+二、填空题（每空1分，共10分）
+1、FF84H
+2、41H    42H
+3、0020H
+4、0048H
+5、0 1 2 1 2 0 3
+6、字节
+7、CX=0   ZF=0
+8、JL  L1（或JNGE  L1）
+三、判断题（每小题1分，共10分）
+1、√   2、×   3、×  4、×   5、√  6、×   7、√  8、×   9、×   10、×
+四、程序分析题（每小题6分，共30分）
+1、0   (1分)
+   2   (2分)
+   8   (1分)
+   38  (1分)
+   8   (1分)
+2、1   (2分)
+   0   (2分)
+   3   (2分)
+3、MOV   DL, ‘A’    (2分)
+   MOV   AH，2    (2分)
+   INT    21H       (2分)
+4、程序对32 位数据 80030002H求绝对值。(2分)
+   AX=FFFE                        (2分)
+   DX=7FFC                        (2分)
+5、(1)统计6C8E H中1的个数     (3分)
+   (2)(M)=8                   (3分)
+五、实验题（每空1分，共10分）
+1、U
+2、1560H   15700H
+3、R BX
+4、A 104
+5、D ds:4000
+6、G =100   110
+7、104H
+8、21H中断入口地址
+9、从键盘上接收一个字符并将该字符在显示器上显示出来
+六、编程题（每小题10分，共20分）
+1、
+code segment
+  assume cs:code
+start:
+  mov bl,0
+  mov cx,7
+l1:
+  mov ah,1
+  int 21h
+  cmp al,30h
+  jl exit
+  cmp al,31h
+  jg exit
+  shl bl,1
+  sub al,30h
+  and al,01h      ；本条指令可省
+  add bl,al
+  loop l1
+output:
+  mov dl,13
+  mov ah,2
+  int 21h
+  mov dl,10
+  mov ah,2
+  int 21h
+  mov dl,bl
+  mov ah,2
+  int 21h
+exit:
+  mov ah,4ch
+  int 21h
+code ends
+  end start
+代码段定义正确2分，loop循环正确2分，移位相加正确3分，输出正确3分。
+2、
+data segment
+  buff db 16,?,16 dup(?),13,10,'$'
+  inputs db 13,10,'input string:$'
+  getc db 13,10,'input char:$'
+  output db 13,10,'not found$'
+data ends
+
+code segment
+  assume cs:code,ds:data,es:data
+start:
+  mov ax,data
+  mov ds,ax
+  mov ax,data
+  mov es,ax
+
+  lea dx,inputs
+  mov ah,9
+  int 21h
+
+  lea dx,buff
+  mov ah,10
+  int 21h
+
+  lea dx,getc
+  mov ah,9
+  int 21h
+
+  mov ah,1
+  int 21h     ;键盘输入字符ASCII码存放在al中
+
+  lea di,buff+2
+  mov cx,16
+  cld
+find:
+  repne scasb
+  jz yes
+  jmp nof
+yes:
+  mov dl,13
+  mov ah,2
+  int 21h
+  mov dl,10
+  mov ah,2
+  int 21h     ;回车换行
+
+  mov bl,16
+  sub bl,cl
+  sub dl,1     ；应为SUB   BL，1  或DEC  BL
+
+  mov dl,bl
+  add dl,30h
+  mov ah,2
+  int 21h
+  jmp exit
+nof:
+  lea dx,output
+  mov ah,9
+  int 21h
+exit:
+  mov ah,4ch
+  int 21h
+code ends
+  end start
+
+数据段定义正确1分，键盘缓冲区输入正确1分，字符输入正确1分，位置计算正确5分，
+输出正确2分。
+-----------------------
+|得分 |     |
+
+
+

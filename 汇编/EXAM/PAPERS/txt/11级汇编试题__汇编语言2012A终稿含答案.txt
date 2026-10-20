@@ -1,0 +1,311 @@
+
+                             最终试题A（密）及答案
+一、判断题（每小题1分，共10分）
+
+  （1）有小的语法错误的程序进行汇编，也会产生.obj文件。(×)
+  （2）除了CS寄存器，其它段寄存器都可以被赋值。(√)
+  （3）除了在程序最后用功能号4CH的系统功能调用，没有其它办法使程序正常终止。(
+×)
+  （4）8086CPU 数据总线16位，所以在该机器上无法作32位数的运算。(×)
+  （5）ADD BYTE PYR [DX],5 指令是合法的。(×)
+  （6）MOV [BP+2],5 指令是合法的。(×)
+  （7）XOR  AX,  BX AND 4指令是合法的。(×)
+  （8）MOV  BX,[SI/2]是合法的。(×)
+  （9）如果AL=85H，CL=4，执行“SAR  AL，CL”后，AL=F8。(√)
+
+  （10）XOR  BL，0FH可以使BL中的低四位变反，高四位不变。(√)
+
+
+二、选择题（每小题2分，共20分）
+
+
+    （1）设22000H单元存放的数据为1234H，若要读取22000H字节单元中的数据，此时读
+     出的数据是（ B）。
+    A．12H      B．34H     C．3412H    D．1234H
+
+
+    （2）DS=400FH，最小可寻址的物理地址是（ C ）
+     A．40000H         B．4000H        C．400F0H     D．4000FH
+
+
+    （3）设SS=4000H, SP=0202H, 执行 CALL  FAR PTR  SUBPRO 后,  SP是（B  ）
+     A．0204H         B．01FEH        C．0200H     D．0106H
+
+    （4）设DS=2000H，ES=3000H，BX=3000H，指令SUB  AL，[BX]的源操作数的物理
+     址为（　 A ）。
+    Ａ．23000H   B．5000H    C．33000H     D． 6000H
+
+
+   （5）若定义“BUF  DB  2，3，4”，执行MOV  AL，SIZE  BUF  后AL=（A  ）。
+　　A．1    B．2    C．3    D．4
+
+
+    （6）AX=BX=8900H, 执行指令ADD  AX,BX后， CF,OF=(D   )
+    A．0,0     B．0,1     C．1,0      D．1,1
+
+
+    （7）AX= BX=0058H,执行ADD AL,BL和DAA指令后， AX=（ A ）
+    A．0016H      B．00B0H      C．00B6H      D．0116H
+
+
+    （8）无符号数比较后，如果前者小于后者，则转移的指令是（A  ）
+    A．JB         B．JNC        C．JNB       D．JL
+
+
+    （9）AL= BL=81H, 用IMUL  BL指令后，AX=（ C ）
+    A．6561H         B．4101H         C．3F01H     D．16129H
+
+
+    （10）AL= BL=48H, 执行ADD AL,BL和CBW指令后， AX=（C ）
+    A．0090H    B．0096H      C．FF90H      D．FF96H
+
+
+
+
+三、问答题（每小题6分，共30分）
+
+1．写出下列两个十进制数的8位二进制补码，并作运算，求出结果，回答CF和OF的值。
+
+ 85+（-58）
+
+2. 请指出下列各条指令的源操作数的寻址方式是什么？
+（1）MOV    AL, 5
+（2）CMP    AX, BX
+（3）MOV    AX, BUF
+（4）MOV    BX, [SI]
+（5）ADC    AH, A[SI]
+（6）SUB    AX, [BX+SI]
+
+3．ORG  0
+   BUFF   DB  ‘34’，-6,$
+   ARRAY  DW    1234H
+   用十六进制按字节标出以上数据在内存中的存放。
+
+
+
+4.
+写出伪指令，定义键盘输入缓冲区BUFF，缓冲区大小为9个字节。写出指令，使DX获得B
+UFF的偏移地址，DS获得BUFF的段地址。
+
+5．使用宏指令和使用子程序有何异同？一般你会如何选择？
+
+答案：
+1.  01010101+11000110=00011011,（4分）  CF=1，OF=0 （2分）
+2.  立即数，寄存器，直接，寄存器间接，寄存器相对，基址变址
+3.  33,34，FA,04,34,12
+4. BUFF  DB 9，?, 9 DUP(?)   （3分）
+   LEA  DX,BUFF
+   MOV  AX,SEG DATA
+   MOV  DS,AX
+5. 宏指令可以带参数，而子程序则不能，我喜欢用宏指令。
+
+四、程序分析题（每小题6分，共12分）
+
+1． 回答A0, LEN1，LEN2的值：
+        ORG  100H
+        A0  DW  A1
+        A1  DB  3  DUP(9)
+        A2  DW  4，5
+        LEN1= A2-A1
+        LEN2 = $－A2
+ A0 的值=（ 102  ）H ,LEN1 的值=（ 3    ）H , LEN2 的值=（ 4    ）H
+
+
+
+
+2． MOV   AX，A
+    TEST  AX, 8000H
+    JZ    P1
+    NOT  AX
+    ADD  AX,1
+    P1：MOV  B,AX
+
+
+    （1）解释该程序的功能(    求A的绝对值并送B  )
+    （2）如果A=FFFDH，则程序执行后B的值=（  3     ）H
+    （3）如果A=-3，则程序执行后B的值=（ 3      ）H
+
+
+
+五、程序实验题（每问1分，共10分）
+设程序PROG.ASM的数据段有如下定义：
+Data  segment
+      Buff  db ‘my computer$’
+Data  ends
+
+用DEBUG调入PROG.EXE后,若程序列出如下:
+4321:0100  MOV  BX, 1746
+4321:0104  MOV  DS, BX
+4321:0107  MOV  DX, 0
+4321:010A  MOV  AH, 9
+4321:010D  INT  21
+4321:010F  RET
+
+列出上面程序的DEBUG命令是(  U         )
+寄存器CS的值为（ 4321   ）。
+BUFF的段地址是（1746     ），偏移地址是（0    ）。
+如果要修改寄存器BX的值，应键入DEBUG命令(  R BX               )。
+若要查看BUFF字符串，应键入DEBUG命令(  D 1746:0                )。
+如果从头运行程序使其停在RET指令处,应键入DEBUG命令(  G =100 10F        )。
+如果执行DEBUG命令T=100 后, 寄存器IP=(   104       )。
+如果IP=10D,要单步执行当前指令，用DEBUG命令 (  P        )。
+程序的功能是什么?  （ 显示串BUFF                           ）
+
+六、程序设计题（每小题9分，共18分）
+
+
+1.
+   编写一程序，将STRS中的9个字节按相反次序存放到BUF中。（即BUF的首字符为‘I’）
+   DATA  SEGMENT
+        STRS DB‘ABCDEFGHI’
+        BUF DB  9  DUP (?)
+   DATA  ENDS
+
+2．编写一个宏定义founds                                                MACRO
+buff,char,length。查找某字符串中是否有指定的某个字符，其中参数buff为字符串，
+char为指定的某个字符,
+length为串的长度。再编制程序，使用你定义的宏指令founds对数据段中的字符串MYST
+R查找空格符（20H）,若找到就显示字符‘Y’，否则显示字符‘N’。（显示部分不要编入宏
+定义）
+
+1.
+CODE    SEGMENT
+        ASSUME CS:CODE,DS:DATA
+START:
+        MOV  AX,DATA
+        MOV  DS,AX
+        MOV  CX,9
+        LEA  SI,STRS+8
+        LEA  DI,BUF         ；以上初始化4分
+NEXT:   MOV  AL,[SI]
+        MOV  [DI],AL
+        DEC  SI
+        INC  DI
+        LOOP  NEXT
+        MOV  AH,4CH
+        INT  21H
+CODE    ENDS
+        END  START           ；以上循环5分
+
+
+
+
+
+
+
+
+
+2.
+founds MACRO  buff,char,length
+        MOV  CX,LENGTH
+        LEA  DI,BUFF
+        MOV  AL,CHAR
+        CLD
+        REPNE  SCASB
+        ENDM                         ；以上宏定义4分
+DATA    SEGMENT
+        MYSTR  DB ‘XXXXXXXXXX’
+        LEN=$-MYSTR
+DATA    ENDS
+
+
+CODE    SEGMENT
+        ASSUME CS:CODE,ES:DATA
+START:
+        MOV  AX,DATA
+        MOV  ES,AX
+        founds  MYSTR,20H,LEN         ；以上宏调用2分
+        JZ   YES
+        MOV  DL, ‘N’
+        JMP  EXIT
+YES:    MOV  DL,’Y’
+EXIT:   MOV AH,2
+        INT  21H
+        MOV  AH,4CH
+        INT  21H
+CODE    ENDS
+        END  START                   ；以上显示3分
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+仅供参考：
+第1题
+data  segment
+    buff1 db 8 dup(?)
+    buff2 db 8 dup(?)
+data  ends
+
+CODE    SEGMENT
+        ASSUME CS:CODE,DS:DATA
+START:
+        MOV  AX,DATA
+        MOV  DS,AX
+        MOV  CX,8       ；输入8个字符到BUFF1中
+        LEA  DI,BUFF1
+        LIN: MOV  AH,1    ;
+        INT  21H
+        MOV  [DI],AL
+        LOOP  LIN
+        MOV  CX,8        ；BUFF1中的字符反序到BUFF2中
+        LEA  SI,buff2+7
+        LEA  DI,buff1
+NEXT:   MOV  AL,[SI]
+        MOV  [DI],AL
+        DEC  SI
+        INC  DI
+        LOOP  NEXT
+        MOV  CX，8        ；输出反序后的字符串
+        LEA  SI，BUFF2
+        LOUT：MOV  DL，[SI]
+        MOV  AH，2
+        INT  21H
+        INC  SI
+        LOOP  LOUT
+        MOV  AH,4CH
+        INT  21H
+CODE    ENDS
+END  START
+第2题
+founds MACRO  buff,length
+        MOV  CX,LENGTH
+        LEA  DI,BUFF
+        MOV  AL,‘20H’
+        CLD
+        REPNE  SCASB
+        ENDM                         ；以上宏定义4分
+DATA    SEGMENT
+        STRING  DB ‘XXXXXXX。。。XXX’
+        LEN=$-STRING
+DATA    ENDS
+
+
+CODE    SEGMENT
+        ASSUME CS:CODE,ES:DATA
+START:
+        MOV  AX,DATA
+        MOV  DS,AX
+        founds  STRING,LEN
+        JZ   YES
+        MOV  DL, ‘N’
+        JMP  EXIT
+YES:    MOV  DL,’Y’
+EXIT:   MOV AH,2
+        INT  21H
+        MOV  AH,4CH
+        INT  21H
+CODE    ENDS
+END  START
+
+

@@ -1,0 +1,205 @@
+
+一．填空题
+
+1．设段地址DS=2000H，  指令MOV    [600H]，AX的目的操作数物理地址是（   20600
+），如果段地址是2020H，指令MOV       [400H]，AX的目的操作数物理地址是（20600
+）。
+
+2．设SS=2000H，SP=0100H，AX=8086H，则执行 PUSH  AX 后，SP=（ FE  ），执行POP
+ AX后，SP=（ 0102H ）。
+
+3．循环指令LOOP                   OPR执行的操作是（                   CX=CX-
+1,若CX!=0，跳转到标号OPR处循环执行，否则执行LOOP的下一条指令），LOOPNE指令循
+环得以继续的条件是（CX不为0并ZF=0）。
+
+4．带符号数比较大小，当AX>               BX时程序转向标号L1，若前导指令为CMP
+AX，BX，后续指令应为（                        JG                          L1
+），若视为二个无符号数比较大小，后续指令应为（JA  L1 ）。
+
+5．16位加法6FA7+9F20H=（      1EC7      ），标志位SF，ZF，CF，OF的值分别为（
+0，0，1，0  ）。
+
+6．设SS=2000H，SP=0100H，执行 CALL  FAR  PTR  SUBPRO 后，SP=（ 00FC ）。
+
+7．可以用一条指令（ XOR BL，0FH ）使BL中的低四位变反，高四位不变。
+
+8．宏指令与子程序相比，子程序调用的执行速度比宏指令的（                   慢
+），在多次调用时，宏指令调用的目标程序长度比子程序调用的（ 长）。
+
+9．执行DIV  BX指令后，（ DX ）寄存器中存放余数，（ AX ）寄存器中存放商。
+
+10．在串操作中，如果地址变化是自动增量，则应将DF标志位设置为（             0
+），如果地址变化是自动减量，则应将DF标志位设置为（ 1 ）。
+
+二．简答题
+1．请指出下列各条指令的源操作数的寻址方式是什么？
+(1) MOV　AX，53H      立即寻址方式
+(2) TEST　 AL，[BP]     寄存器间接寻址方式
+(3) MOV　 BX，ARRY      直接寻址方式
+(4) CMP   DX，CX     寄存器寻址方式
+(5) LEA　 AX，-32H[BX][DI]    基址变址寻址方式
+(6) ADC   AH，ARRY[SI]     寄存器相对寻址方式
+(7) SUB   AX，[BX+SI]      基址变址寻址方式
+
+2．分析以下指令是否有错，请指出错误原因。
+(1) MOV  DL，AX     错，操作数长度不匹配
+(2) MOV  [BX]，9        错，原操作数和目的操作数类型不确定
+(3) MOV  BX，[DX]       错，寄存器间接寻址中不能用DX寄存器
+(4) MOV  CS，BX          错，寄存器寻址方式中不能用CS寄存器
+(5) MOV  DS，DATA         错，寄存器寻址方式中不能用DS寄存器
+(6) ADD  AX，[SI+DI]          错，SI不能和DI相配
+(7) SUB  [BX]，[SI]             错，原操作数和目的操作数类型不确定
+(8) MUL  BX，CX              错，MUL指令只有一个操作数
+
+3．用十六进制按字节标出以上数据在内存中的存放，并回答寄存器的值。
+ORG  0
+ARRAY LABEL  BYTE
+DA1  DW 2，9，14，3，315H，-6
+DA2  DB 7，‘ABCDEDFG’
+LEN = $－DA2
+ORG  100H
+DA3  DW  DA4
+DA4  DB  4  DUP(2 DUP(1，2，3)，4)
+MOV  AL，ARRAY+2         AL=（  ）H
+ADD  AL，DA2+1            AL=（       ）H
+MOV  AX，DA2-DA1         AX=（       ）H
+MOV  BL，LEN               BL=（       ）H
+MOV  AX，DA3               AX=（       ）H
+MOV  BX, TYPE  DA4         BX=（       ）H
+MOV  BX, OFFSET  DA4       BX=（       ）H
+MOV  CX, SIZE  DA4          CX=（       ）H
+MOV  DX, LENGTH  DA4      DX=（       ）H
+MOV  BX, WORD PTR  DA4    BX=（       ）H
+MOV  BL, LEN  AND  0FH     BL=（      ）H
+MOV  BL, LEN  GT  5         BL=（       ）H
+MOV  AX, LEN  MOD 5        AX=（       ）H
+
+4．MOV  AX，99H
+   MOV  BL，88H
+   ADD  AL，BL
+   JNC  LP1
+   JO   LP2
+   JMP  LP3
+程序段执行后，AX=（ 21H ）H，CF=（ 1 ），OF=（ 1），转向标号（ LP2 ）。
+
+5．现有程序段如下：
+MOV BL，AL
+MOV CL，4
+SHR BL，CL
+MOV A，BL
+AND AL，0FH
+MOV B，AL
+请回答：(1)                                           该程序段完成的功能是（
+将AL中的值右移4位并赋值到A中，将AL的低4位置1并赋值到B中 ）。
+(2) 如果AL的初值为56H，则执行完该程序段后，A=（ 05H ）， B=（5FH）。
+
+三、程序实验题
+用DEBUG调入PROG.EXE后，列出下列程序的DEBUG命令是（U100）。
+若程序列出如下：
+1234:0100  MOV  BX，[4000]
+1234:0104  MOV  AX，[BP]
+1234:0106  MOV  AH，1
+1234:0108  INT  21
+1234:010A  MOV  DL，AL
+1234:010C  MOV  AH，2
+1234:010E  INT  21
+1234:0110  RET
+寄存器CS的值为（1234 ）。
+如果要修改寄存器BX为1200H，应键入DEBUG命令（ RBX ）。
+若要修改第二条指令中的BP为BX，应键入DEBUG命令（  A104 ）。
+若要查看DS：[4000]中的数据，应键入DEBUG命令（DDS：4000  ）。
+如果从头运行程序使其停在RET指令处，应键入DEBUG命令（ G=0 110）。
+如果执行DEBUG命令T=100后，寄存器IP=（ 104 ）。
+如果执行DEBUG命令T=108后，寄存器 IP=（ 不知 ）。
+从偏移地址为0106H处开始程序功能是（  键盘输入字符并显示）。
+
+四、程序设计题
+1．编写程序，从键盘输入一个字符串到BUFF缓冲区（缓冲区长度小于10），再输入一个
+字符到AL，在BUFF中查找是否存在该字符，如果找到，在屏幕上显示首次发现的字符位
+置，否则输出“NOT FOUND”。
+答：
+data  segment
+mess1   db     13,10, 'input string:$'
+mess2   db     13,10, 'input a char:$'
+mess3   db     13,10, 'found at $'
+mess4   db     13,10, 'no found !$'
+
+st1     label   byte
+  max1  db      6
+  act1  db      ?
+  stok1 db      6 dup(?)
+
+data  ends
+
+code segment   para'code'
+        assume cs:code, ds:data
+start:  mov ax,data
+        mov ds,ax
+        mov es,ax
+        lea dx,mess1
+        mov ah,09
+        int 21h         ;qust1?
+        lea dx,st1
+        mov ah,0ah
+        int 21h         ;ans1
+
+        lea dx,mess2
+        mov ah,09
+        int 21h         ;qust2?
+
+        mov ah,1
+        int 21h         ;ans2
+        lea di,stok1
+        repne scasb
+        jz match
+nomatch:
+        lea dx,mess4
+        jmp exit
+match:  lea dx,mess3
+
+exit:
+        mov ah,09
+        int 21h
+        sub di,offset stok1
+        mov dx,di
+        and dx,0fh
+        add dl,30h
+        mov ah,2
+        int 21h
+        mov ah,4ch
+        int 21h
+code ends
+       end start
+
+
+
+
+
+
+
+
+
+
+
+
+
+2．从键盘输入7位二进制数，显示对应的字符，例如输入1000001，输出字符A。
+
+
+code segment
+         assume cs:code
+    start:
+       mov cx,7
+       mov dl,0
+    next:
+       shl dl,1
+       mov  ah,1
+       int 21h
+       。。。。。。
+       loop next
+       mov ah,2
+       int 21h
+       mov ah,4ch
+       int 21h
+    code ends
+       end  start

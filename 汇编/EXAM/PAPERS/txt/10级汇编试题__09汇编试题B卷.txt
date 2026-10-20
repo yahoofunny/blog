@@ -1,0 +1,264 @@
+
+安徽大学2010—2011学年第 2 学期
+                     《汇编语言程序设计 》考试试卷（B卷）
+                               （时间120分钟）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题2分，共10分）
+
+01  对子程序的属性NEAR和FAR，确定原则是什么？
+
+
+
+
+
+
+
+
+02  段寄存器的作用是什么？ 请分别写出DS、CS、ES和SS的名称。
+
+
+
+
+
+
+
+
+03  请说明如何正确使用AX，BX，CX，DX四个数据寄存器。
+
+
+
+
+
+
+
+04. 指令中的物理地址是怎样计算的？
+         物理地址 =
+
+
+05.  8086CPU在基址加变址的寻址方式中，变址寄存器可以是（　          　）　
+
+
+
+
+         |得分   |         |
+
+二、填空题（每小题2分，共10分）
+01  设SS=2000H, SP=2100H, AX=8000H, 执行 PUSH  AX 后,存放数据低字节00H的
+物理地址是（            ）
+
+02. 执行如下两条指令的目的是什么？
+    MOV  AL，43
+    OR   AL，20
+    目的是将AL寄存器的
+
+
+03.                         设AX=1234H，                          SP=9FF0H，
+    IP=1000H，执行下面指令后，AX，SP，IP的内容是多少？
+                MOV     AX，3FDH
+                PUSH    AX
+    AX=           ，  SP=          ，  IP=
+
+
+
+
+04  将DX的内容除以2，用一条指令去实现，这条指令是　              　
+
+
+
+
+05. 串指令中的目的操作数地址是由__        ____提供。
+
+
+
+|得分   |         |
+
+三、判断题（每小题2分，共10分）
+
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   DS，DATA
+02  CMP   25，BX
+03  MOV   ES，AX
+04  CBW： MOV   AX，VAL[DX]
+05  MOV  [66H]， 34H
+
+
+
+|得分   |         |
+
+四、上机题（每小题5分，共10分）
+
+
+01  使用DEBUG程序，在程序运行中如何设置断点（即程序执行到此暂停）。
+
+
+
+
+
+
+
+
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+若要查看DS：[4000]中的数据，应键入DEBUG命令(            )。
+从头运行程序使其停在RET指令处,应键入DEBUG命令 (                 )。
+如果执行DEBUG命令T=100 后, 寄存器IP=(         )。
+如果执行DEBUG命令T=108 后,寄存器 IP=(                   )。
+从偏移地址为0106H处开始程序功能是什么?
+(                                                          )。
+
+
+|得分   |         |
+
+五、分析程序题（每小题5分，共20分）
+01  下面六条指令执行后，完成了一个什么功能（用最简短的语句说明）
+        MOV   CL，04
+        SHR   AX，CL
+        MOV   BH，DL
+        SHR   DX，CL
+        SHL   BH，CL
+        OR    AH，BH
+
+
+解：
+
+02  试说明当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是什么？
+
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                LOOP  L20
+                RET
+
+      CODESG    ENDS
+
+            END   BEGIN
+
+
+
+
+（AX）=         ，（BX）=        ，（CX）=       ，（DX）=
+
+
+03  分析下列程序段，如果AX=1468H， BX=9981H时，问该程序的执行会转向哪里？
+       ADD  AX，BX
+       JNO  L1
+       JNC  L2
+       SUB  AX，BX
+       JNC  L3
+       JNO  L4
+       JMP  L5
+
+
+       应 转向
+
+
+
+
+04  两个双字长有符号数，分别在DX，AX和BX，CX中，下列程序段完成什么功能？
+            CMP   DX，BX
+            JG     X
+            JL     Y
+            CMP   AX，CX
+            JA     X
+      Y：   …
+           ……
+      X：   …
+           ……
+
+解：实现的功能是：
+
+
+
+|得分   |         |
+
+六、阅读程序（本题15分）
+下列程序完成什么功能？
+DATAREA  SEGMENT
+       CSTRING   DB  27 dup（？）
+DATAREA  ENDS
+
+PROGNAM  SEGMENT
+
+MAIN  PROC  FAR
+       ASSUME   CS：PROGNAM，DS：DATAREA
+START：  PUSH  DS
+           SUB   AX，AX
+
+           PUSH  AX
+
+            MOV   AX，DATAREA
+            MOV   DS，AX
+            MOV   CX，27
+            MOV   BX,0
+
+INPUT:     MOV   AH,01
+
+           INT     21H
+            CMP   AL，20H
+            JZ     NEXT
+            CMP   AL，41H
+            JL     INPUT
+            CMP   AL，5AH
+            JG     INPUT
+NEXT：    MOV   CSTRING[BX]，AL
+
+            INC    BX
+
+            LOOP  INPUT
+            MOV   DL，[CSTRING]
+            MOV   AH，02
+            INT     21H
+            MOV   DL，[CSTRING+08H]
+            MOV   AH，02
+            INT     21H
+            RET
+MAIN  ENDS
+PROGNAM  ENDS
+       ENDS  START
+
+解：
+
+
+
+
+
+
+
+
+|得分   |         |
+
+七、编写程序（本题25分）
+
+    1、编写一程序，要求先从键盘上输入三个无符号数字到数组ARRAY中，然后比较数组
+ARRAY中的三个数，并根据比较结果在显示器上显示如下信息：
+   （1）如果三个数都不相等，则显示 0；
+   （2）如果三个数有两个相等，则显示 1；
+   （3）如果三个数都相等，则显示 2。
+  解：
+
+
+
+

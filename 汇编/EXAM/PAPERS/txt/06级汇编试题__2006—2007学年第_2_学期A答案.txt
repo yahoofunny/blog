@@ -1,0 +1,727 @@
+
+                       安徽大学2006—2007学年第 2 学期
+                     《汇编语言程序设计 》考试试卷（A卷）
+                               （时间120分钟）
+
+        院/系                专业                姓名                  学号
+
+
+|题  号 |一       |
+
+
+一、问答题（每小题×分，共×分）
+01  什么叫做子程序？
+   在模块化程序设计中，经常把某些具有独立功能的部分编写成独立的程序模块，称为
+子程序。
+
+
+01  对子程序的属性NEAR和FAR，确定原则是什么？
+    解：如果调用程序和该子程序（或过程）在同一代码段，则使用NEAR属性；如果调用
+程序和该子程序（或过程）不在同一代码段，则使用FAR属性。
+
+
+02  为何针对有符号和无符号数须用不同指令？
+    解：比如8位二进制0FFH                   和00H                   ,哪个大?
+若为无符号数,0FFH大,若为有符号数,00H大。所以，处理有符号和无符号数时须用不同
+指令。
+
+
+02  段寄存器的作用是什么？ 请分别写出DS、CS、ES和SS的名称。
+  段寄存器的作用是专用于存储器寻址，用来直接或间接地存放段地址。数据段寄存器、
+代码段寄存器、附加段寄存器和堆栈段寄存器。
+
+
+03 FLAGS 是什么寄存器？它是存放什么的标志的寄存器。
+   为标志寄存器，又称程序状态寄存器。它是存放条件码标志、控制标志和系统标志的
+寄存器。
+
+
+03  请说明如何正确使用AX，BX，CX，DX四个数据寄存器。
+ AX：作为累加器，是算术运算的主要寄存器。在乘除等指令中存放操作数，在I/O指令
+      中使用它与外部设备传送信息。
+BX：当通用寄存器使用，在计算存储器地址时，作基址寄存器使用。
+CX：当通用寄存器使用，此外常用来保存计数值，当计数器使用。
+DX：当通用寄存器使用，一般在作双字长运算时把DX和AX组合使用，对某些I/O操作，D
+X用来存放I/O的端口地址。
+
+04  全面叙述汇编语言程序上机过程的一般步骤和需要应用哪几个软件
+      解：(1)用编辑程序EDIT建立 .ASM源文件
+          (2)用汇编程序MASM把.ASM文件原文件汇编成.OBJ文件
+          (3)用连接程序LINK将.OBJ文件转换成.EXE文件
+          (4)在DOS下直接运行.EXE文件或在DEBUG下调试该.EXE文件
+
+
+04.  指令中的物理地址是怎样计算的？
+         物理地址 = 16d x (段寄存器值) + EA（有效地址）
+
+05.
+   已知BX=2000H，SI=1234H，则指令MOV AX，[BX+SI+2]的源操作在（数据）段的偏移量
+   为（3236H ）中。　　
+
+05.  8086CPU在基址加变址的寻址方式中，变址寄存器可以为（　SI或DI　）　
+
+
+    a) 填空题
+
+01  设段地址DS=4000H，  指令MOV   [400H]，AX的目的操作数物理地址是（  40400H
+），如果段地址是4020H，指令MOV  [200H]，AX的物理地址是（ 40400H ）。
+
+01  设SS=2000H, SP=2100H, AX=8000H, 执行 PUSH  AX 后,存放数据低字节00H的
+物理地址是（ 220FEH ）
+
+
+02. 在数据段中有定义语句如下：
+      DA1     DB   44，8，37，15，‘A104’
+      BUFFER  DB  80 DUP （？）
+      L       EQU  BUFFER-DA1
+      请回答L的值是多少？  L =  8
+
+
+02. 执行如下两条指令的目的是什么？
+    MOV  AL，43
+    OR   AL，20
+    目的是将AL寄存器的  第5位置1，其余位保持不变。
+
+
+
+03     当源程序被汇编时,汇编程序将对每个宏调用做    宏展开    。宏展开就是用
+宏定义体
+取代源程序中的宏指令名，而且用实元（实参）取代宏定义中的亚元（形参）。
+
+03.                         设AX=1234H，                          SP=9FF0H，
+    IP=1000H，执行下面指令后，AX，SP，IP的内容是多少？
+                MOV   AX，3FDH
+                PUSH  AX
+    AX=  03FDH   ，  SP= 9FEEH    ，  IP= 1005H
+
+
+04. LOOP  指令循环得以继续循环的条件是（CX≠0 ）
+
+04  将DX的内容除以2，用一条指令去实现，这条指令是　SAR DX，1　
+
+
+05
+一个有128个字的数据区，它的起始地址为12ABH：00ABH，请给出这个数据区最末一个字
+单元的物理地址是　12C59H　　
+
+06.  串指令中的目的操作数地址是由__ ES：[DI] ____提供。
+
+
+
+
+　
+04  带符号数比较大小,当AX> BX时程序转向标号L1,若前导指令为CMP AX, BX
+     后续指令应为(  JNC  L1 或JC   L1    )。
+若视为二个无符号数比较大小, 后续指令应为(   JG  L1 或 JA  L1   ).
+
+
+05  名词概念和作用如下，请用序号联系起来
+     （1）段寄存器           （ 6 ）动态调试可执行程序的程序
+     （2）堆栈               （ 8 ）用来指出下一条要执行的指令的地址
+     （3）物理地址           （1 ）用来表示段地址
+     （4）PSW寄存器         （ 4 ）用来表示指令操作结果的状态标志
+     （5）MASM程序          （ 2 ）先入后出方式工作的存储空间
+     （6）DEBUG程序         （ 5 ）对汇编语言源程序进行汇编产生.obj文件
+     （7）LINK程序          （ 10）程序执行阶段不起作用的指令
+     （8）IP寄存器          （ 7 ）用来对.obj文件连接产生可执行程序
+     （9）机器指令          （ 9 ）计算机硬件执行的二进制指令
+     (10)伪指令             （ 3 ）唯一能表示每一个字节存储单元的地址
+
+
+三、判断题
+指出以下指令是否合法，说明为什么,给出合适的修改。
+01  MOV   CX，AX           错，AX可传送给DS、ES，不能传送给CS
+01  MOV   DS，DATA         错，不能将地址直接传送给段寄存器DS
+02  PUSH   AL              错，指令PUSH为字操作指令，AL为字节
+02  CMP   25，BX           错，没有操作数为imm，reg指令
+
+03  SUB   BX，DL           错，DL为字节，BX为字，应一致
+03  DIV   5                错，操作数可以是寄存器或存储器，不能是立即数
+
+
+04  MOV   BX, VAL[BX][SI]   合法
+04  MOV   ES，AX            合法
+
+05  MOV   AX，VAL[DX]     错，DX应为BX、SI、DI或imm之一
+05  MOV  [3200H]，[BX]     错，指令语法格式错。
+
+06  SHL  BX，4             错，4应改为CL
+06  MOV  [FFFFH]，AX       错，操作数地址不对
+
+07  JMP   LOOP             错，标号不能是指令操作码LOOP
+07  CBW： MOV   AX，VAL[DX]  错，标号不能是指令操作码CBW
+
+08. MOV  BX，[DX]          ×，指令中[DX]的DX，不能作为寻址。
+09. MOV  [66H]， 34H       ×，指令中目标操作数不能是常数。
+
+四、上机题（每小题5分，共10分）
+
+01  写出DEBUG程序中的如下调试命令是什么命令：
+    - D  显示内存内容
+    - E  修改内存单元内容
+    - T  跟踪命令
+    - G  运行命令
+    - A  汇编命令
+
+
+01  使用DEBUG程序，在程序运行中如何设置断点（即程序执行到此暂停）。
+     格式：G[=地址][地址]…[地址]
+     该命令可以在程序运行中设置断点。
+       1.
+          第一个参数“=地址”规定了执行的起始地址，以CS内容作段地址，以等号后面的
+          地址值作为地址偏移量，=不能省掉。
+       2. 若省掉起始地址，则以CS：IP作为起始地址。
+       3. 后面的地址数是断点地址，最多可设置10个断点
+       4. 地址参数所指的单元，必须包含有有效的8088指令
+       5. 堆栈必须至少包含有6个可用字节。
+       6. 若断点地址只包含地址偏移量，则段地址在段寄存器CS中。
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+列出上面程序的DEBUG命令是(  U    )
+寄存器CS的值为（ 1234H  ）,第一条指令的物理地址为（ 12440H ）。
+如果要修改寄存器BX为1200H，应键入DEBUG命令(   R BX       )。
+若要修改第二条指令中的BP为BX,应键入DEBUG命令(  A [0104]   ) 。
+
+02  用DEBUG调入PROG.EXE后,若程序列出如下:
+      1234:0100  MOV  BX, [4000]
+      1234:0104  MOV  AX, [BP]
+      1234:0106  MOV  AH, 1
+      1234:0108  INT  21
+      1234:010A  MOV  DL, AL
+      1234:010C  MOV  AH, 2
+      1234:010E  INT  21
+      1234:0110  RET
+
+
+若要查看DS：[4000]中的数据，应键入DEBUG命令(  D 4000H  )。
+如果从头运行程序使其停在RET指令处,应键入DEBUG命令 (   G[=100][110]   )。
+如果执行DEBUG命令T=100 后, 寄存器IP=(  0104H   )。
+如果执行DEBUG命令T=108 后,寄存器 IP=(  21H中断入口地址   )。
+从偏移地址为0106H处开始程序功能是什么?
+(  从键盘上接收一个字符并将该字符在显示器上显示出来  )。
+
+
+五、分析程序题（每小题5分，共10分）
+1、下面六条指令执行后，完成了一个什么功能
+        MOV   CL，04
+        SHL   DX，CL
+        MOV   BL，AH
+        SHL   AX，CL
+        SHR   BL，CL
+        OR    DL，BL
+         将（DX，AX）逻辑左移4位
+1、下面六条指令执行后，完成了一个什么功能（用最简短的语句说明，本题6分）
+        MOV   CL，04
+        SHL   AX，CL
+        MOV   DL，BH
+        SHL   BX，CL                 将（AX，BX）逻辑左移4位
+        SHR   DL，CL
+        OR    AL，DL
+
+
+
+
+2、在下面程序的（   ）中分别填入如下指令：
+
+      LOOP      L20
+
+
+      LOOPE     L20
+
+      LOOPNE    L20
+     试说明在三种情况下，当程序执行完后，AX，BX，CX和DX四个寄存器的内容分别是
+什么？
+      CODESG      SEGMENT
+        ASSUME CS：CODESG，DS：CODESG，SS：CODESG
+                ORG  100H
+      BEGIN：  MOV  AX，01
+                MOV  BX，02
+                MOV  DX，03
+                MOV  CX，04
+      L20：     INC  AX
+                ADD  BX，AX
+                SHR  DX，1
+                （     ）
+                RET
+
+      CODESG    ENDS
+
+            END   BEGIN
+
+LOOP    L20：
+
+
+             （AX）=05H，（BX）=10H，（CX）=0，（DX）=0
+
+
+LOOPE   L20：
+
+
+            （AX）=02H，（BX）=04H，（CX）=03H，（DX）=01H
+
+LOOPNE  L20：
+            （AX）=03H，（BX）=07H，（CX）=02H，（DX）=0
+
+
+3、数据定义如下：执行下列指令，填写寄存器的值。
+。
+
+      ARRAY  LABEL  BYTE
+
+      DA1  DW  2，9，14，3
+      DA2  DB  7，‘ABCDEDF’
+       LEN = $－DA1
+       MOV  AL，ARRAY+2          （AL）=（  09  ）H
+      ADD  AL，DA2+1             （AL）=（  41  ）H
+      MOV  AX，DA2-DA1          （AX）=（  0008 ）H
+       MOV  AX，DA1+1             （AX）=（ 0900  ）H
+       MOV  BL，LEN               （BL）=（  10   ）H
+
+
+3、分析下列程序段，如果AX=1468H， BX=9981H时，问该程序的执行会转向哪里？
+       ADD  AX，BX
+       JNO  L1
+       JNC  L2
+       SUB  AX，BX
+       JNC  L3
+       JNO  L4
+       JMP  L5
+       AX，BX 给定为：
+       应 转向   L1
+
+
+4、下列程序段为把BX中的二进制数用十六进制数形式显示出来.试补充空缺指令。
+                MOV    BX, 0001001101101010B      ；显示136A
+               MOV    CH, 4          ; 4位数
+    ROTATE:
+               MOV    CL, 4          ; 4BIT
+               ROL    BX, CL         ;移到低位
+               MOV    AL, BL
+              ( AND)   AL, 0FH
+              ( ADD    AL，30H )      ;转换为ASCII
+               CMP    AL, 3AH        ;是>9 ?
+               JL      PRINTIT        ;是数字
+               ADD    AL, 7H         ;是A - F
+    PRINTIT:  MOV    DL, AL
+               MOV    AH, 2
+               INT     21H
+               DEC    CH
+                JNZ    ( ROTATE  )
+                RET
+
+
+
+4、两个双字长有符号数，分别在DX，AX和BX，CX中，下列程序段完成什么功能？
+            CMP   DX，BX
+
+
+            JG     X
+            JL     Y
+            CMP   AX，CX
+            JA     X
+      Y：   …
+           ……
+      X：   …
+           ……
+实现的是：比较两个双字长有符号数的功能。
+
+
+
+
+六、编写程序题
+1、请编写一个程序，从键盘输入一个字符串（约定：字母为大写，字符个数为27，空格
+为字符，键盘输入过程中非大写字母或不是空格字符，则跳过重输）THIS    IS     A
+PERSONAL
+COMPUTER，依次存放在起始地址为CSTRING的字符单元中。然后将字符串的第1个和第9个
+字符在屏幕上显示。(例20分)
+
+DATAREA  SEGMENT
+       CSTRING   DB  27 dup（？）
+DATAREA  ENDS                           ；数据段   （3分）
+
+PROGNAM  SEGMENT
+
+MAIN  PROC  FAR
+       ASSUME   CS：PROGNAM，DS：DATAREA  ；代码段头（1分）
+START：  PUSH  DS
+           SUB   AX，AX
+
+           PUSH  AX
+
+            MOV   AX，DATAREA
+            MOV   DS，AX           ；返回数据压栈和DS赋值（2分）
+
+
+            MOV   CX，27
+            MOV   BX,0                 ；初始化 （1分）
+
+INPUT:     MOV   AH,01               ;或MOV  AH,07
+
+           INT     21H                 ；接收一个字符 （1分）
+            CMP   AL，20H
+            JZ     NEXT
+            CMP   AL，41H
+            JL     INPUT
+            CMP   AL，5AH
+            JG     INPUT                ；判断大写字母和空格（3分）
+NEXT：    MOV   CSTRING[BX]，AL
+
+            INC    BX
+
+            LOOP  INPUT                  ；存字符并判断（4分）
+
+
+            MOV   DL，[CSTRING]
+            MOV   AH，02
+            INT     21H
+            MOV   DL，[CSTRING+08H]
+            MOV   AH，02
+            INT     21H                     ；输出1和9字符（4分）
+            RET
+MAIN  ENDS
+PROGNAM  ENDS
+       ENDS  START                        ；程序结束（1分）
+
+
+
+2、要求测试在STATUS中的一个字节，如果第1，3，5位均为1，则转移到L1；如果此三位
+中有两位为1，则转移到L2；如果此三位中只有一位为1，则转移到L3；如果此三位全为
+0，则转移到L4。并编制相应的程序段。(例10分)
+程序段为：
+               MOV    AL，[STATUS]
+               AND    AL，2AH          ；2AH= 0010 1010(3分)
+
+               JZ      L4                                  (1分)
+
+               CMP    AL，2AH                            (2分)
+               JE      L1
+               JPE     L2                                 (1分)
+        L3： ┇                                            (1分)
+        L1： ┇
+        L2： ┇
+        L4： ┇                                            (2分)
+
+
+
+
+
+
+
+
+
+
+   1. 阅读程序（20分）
+下列程序完成什么功能？程序执行后数组A的数据排列如何？
+DATA   SEGMENT
+    A  DW  8,5,16,84,32
+DATA  ENDS
+
+CODE  SEGMENT
+MAIN    PROC  FAR
+    ASSUME  CS:CODE , DS:DATA
+START:
+        PUSH  DS
+        SUB   AX,   AX
+        PUSH  AX
+        MOV   AX,  DATA
+        MOV   DS,  AX          ;DS= DATA   段址
+        MOV   DI,  4            ;DI=N-1  比较遍数
+LP1:   MOV   CX,  DI
+        MOV   BX,   0           ；数组下标
+LP2:   MOV   AX,   A[BX]
+        CMP   AX,   A[BX+2]
+        JGE   CONT
+       XCHG  AX,  A[BX+2]
+       MOV   A[BX],  AX
+CONT: ADD   BX,    2
+        LOOP   LP2
+       DEC   DI
+       JNZ   LP1
+       RET
+MAIN  ENDP
+CODE  ENDS
+    END  START
+解：完成对数组A从大到小的降序排列功能。
+    程序执行后数组A的数据排列为：84，32，16，8，5
+
+   2. 编写程序（40分）
+    1、编写一程序，要求先从键盘上输入三个无符号数字到数组ARRAY中，然后比较数组
+ARRAY中的三个数，并根据比较结果在显示器上显示如下信息：（25分）
+   （1）如果三个数都不相等，则显示 0；
+   （2）如果三个数有两个相等，则显示 1；
+   （3）如果三个数都相等，则显示 2。
+  解：
+  datarea  segment
+    ARRAY  dB  3  dup(?)
+  Datarea  ends
+  Code   segment
+  Main   proc  far
+     Assume  cs:code, ds:datarea
+  Start:
+       Push  ds
+       Sub   ax,ax
+       Push  ax
+       Mov   ax,datarea
+       Mov   ds,ax
+       Mov   bx,0
+       Mov   cx,3
+Next :  Mov   ah,01
+       Int     21h
+       Sub   al,30h
+       Mov   ARRAY[bx],al
+       Inc    bx
+       Loop  Next
+       Mov   bx,0
+       Cmp   al,ARRAY[bx]
+       Je     l1
+       Cmp   al,ARRAY[BX+1]
+       Je     l3
+       Mov   al,ARRAY[bx]
+       Cmp   al,ARRAY[BX+1]
+       Je     l3
+       Mov   dl,30h
+       Jmp   outp
+L1:    Cmp   al,ARRAY[BX+1]
+       Je     l2
+L3:    mov   dl,31h
+       Jmp   outp
+L2:    mov   dl,32h
+Outp:  mov   ah,02
+       Int     21h
+       Ret
+Main   endp
+Code   ends
+      End  start
+
+
+     2、编制一个汇编程序，求首地址为DATA的60D个非零无符号字数组中最大偶数，并
+ 把它存放在AX寄存器中。如果数组中无偶数，则AX中置0。（15分）
+  解：
+  datarea  segment
+    DATA  dw  60  dup(?)
+  Datarea  ends
+  Code   segment
+  Main   proc  far
+     Assume  cs:code, ds:datarea
+  Start:
+       Push  ds
+
+       Sub   ax,ax
+
+       Push  ax
+       Mov   ax,datarea
+       Mov   ds,ax
+       Mov   SI,0
+       Mov   cx,60
+       Mov   ax,0
+Next:  Mov   bx,data[SI]
+       Mov   dx,bx
+       Sar    bx,1
+       Jc     L1
+       Cmp   ax,dx
+       Jae    L1
+       Mov   ax,dx
+L1:    Add   SI,2
+       Loop  Next
+       Ret
+
+               Main   endp
+
+Code   ends
+      End  start
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      |得分   |         |
+
+
+二、××题（每小题×分，共×分）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+|得分   |         |
+
+
+三、××题（每小题×分，共×分）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+|得分   |         |
+
+
+四、××题（每小题×分，共×分）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                     安徽大学20    —20    学年第   学期
+                  《 “试卷模板” 》考试试题参考答案及评分标准
+
