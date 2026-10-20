@@ -1,0 +1,2 @@
+count(1234h)  = 5
+count(0FFFFh) = 16

@@ -1,22 +1,0 @@
-
-CALC -- e.g. 12+34   (q or empty = quit)
-CALC: 12+34 = 46
-
-CALC: 7*6 = 42
-
-CALC: 100/7 = 14 rem 2
-
-CALC: 3-10 = -7
-
-CALC: 5-12 = -7
-
-CALC: 50*50 = 2500
-
-CALC: 1000*1000 = (OVERFLOW: result > 65535)
-
-CALC: 5/0 = (DIV BY ZERO!)
-
-CALC: 1+ = 1
-
-CALC: q
-Bye!

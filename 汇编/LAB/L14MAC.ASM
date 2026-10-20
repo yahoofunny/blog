@@ -28,9 +28,12 @@
 ;        选择:   短小且频繁的用宏; 长功能用子程序
 ;
 ; [怎么看宏展开]
-;   本目录里已经放好了一个 L14MAC.LST (列表文件), 用 VS Code 打开它,
-;   搜索 IN1 和 INC, 就能看到宏展开后的真实代码!
-;   想自己生成: 在 DOSBox 里敲  masm L14MAC, L14MAC.OBJ, L14MAC.LST;
+;   自己生成一份列表文件, 搜索 IN1 和 INC, 就能看到宏展开后的真实代码!
+;   在 DOSBox 里敲:  masm L14MAC, L14MAC.OBJ, L14MAC.LST;
+;
+;   ★注意: 列表文件里夹着本文件注释的中文, 用 VS Code 打开会是一堆乱码。
+;     别管乱码, 直接 Ctrl+F 搜 inc ax 和 IN1 —— 汇编出来的指令和符号都是
+;     纯 ASCII, 一定找得到。用记事本以 ANSI 编码打开也可以, 中文就正常了。
 ;
 ; [运行结果]
 ;   4661  OK 300 65535 5 3
@@ -85,7 +88,7 @@ stack ends
 data segment
      k = 1                             ; 等值符号 (给 % 展开用)
      msg %k, db, 'OK'                  ; ★展开成: IN1 DB 'OK' (真题同款!)
-                                       ;    不信 → 看 L14MAC.LST 列表文件
+                                       ;    不信 → 自己生成 .LST 看一眼
      crlf db 0dh,0ah,'$'
 data ends
 
