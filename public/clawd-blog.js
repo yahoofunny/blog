@@ -90,17 +90,4 @@
       if (api.eng.forced && api.eng.forced.state === mood) api.clearStatus();
     }, 16000 + Math.random() * 9000);
   }, 150000);
-
-  /* ---------- 色盘联动：壳色跟随站点主题色 --wm-primary ---------- */
-  function syncTheme() {
-    try {
-      var v = getComputedStyle(document.documentElement).getPropertyValue('--wm-primary').trim();
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) api.setColors({ body: v });
-    } catch (e) { /* 忽略 */ }
-  }
-  syncTheme();
-  new MutationObserver(syncTheme).observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class']
-  });
 })();
