@@ -169,6 +169,7 @@ const CSS = `
 .cw-radial.on button{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
 .cw-radial.on button:hover{transform:translate(-50%,-50%) scale(1.18) rotate(0deg);background:#fff}
 .cw-radial.on button:active{transform:translate(-50%,-50%) scale(.95) rotate(0deg)}
+.cw-radial.on button.sel{transform:translate(-50%,-50%) scale(1.3) rotate(0deg);background:#ffe8d2;box-shadow:0 0 0 3px rgba(217,119,87,.55),0 6px 18px rgba(60,40,20,.3)}
 /* Tamagotchi 状态面板 */
 .cw-stats{position:absolute;left:50%;top:-196px;transform:translateX(-50%) translateY(6px) scale(.95);width:236px;background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(60,40,20,.22),0 0 0 1px rgba(0,0,0,.05);font:12px/1.5 system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;color:#4a3b32;opacity:0;display:none;pointer-events:none;transition:transform .18s cubic-bezier(.34,1.56,.64,1),opacity .18s}
 .cw-stats.on{display:block;opacity:1;transform:translateX(-50%) translateY(0) scale(1);pointer-events:auto}
@@ -1396,14 +1397,41 @@ function mount(opts) {
     radial.classList.add('on');
     eng.radialOpen = true;
     eng.menuOpen = true; // 复用菜单静音/站定逻辑
+    // 记录各选项中心（容器坐标），供「拖拽选择」命中判定
+    eng.radialCenters = [];
+    for (let i = 0; i < kids.length; i++) {
+      const a = Math.PI + ((i + 0.5) * Math.PI) / 6;
+      eng.radialCenters.push({ x: clawd.x + dx + Math.cos(a) * R, y: clawd.y + cy + Math.sin(a) * R });
+      kids[i].style.transitionDelay = REDUCED ? '0ms' : i * 45 + 'ms';
+    }
+    eng.radialSel = null;
+    setTimeout(() => { for (const k of kids) k.style.transitionDelay = '0ms'; }, 550); // 弹出动画结束后取消延迟，选中高亮要即时
     eng.play('pop');
     clawd.interact();
+  }
+  function setRadialSel(i) {
+    if (eng.radialSel === i) return;
+    const kids = radial.children;
+    for (let k = 0; k < kids.length; k++) kids[k].classList.toggle('sel', k === i);
+    eng.radialSel = i;
+    if (i != null) eng.play('clicky');
+  }
+  function updateRadialHover(px, py) {
+    const centers = eng.radialCenters || [];
+    let best = null, bestD = 1e9;
+    for (let i = 0; i < centers.length; i++) {
+      const d = Math.hypot(px - centers[i].x, py - centers[i].y);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    setRadialSel(best != null && bestD <= 40 ? best : null);
   }
   function closeRadial() {
     if (!eng.radialOpen) return;
     radial.classList.remove('on');
     eng.radialOpen = false;
-    for (const k of radial.children) k.style.transitionDelay = '0ms';
+    eng.radialSel = null;
+    eng.radialCenters = null;
+    for (const k of radial.children) { k.classList.remove('sel'); k.style.transitionDelay = '0ms'; }
     if (!menu.classList.contains('on')) {
       eng.menuOpen = false;
       bubble.classList.remove('cw-up');
@@ -1628,17 +1656,22 @@ function mount(opts) {
     clawd.interact();
     clawd.grabDX = undefined; clawd.grabDY = undefined;
     try { hit.setPointerCapture(e.pointerId); } catch (err) {}
-    // 长按蓄力：按住不动 500ms → 轮盘菜单
+    // 长按蓄力：按住不动 500ms → 轮盘菜单；轮盘已开 → 直接进入「拖拽选择」模式
     longPressFired = false;
-    eng.press = { t0: performance.now() };
     clearTimeout(pressTimer);
+    if (eng.radialOpen) {
+      eng.press = null;
+      dragging = true; // 保持拖拽选择语义：松手执行高亮项
+      updateRadialHover(p.x, p.y);
+      return;
+    }
+    eng.press = { t0: performance.now() };
     pressTimer = setTimeout(() => {
       pressTimer = 0;
       eng.press = null;
       if (moved || !dragging) return;
       longPressFired = true;
-      if (eng.radialOpen) closeRadial(); // 再长按一次 = 收起
-      else openRadial();
+      openRadial();
     }, LONG_PRESS_MS);
     if (clawd.state === 'sleep') {
       if (eng.forced && eng.forced.state === 'sleep') eng.clearForced();
@@ -1648,8 +1681,10 @@ function mount(opts) {
   });
 
   hit.addEventListener('pointermove', (e) => {
+    const p0 = toLocal(e);
+    if (eng.radialOpen) { updateRadialHover(p0.x, p0.y); return; } // 拖拽选择：Clawd 不动
     if (!dragging) return;
-    const p = toLocal(e);
+    const p = p0;
     if (!moved && Math.hypot(p.x - downX, p.y - downY) > 9) {
       moved = true;
       eng.press = null;
@@ -1668,6 +1703,14 @@ function mount(opts) {
     eng.press = null;
     if (!dragging) return;
     dragging = false;
+    if (eng.radialOpen) {
+      // 拖拽选择：松手执行高亮项；未选中则保持菜单可点选
+      const sel = eng.radialSel;
+      const act = sel == null ? null : ACTIONS[sel];
+      closeRadial();
+      if (act) doAction(act.id);
+      return;
+    }
     if (longPressFired) { longPressFired = false; return; } // 长按松手：菜单已开，不算点击也不算投掷
     const clawd = eng.clawd;
     const p = toLocal(e);
