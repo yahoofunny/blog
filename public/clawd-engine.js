@@ -2329,7 +2329,7 @@ function mount(opts) {
     tm.fullness = clamp(tm.fullness - 3 * mult * (clockSleep ? 0.15 : 1) * hr, 0, 100);
     tm.happiness = clamp(tm.happiness - 2 * mult * (clockSleep ? 0.10 : 1) * hr, 0, 100);
     tm.cleanliness = clamp(tm.cleanliness - (2 + tm.poops.length) * (clockSleep ? 0.25 : 1) * hr, 0, 100);
-    if (clockSleep || eng.clawd.state === 'sleep') tm.energy = clamp(tm.energy + 10 * hr, 0, 100);
+    if (clockSleep || (eng.clawd ? eng.clawd.state === 'sleep' : false)) tm.energy = clamp(tm.energy + 10 * hr, 0, 100);
     else tm.energy = clamp(tm.energy - 4 * mult * hr, 0, 100);
     // 疾病：恶劣暴露累积（仅清醒），60 分钟 → 1 级，120 分钟升级，最高 3 级
     const adverseNow = !clockSleep && (tm.cleanliness < 20 || tm.fullness < 10);
@@ -2355,7 +2355,7 @@ function mount(opts) {
       if (clockSleep) tm.digestAt = nextWakeMs(tMs);
       else {
         tm.digestAt = 0;
-        if (tm.poops.length < 3) { tm.poops.push(clamp(eng.clawd.x + rand(-40, 40), 46, eng.W - 46)); tm.cleanliness = clamp(tm.cleanliness - 5, 0, 100); }
+        if (tm.poops.length < 3) { tm.poops.push(clamp((eng.clawd ? eng.clawd.x : eng.W / 2) + rand(-40, 40), 46, eng.W - 46)); tm.cleanliness = clamp(tm.cleanliness - 5, 0, 100); }
         else tm.cleanliness = clamp(tm.cleanliness - 3, 0, 100);
       }
     }
