@@ -2560,11 +2560,12 @@ function mount(opts) {
   eng.tama = tamaLoad();
   eng.statsOpen = false;
   eng.poops = eng.tama.poops;
-  tamaSync(Date.now());
   if (eng.tama.corruptRecovered) { eng.say('存档好像坏掉了…帮你恢复了备份咔', 4200); }
 
   const clawd = new Clawd(eng);
   eng.clawd = clawd;
+  // 离线结算放在小蟹构造之后（结算过程会调用 eng.clawd 的动作）
+  try { tamaSync(Date.now()); } catch (e) { eng.tama.lastSim = Date.now(); }
   eng.pointer.x = eng.W / 2; eng.pointer.y = eng.H / 2;
 
   eng.clearForced = function () {

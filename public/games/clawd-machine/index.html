@@ -272,6 +272,7 @@
     if (S.phase === 'ready') {
       if (S.phaseAt == null) S.phaseAt = now;
       S.timer = Math.max(0, S.timerTotal - (now - S.phaseAt) / 1000);
+      if (!isFinite(S.timer)) { S.timer = S.timerTotal || 30; S.phaseAt = now; }
       S.msg = 'TIME ' + Math.ceil(S.timer);
       if (keys.left) moveClaw(-170 * wallDt);
       if (keys.right) moveClaw(170 * wallDt);
@@ -327,6 +328,7 @@
     }
   }
   var keys = { left: false, right: false };
+  window.__MACHINE = S; // 调试：机器内部状态
 
   /* ---- 绘制 ---- */
   function drawBall(b) {
