@@ -60,6 +60,7 @@ const LINES = {
   hungry: ['肚子瘪壳了…', '想咔嚓点什么…', '有吃的吗咔？'],
   sleep: ['蟹壳补觉中…', 'Zzz…', '呼…呼…'],
   wake: ['醒啦！钳力满满！', '咔？我睡着了？'],
+  grumpy: ['大半夜的叫什么叫！', '哼！给你一分钟，就一分钟', '吵醒我了咔！！', '（炸毛）Certified 咆哮'],
   play: ['毛线球？我钳子痒！', '接钳！', '看我的钳上功夫！'],
   kick: ['钳中！', '哈！', '命中咔！'],
   walk: ['横着散步～', '巡逻蟹出动', '沙沙沙（小碎步）'],
@@ -276,6 +277,7 @@ const CSS = `
 .cw-radial.on button{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
 .cw-radial.on button:hover{transform:translate(-50%,-50%) scale(1.18) rotate(0deg);background:#fff}
 .cw-radial.on button:active{transform:translate(-50%,-50%) scale(.95) rotate(0deg)}
+.cw-radial.compact button{width:34px;height:34px;font-size:15px}
 .cw-radial.on button.sel{transform:translate(-50%,-50%) scale(1.3) rotate(0deg);background:#ffe8d2;box-shadow:0 0 0 3px rgba(217,119,87,.55),0 6px 18px rgba(60,40,20,.3)}
 /* Tamagotchi 状态面板 */
 .cw-stats{position:absolute;left:50%;top:-196px;transform:translateX(-50%) translateY(6px) scale(.95);width:236px;background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(60,40,20,.22),0 0 0 1px rgba(0,0,0,.05);font:12px/1.5 system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;color:#4a3b32;opacity:0;display:none;pointer-events:none;transition:transform .18s cubic-bezier(.34,1.56,.64,1),opacity .18s}
@@ -518,6 +520,7 @@ class Clawd {
     this.charge = 0; // 长按蓄力进度 0..1（画蓄力圆环用）
     this.trick = null; this.trickRot = 0; this.trickDx = 0; this.trickDy = 0;
     this.trickSq = 0; this.trickJit = 0; this.trickMouth = ''; this.trickProp = ''; this.lastTrickId = '';
+    this.angryT = 0;
     this.affection = (eng.tama && eng.tama.affection) || 0;
   }
 
@@ -589,7 +592,7 @@ class Clawd {
     }
     // 到睡觉时段（22:00–08:00）：强制入睡；时段结束自动醒来
     if (eng.tama && eng.tama.hatched) {
-      if (eng.tama.clockSleep && SLEEP_WINDOW && this.state !== 'sleep' && this.state !== 'trick') {
+      if (eng.tama.clockSleep && SLEEP_WINDOW && Date.now() >= (eng.tama.nightWakeUntil || 0) && this.state !== 'sleep' && this.state !== 'trick') {
         this.setState('sleep');
         eng.tama.forcedSleep = true;
         eng.say('到点啦…晚安咔…', 2600);
@@ -632,6 +635,12 @@ class Clawd {
     this.look.y = lerp(this.look.y, ty, lk);
 
     if (this.heartEyes > 0) this.heartEyes -= dt;
+    // 被叫醒后的生气抖动
+    if (this.angryT > 0) {
+      this.angryT -= dt;
+      this.face = 'wide';
+      this.trickJit = 2;
+    }
     // Tamagotchi：生病时一脸病容（动作期间让位）
     if (eng.tama && eng.tama.sick && this.face === 'normal' && this.state !== 'trick') this.face = 'sick';
     // 动作库：应用编舞通道
@@ -886,7 +895,7 @@ class Clawd {
       if (this.y > eng.groundY) { this.y = eng.groundY; if (this.vy > 0) this.vy = 0; }
     }
 
-    if ((this.state === 'idle' || this.state === 'sit') && !eng.forced && !eng.menuOpen && this.sleepy()) {
+    if ((this.state === 'idle' || this.state === 'sit') && !eng.forced && !eng.menuOpen && Date.now() >= (eng.tama && eng.tama.nightWakeUntil || 0) && this.sleepy()) {
       this.setState('sleep');
     }
 
@@ -1110,11 +1119,13 @@ class Clawd {
 
     g.scale(this.facing, 1);
     g.scale(sx, sy);
-    // 动作库：编舞位移/旋转/压扁/抖动
+    // 动作库：编舞位移/旋转/压扁/抖动（生气抖动任何状态都生效）
     if (this.state === 'trick') {
       g.translate(this.trickDx + rand(-this.trickJit, this.trickJit), this.trickDy + rand(-this.trickJit, this.trickJit));
       g.rotate(this.trickRot);
       g.scale(1 + this.trickSq * 0.7, 1 - this.trickSq);
+    } else if (this.trickJit > 0) {
+      g.translate(rand(-this.trickJit, this.trickJit), rand(-this.trickJit, this.trickJit));
     }
     // Tamagotchi 成长阶段缩放
     if (eng.tama && eng.tama.hatched) {
@@ -1736,28 +1747,33 @@ function mount(opts) {
   function openRadial() {
     hideMenuNow();
     const clawd = eng.clawd;
-    // 贴墙时整体内收，保证按钮不出容器
-    const R = 88, cy = -46;
+    // 交错双排弧线：内排+外排交替，9 个按钮不重叠；窄屏整体收紧
+    const compact = eng.W < 560;
+    const R0 = compact ? 58 : 88;
+    const cy = compact ? -40 : -46;
+    radial.classList.toggle('compact', compact);
+    eng.radialCompact = compact;
     let dx = 0;
-    if (clawd.x < R + 24) dx = R + 24 - clawd.x;
-    if (clawd.x > eng.W - R - 24) dx = (eng.W - R - 24) - clawd.x;
+    const half = R0 * 1.38 + 22;
+    if (clawd.x < half) dx = half - clawd.x;
+    if (clawd.x > eng.W - half) dx = (eng.W - half) - clawd.x;
     const kids = radial.children;
-    for (let i = 0; i < kids.length; i++) {
-      const a = Math.PI + ((i + 0.5) * Math.PI) / 6; // 上半弧均分
-      kids[i].style.left = dx + Math.cos(a) * R + 'px';
-      kids[i].style.top = cy + Math.sin(a) * R + 'px';
-      kids[i].style.transitionDelay = REDUCED ? '0ms' : i * 45 + 'ms';
+    const n = kids.length;
+    eng.radialCenters = [];
+    for (let i = 0; i < n; i++) {
+      const frac = n > 1 ? i / (n - 1) : 0.5;
+      const a = Math.PI * 0.94 - frac * Math.PI * 0.88; // 左上 → 右上
+      const rr = (i % 2 === 0 ? R0 : R0 * 1.38);
+      const bx = dx + Math.cos(a) * rr;
+      const by = cy + Math.sin(a) * rr;
+      kids[i].style.left = bx + 'px';
+      kids[i].style.top = by + 'px';
+      eng.radialCenters.push({ x: clawd.x + bx, y: clawd.y + by });
+      kids[i].style.transitionDelay = REDUCED ? '0ms' : i * 40 + 'ms';
     }
     radial.classList.add('on');
     eng.radialOpen = true;
     eng.menuOpen = true; // 静止逻辑：轮盘/面板打开时蟹站定
-    // 记录各选项中心（容器坐标），供「拖拽选择」命中判定
-    eng.radialCenters = [];
-    for (let i = 0; i < kids.length; i++) {
-      const a = Math.PI + ((i + 0.5) * Math.PI) / 6;
-      eng.radialCenters.push({ x: clawd.x + dx + Math.cos(a) * R, y: clawd.y + cy + Math.sin(a) * R });
-      kids[i].style.transitionDelay = REDUCED ? '0ms' : i * 45 + 'ms';
-    }
     eng.radialSel = null;
     setTimeout(() => { for (const k of kids) k.style.transitionDelay = '0ms'; }, 550); // 弹出动画结束后取消延迟，选中高亮要即时
     eng.play('pop');
@@ -1777,7 +1793,7 @@ function mount(opts) {
       const d = Math.hypot(px - centers[i].x, py - centers[i].y);
       if (d < bestD) { bestD = d; best = i; }
     }
-    setRadialSel(best != null && bestD <= 40 ? best : null);
+    setRadialSel(best != null && bestD <= (eng.radialCompact ? 34 : 42) ? best : null);
   }
   function closeRadial() {
     if (!eng.radialOpen) return;
@@ -1999,8 +2015,17 @@ function mount(opts) {
     }, LONG_PRESS_MS);
     if (clawd.state === 'sleep') {
       if (eng.forced && eng.forced.state === 'sleep') eng.clearForced();
-      clawd.setState('idle', rand(0.6, 1.2));
-      eng.say(pick(LINES.wake));
+      clawd.setState('idle', rand(1.2, 2));
+      if (tm.clockSleep) {
+        // 睡觉时段被叫醒：很生气，清醒 10 分钟
+        tm.nightWakeUntil = Date.now() + 10 * 60000;
+        clawd.face = 'wide';
+        clawd.angryT = 1.4;
+        eng.say(pick(LINES.grumpy), 3000);
+        eng.play('clack');
+      } else {
+        eng.say(pick(LINES.wake));
+      }
     }
   });
 
@@ -2269,7 +2294,7 @@ function mount(opts) {
   /* --- 时间权威：唯一入口。墙钟同步 + ≤60s 固定步长 + 离线 12h 保护 --- */
   function tamaSync(nowMs) {
     const tm = eng.tama;
-    if (!tm || viewerMode) return;
+    if (!tm) return;
     if (tm.retired) { tm.lastSim = Math.max(tm.lastSim, nowMs); return; }
     const wallDelta = nowMs - tm.lastSim;
     if (wallDelta <= 0) return; // 时间倒退：不推进不倒扣
@@ -2417,20 +2442,20 @@ function mount(opts) {
     tamaSave();
   }
 
-  /* --- 多标签页：心跳协调，同一时刻只有一个写入者 --- */
+  /* --- 多标签页：心跳选主（主标签页负责存档，所有页面都照常演出） --- */
   const tabId = Math.random().toString(36).slice(2);
-  let viewerMode = false;
+  let viewerMode = false; // 非主标签页：照常演出，但不写存档
   function heartbeat() {
     try {
       const now = Date.now();
-      const raw = store.get(prefix + '_hb', null);
-      if (raw && raw.id !== tabId && now - raw.t < 9000) {
-        if (!viewerMode) eng.say('另一个标签页正在照顾我咔…这边只围观', 3000);
-        viewerMode = true;
-      } else {
-        viewerMode = false;
-        store.set(prefix + '_hb', { id: tabId, t: now });
-      }
+      const raw = store.get(prefix + '_hb', {}) || {};
+      raw[tabId] = now;
+      for (const k in raw) { if (k !== tabId && now - raw[k] > 7000) delete raw[k]; }
+      store.set(prefix + '_hb', raw);
+      const ids = Object.keys(raw);
+      const wasViewer = viewerMode;
+      viewerMode = ids.length > 1 && tabId !== ids.sort()[0]; // tabId 最小者为主
+      if (wasViewer && !viewerMode) eng.say('这边接手照顾了咔', 2200);
     } catch (e) { /* 忽略 */ }
   }
   heartbeat();
