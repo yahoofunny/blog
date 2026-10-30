@@ -84,6 +84,123 @@ const LINES = {
   bored: ['好无聊咔…摸摸我', '陪陪我嘛…', '汇报一下：心情不太行']
 };
 
+  /* ============ 动作库 v1：单击随机触发，每个动作独立编舞 ============ */
+  /* 编舞函数 f(t, k, c)：t=绝对秒, k=进度0..1, c=通道集合
+     通道：c.r 身体附加旋转 | c.dx/c.dy 位移 | c.sq 附加压扁 | c.spinV 旋转速度
+     c.clL/c.clR [角度,开合] | c.face 表情 | c.mouth 嘴型 | c.prop 像素道具
+     c.emit [类型,速率,偏移] 粒子发射器 | c.look [x,y] 视线 | c.leg 跑动 */
+  const T = (id, name, dur, lines, snd, f, extra) => Object.assign({ id, name, dur, lines, snd, f }, extra);
+  const TRICKS = [
+    /* —— 运动系 —— */
+    T('backflip', '后空翻', 1.4, ['看我的后空翻！', '空翻两周半——差半圈咔！'], 'boing', (t, k, c) => { c.spinV = -7.5; c.dy = -Math.sin(k * Math.PI) * 26; c.sq = k < 0.12 ? -0.12 : 0; c.clL = [-1.2, 0.5]; c.clR = [-1.2, 0.5]; }),
+    T('cartwheel', '侧手翻', 1.8, ['侧手翻——横着也要翻！', '蟹式体操第一式'], 'boing', (t, k, c) => { c.r = Math.sin(k * Math.PI * 2) * 0.9; c.dx = Math.sin(k * Math.PI) * 30; c.clL = [-1, 0.6]; c.clR = [-1, 0.6]; }),
+    T('slamdunk', '扣篮', 1.6, ['扣篮——筐呢？', '先把篮筐长出来！'], 'clack', (t, k, c) => { c.dy = -Math.abs(Math.sin(k * Math.PI * 1.5)) * 30; c.clR = [-2.2 - Math.sin(k * Math.PI * 3) * 0.4, 0.8]; c.clL = [0.4, 0.2]; c.face = 'wide'; }),
+    T('squat', '深蹲', 2.2, ['深蹲第三组！', '钳……腿在抖…'], 'pop', (t, k, c) => { c.sq = -Math.abs(Math.sin(k * Math.PI * 4)) * 0.22; c.clL = [-0.6, 0.3]; c.clR = [-0.6, 0.3]; }),
+    T('pushup', '俯卧撑', 2.2, ['俯卧撑撑的是钳子', '第五个……第六个…'], 'clicky', (t, k, c) => { c.sq = -Math.abs(Math.sin(k * Math.PI * 5)) * 0.25; c.dy = Math.abs(Math.sin(k * Math.PI * 5)) * 8; c.leg = true; }),
+    T('situp', '仰卧起坐', 2.2, ['仰卧起坐！起来…起不来…', '腹肌（的壳）在燃烧'], 'pop', (t, k, c) => { c.sq = -Math.abs(Math.sin(k * Math.PI * 4)) * 0.2; c.r = Math.sin(k * Math.PI * 4) * 0.2; }),
+    T('highknees', '高抬腿', 2.0, ['高抬腿！一二一！', '腿要抬到钳子那么高！'], 'clicky', (t, k, c) => { c.leg = true; c.sq = -Math.abs(Math.sin(k * Math.PI * 8)) * 0.1; c.hopV = 3; }),
+    T('jumpjack', '开合跳', 2.0, ['开合跳——钳子开合跳！', '一！二！咔！咔！'], 'boing', (t, k, c) => { const o = Math.abs(Math.sin(k * Math.PI * 4)); c.clL = [-1.4 * o - 0.2, o]; c.clR = [-1.4 * o - 0.2, o]; c.sq = -o * 0.08; }),
+    T('lunge', '弓步压腿', 2.2, ['压腿压腿～', '柔韧性是蟹的美德'], 'pop', (t, k, c) => { c.r = Math.sin(k * Math.PI * 2) * 0.18; c.dx = Math.sin(k * Math.PI * 2) * 12; }),
+    T('shadowbox', '影子拳', 2.0, ['看拳！左勾拳右勾拳！', '咔嚓拳法第一代传人'], 'clack', (t, k, c) => { const p = Math.sin(k * Math.PI * 6); c.clR = [-0.8 + p * 0.5, 0.7]; c.clL = [-0.8 - p * 0.5, 0.7]; c.dx = p * 8; c.shake = 1; }),
+    T('burpee', '波比跳', 2.4, ['波比跳——蟹生巅峰', '这动作是给两条腿设计的吧'], 'boing', (t, k, c) => { c.sq = -Math.abs(Math.sin(k * Math.PI * 3)) * 0.22; c.dy = -Math.abs(Math.sin(k * Math.PI * 3 + 1)) * 22; c.spinV = Math.sin(k * Math.PI * 3) * 3; }),
+    T('sprint', '冲刺跑', 1.8, ['冲！刺！', '横着冲刺也是冲刺！'], 'clicky', (t, k, c) => { c.leg = true; c.dx = Math.sin(k * Math.PI) * 70; c.r = 0.1; c.emit = ['dust', 6]; }),
+    T('longjump', '立定跳远', 1.6, ['立定跳远——量量多远', '落地扬尘才够帅'], 'boing', (t, k, c) => { c.dy = -Math.sin(k * Math.PI) * 24; c.dx = Math.sin(k * Math.PI) * 46; c.sq = k > 0.85 ? -0.18 : 0; c.emit = k > 0.85 ? ['dust', 10] : null; }),
+    T('handstand', '倒立', 2.2, ['倒立！血液全冲钳子了', '用钳子走路…失败'], 'boing', (t, k, c) => { c.r = k < 0.85 ? -Math.sin(Math.min(1, k * 1.2) * Math.PI) * 2.6 : 0; c.clL = [-1.6, 0.2]; c.clR = [-1.6, 0.2]; c.face = 'wide'; }),
+    T('tugofwar', '拔河', 2.2, ['拔河！一…二…拉！', '对面是谁？是命运咔'], 'clack', (t, k, c) => { c.r = -0.2; c.dx = Math.sin(k * Math.PI * 5) * 10 - 6; c.clL = [0.6, 0.1]; c.clR = [0.6, 0.1]; c.leg = true; }),
+    T('hulahoop', '呼啦圈', 2.4, ['呼啦圈转起来～', '腰……壳有腰吗'], 'pop', (t, k, c) => { c.r = Math.sin(k * Math.PI * 10) * 0.25; c.prop = 'hoop'; }),
+    T('vault', '跳马', 1.6, ['跳马——马呢？', '蟹也能跳马！'], 'boing', (t, k, c) => { c.dy = -Math.sin(Math.min(1, k * 1.3) * Math.PI) * 32; c.spinV = 4 * Math.sin(k * Math.PI); c.sq = k < 0.15 ? -0.15 : 0; }),
+    /* —— 表演系 —— */
+    T('sing', '高歌一曲', 2.8, ['♪ 不敢高声语～ ♪', '唱给海听'], 'chirp', (t, k, c) => { c.mouth = 'open'; c.clL = [-0.9, 0.4]; c.r = Math.sin(k * Math.PI * 4) * 0.08; c.emit = ['note', 4]; c.face = 'happy'; }, { hold: '🎤' }),
+    T('disco', '迪斯科', 2.6, ['迪斯科——闪亮登场！', '蟹步舞曲！'], 'chirp', (t, k, c) => { c.r = Math.sin(k * Math.PI * 6) * 0.22; c.dx = Math.sin(k * Math.PI * 3) * 14; c.clL = [-0.8 + Math.sin(k * Math.PI * 12) * 0.6, 0.6]; c.clR = [-0.8 - Math.sin(k * Math.PI * 12) * 0.6, 0.6]; c.emit = ['note', 3]; c.face = 'happy'; }, { hold: '🕺' }),
+    T('ballet', '芭蕾', 2.8, ['天鹅湖…蟹壳湖', '脚尖绷直！'], 'chirp', (t, k, c) => { c.r = Math.sin(k * Math.PI) * 0.1; c.dy = -Math.sin(k * Math.PI * 2) * 8; c.clL = [-2.4, 0.1]; c.clR = [-0.4, 0.15]; c.prop = 'sparklehand'; }, { hold: '🩰' }),
+    T('conductor', '指挥家', 2.6, ['交响乐，预备——起！', '跟着我的钳子走！'], 'chirp', (t, k, c) => { c.clR = [-1.8 + Math.sin(t * 8) * 0.5, 0.3]; c.clL = [-1.8 + Math.sin(t * 8 + 2) * 0.5, 0.3]; c.emit = ['note', 5]; c.face = 'happy'; }, { hold: '🎼' }),
+    T('guitar', '弹吉他', 2.6, ['🎸 摇滚咔！', '这首献给大海'], 'clack', (t, k, c) => { c.prop = 'guitar'; c.clR = [-1.1 + Math.sin(t * 14) * 0.25, 0.4]; c.clL = [-0.9, 0.5]; c.r = Math.sin(k * Math.PI * 6) * 0.1; c.emit = ['note', 4]; c.face = 'happy'; }),
+    T('drums', '架子鼓', 2.4, ['咚咚哒——咚咚哒！', '鼓手蟹上线'], 'clack', (t, k, c) => { c.prop = 'drum'; c.clL = [-1.2 + Math.sin(t * 16) * 0.5, 0.7]; c.clR = [-1.2 + Math.sin(t * 16 + 2) * 0.5, 0.7]; c.shake = 1.5; c.emit = ['note', 3]; }, { hold: '🥁' }),
+    T('erhu', '拉二胡', 2.6, ['二胡一响，蟹泪两行', '《赛马》前奏，走起'], 'chirp', (t, k, c) => { c.prop = 'erhu'; c.clR = [-1.2, 0.3]; c.clL = [-1.0 + Math.sin(t * 10) * 0.3, 0.2]; c.mouth = 'flat'; c.emit = ['note', 2]; }),
+    T('magicshow', '魔术表演', 2.6, ['见证奇迹的时刻！', '钳子里什么都没有——变！'], 'sparkle', (t, k, c) => { c.prop = 'hat'; c.clR = [-1.5, 0.4]; c.emit = k > 0.5 ? ['spark', 8] : null; c.face = k > 0.5 ? 'happy' : 'normal'; }, { hold: '🎩' }),
+    T('fruitjuggle', '抛接水果', 2.4, ['苹果橘子柠檬——接住！', '杂技蟹的果盘'], 'pop', (t, k, c) => { c.clL = [-1.3 + Math.sin(t * 9) * 0.4, 0.5]; c.clR = [-1.3 + Math.cos(t * 9) * 0.4, 0.5]; c.emit = ['fruit', 2.4]; c.face = 'happy'; }),
+    T('yoyo', '玩悠悠球', 2.2, ['悠悠球——睡眠技！', '遛狗…遛球…'], 'clicky', (t, k, c) => { c.prop = 'yoyo'; c.clR = [-0.9, 0.2]; c.r = Math.sin(k * Math.PI * 4) * 0.06; }),
+    T('shadowplay', '皮影戏', 2.4, ['皮影戏——看我的影子！', '（摆出大侠姿势）'], 'pop', (t, k, c) => { c.r = Math.sin(k * Math.PI * 3) * 0.2; c.clL = [-1.5 + Math.sin(t * 6) * 0.4, 0.3]; c.clR = [-0.5, 0.4]; }),
+    T('beatbox', '节奏口技', 2.2, [' bz t ka 咔嚓噗！', '口技蟹， beat 起来'], 'clicky', (t, k, c) => { c.mouth = 'open'; c.shake = 1.2; c.clR = [-0.9 + Math.sin(t * 18) * 0.2, 0.3]; c.emit = ['bit', 3]; }, { hold: '🎙️' }),
+    T('opera', '唱大戏', 2.6, ['哇呀呀呀——', '水袖…没有袖，用胡须！'], 'chirp', (t, k, c) => { c.mouth = 'open'; c.clL = [-1.6 - Math.sin(t * 7) * 0.3, 0.2]; c.clR = [-1.6 + Math.sin(t * 7) * 0.3, 0.2]; c.r = Math.sin(k * Math.PI * 4) * 0.12; c.emit = ['note', 3]; }, { hold: '🎭' }),
+    T('skateboard', '玩滑板', 2.2, ['滑板蟹，接招！', 'Ollie——翻板失败'], 'boing', (t, k, c) => { c.prop = 'skate'; c.leg = true; c.dx = Math.sin(k * Math.PI) * 55; c.r = Math.sin(k * Math.PI * 2) * 0.08; c.face = 'wide'; }),
+    /* —— 生活系 —— */
+    T('shower', '冲淋浴', 2.4, ['哗啦啦——洗澡澡', '水温刚好咔'], 'pop', (t, k, c) => { c.prop = 'shower'; c.emit = ['drop', 14]; c.happiness = 0; c.face = 'happy'; c.mouth = 'smile'; }),
+    T('brush', '刷牙', 2.2, ['刷刷刷——牙齿健康', '蟹也要刷牙咔'], 'clicky', (t, k, c) => { c.prop = 'brush'; c.mouth = 'open'; c.clR = [-1.2, 0.3]; c.r = Math.sin(t * 12) * 0.05; }, { hold: '🪥' }),
+    T('watermelon', '啃西瓜', 2.4, ['咔嚓——甜的！', '夏天就要啃西瓜'], 'munch', (t, k, c) => { c.prop = 'melon'; c.mouth = 'eat'; c.clR = [-1.1, 0.4]; c.emit = ['crumb', 3]; c.face = 'happy'; }),
+    T('boba', '喝奶茶', 2.4, ['吸——珍珠卡住了', '三分糖去冰咔'], 'pop', (t, k, c) => { c.prop = 'boba'; c.mouth = 'o'; c.clR = [-1.2, 0.3]; c.sq = Math.sin(t * 3) * 0.02; }),
+    T('coffee', '喝咖啡', 2.2, ['苦…但是醒脑', '蟹的咖啡因代谢很快咔'], 'pop', (t, k, c) => { c.prop = 'coffee'; c.mouth = 'o'; c.emit = ['steam', 3]; }),
+    T('read', '看书', 2.8, ['哗啦——这页有意思', '书中自有小鱼干'], 'pop', (t, k, c) => { c.prop = 'book'; c.look = [0.4, 0.3]; c.mouth = 'flat'; c.clR = [-1.0, 0.2]; }, { hold: '📖' }),
+    T('gameboy', '打掌机', 2.6, ['差一点点！再来一次', '通关就在下一把'], 'clicky', (t, k, c) => { c.prop = 'console'; c.look = [0.3, -0.4]; c.mouth = 'o'; c.clL = [-1.0, 0.3]; c.clR = [-1.0, 0.3]; c.emit = ['bit', 3]; c.face = 'wide'; }),
+    T('fishing', '钓鱼', 3.0, ['愿者上钩咔…', '（钓了三小时，一条没有）'], 'pop', (t, k, c) => { c.prop = 'rod'; c.mouth = 'flat'; c.look = [0.6, 0.5]; c.emit = k > 0.4 ? ['ripple', 1.2] : null; }),
+    T('garden', '种花', 2.6, ['埋下种子，开出钳子花', '园丁蟹上岗'], 'sparkle', (t, k, c) => { c.prop = 'sprout'; c.sq = -Math.abs(Math.sin(k * Math.PI * 2)) * 0.1; c.emit = k > 0.6 ? ['spark', 3] : null; c.face = 'happy'; }),
+    T('paint', '画油画', 2.6, ['这幅叫《蟹壳的沉思》', '签名签在壳上'], 'pop', (t, k, c) => { c.prop = 'easel'; c.clR = [-1.3 + Math.sin(t * 6) * 0.3, 0.3]; c.look = [0.5, -0.2]; c.emit = ['paint', 2]; }),
+    T('photo', '拍立得', 2.2, ['咔嚓——说茄子！', '照片洗出来了：全是壳'], 'pop', (t, k, c) => { c.prop = 'camera'; c.face = k > 0.6 ? 'wide' : 'normal'; c.emit = k > 0.6 ? ['flash', 2] : null; c.clR = [-1.3, 0.2]; }),
+    T('kite', '放风筝', 2.8, ['风筝飞得比钳子高！', '线断了……风筝自由了'], 'pop', (t, k, c) => { c.prop = 'kite'; c.look = [-0.3, -0.8]; c.emit = ['wind', 2]; c.leg = true; }),
+    T('bubbles', '吹泡泡', 2.4, ['咕噜咕噜——泡泡！', '最大的那个别飞走咔'], 'pop', (t, k, c) => { c.mouth = 'o'; c.emit = ['bubble', 4]; c.face = 'happy'; }),
+    T('cooking', '颠勺炒菜', 2.4, ['颠勺！火候到了！', '米其林三相蟹'], 'clack', (t, k, c) => { c.prop = 'wok'; c.shake = 2; c.clL = [-1.1, 0.5]; c.clR = [-1.1, 0.5]; c.emit = ['steam', 3]; c.mouth = 'open'; }),
+    T('laundry', '搓衣服', 2.2, ['搓搓搓——泡泡飞', '家务蟹无怨言'], 'clicky', (t, k, c) => { c.prop = 'tub'; c.shake = 1.8; c.emit = ['bubble', 3]; }),
+    T('telescope', '瞭望远方', 2.4, ['海平线上有……另一只蟹？', '望远镜里全是星星'], 'pop', (t, k, c) => { c.prop = 'scope'; c.look = [0.8, -0.3]; c.mouth = 'o'; }, { hold: '🔭' }),
+    T('butterfly', '追蝴蝶', 2.2, ['蝴蝶等等我！', '横着追蝴蝶是我的浪漫'], 'pop', (t, k, c) => { c.leg = true; c.dx = Math.sin(k * Math.PI * 3) * 35; c.clR = [-1.3 + Math.sin(t * 10) * 0.4, 0.5]; c.face = 'happy'; c.emit = ['butterfly', 1]; }),
+    T('ants', '观察蚂蚁', 2.4, ['嘘——蚂蚁在搬家', '第三只蚂蚁驮着饼干屑'], 'pop', (t, k, c) => { c.sq = -0.15; c.look = [0.2, 0.9]; c.mouth = 'flat'; c.emit = ['ant', 1.5]; }),
+    T('raindance', '淋雨跳舞', 2.4, ['下雨也要跳舞咔！', '雨点打在壳上哒哒响'], 'pop', (t, k, c) => { c.emit = ['drop', 12]; c.r = Math.sin(k * Math.PI * 5) * 0.15; c.clL = [-1.2, 0.5]; c.clR = [-1.2, 0.5]; c.face = 'happy'; }),
+    T('sunbathe', '晒太阳', 2.8, ['阳光晒在壳上……舒服', '晒出古铜色钳子'], 'pop', (t, k, c) => { c.prop = 'suntan'; c.face = 'sleep'; c.mouth = 'smile'; c.sq = Math.sin(t * 1.5) * 0.02; c.emit = ['sun', 1.5]; }),
+    T('treasure', '挖宝藏', 2.4, ['挖挖挖——闪光！', '是谁的宝箱埋在这'], 'clack', (t, k, c) => { c.sq = -Math.abs(Math.sin(k * Math.PI * 3)) * 0.15; c.emit = k > 0.4 ? ['dust', 4] : null; c.emit2 = k > 0.7 ? ['spark', 4] : null; c.clR = [0.6 - Math.sin(k * Math.PI * 3) * 0.5, 0.6]; }),
+    T('sandwich', '叠三明治', 2.4, ['面包·蟹肉·面包·完', '蟹肉三明治……等等，蟹肉？！'], 'munch', (t, k, c) => { c.prop = 'sandwich'; c.mouth = 'eat'; c.clL = [-1.1, 0.4]; c.emit = ['crumb', 2]; }),
+    T('spa', '泡温泉', 2.8, ['咕嘟咕嘟……暖和', '温泉蛋就是我'], 'pop', (t, k, c) => { c.prop = 'spa'; c.dy = Math.sin(t * 2) * 3; c.face = 'sleep'; c.mouth = 'smile'; c.emit = ['steam', 3]; }),
+    /* —— 情绪社交 —— */
+    T('fakecry', '假哭', 2.2, ['呜呜呜……骗你的咔', '假哭要掉真眼泪才敬业'], 'pop', (t, k, c) => { c.face = 'sad'; c.mouth = 'sad'; c.emit = ['tear', 2.5]; c.r = Math.sin(t * 10) * 0.06; }),
+    T('laugh', '捧腹大笑', 2.2, ['哈哈哈哈咔！', '笑到壳裂——开玩笑的'], 'chirp', (t, k, c) => { c.face = 'happy'; c.mouth = 'open'; c.r = Math.sin(t * 12) * 0.12; c.sq = -Math.abs(Math.sin(t * 12)) * 0.06; c.emit = ['note', 2]; }),
+    T('smug', '墨镜耍帅', 2.2, ['帅，是有代价的', '（墨镜是画上去的）'], 'pop', (t, k, c) => { c.prop = 'shades'; c.r = 0.1; c.mouth = 'flat'; c.clR = [-0.6, 0.1]; }, { hold: '😎' }),
+    T('shy', '蒙眼害羞', 2.2, ['不、不看你看我了咔', '（钳子挡脸）'], 'pop', (t, k, c) => { c.prop = 'blush'; c.clL = [-1.3, 0.3]; c.clR = [-1.3, 0.3]; c.r = Math.sin(t * 6) * 0.06; }, { hold: '🙈' }),
+    T('wink', '眨眼放电', 1.8, ['哔——被电到了吧', '左眼放电，右眼备用'], 'sparkle', (t, k, c) => { c.face = 'wink'; c.emit = ['spark', 2]; c.r = 0.06; c.mouth = 'smile'; }),
+    T('cheer', '加油打气', 2.0, ['加油！你可以的咔！', '钳子为你挥舞！'], 'boing', (t, k, c) => { c.prop = 'flag'; c.clR = [-1.6 + Math.sin(t * 10) * 0.4, 0.6]; c.hopV = 2; c.face = 'happy'; }),
+    T('bow', '深深鞠躬', 2.0, ['感谢观看——鞠躬！', '蟹式礼仪，失敬失敬'], 'pop', (t, k, c) => { c.r = Math.sin(Math.min(1, k * 1.4) * Math.PI) * 0.5; c.clL = [-0.2, 0.1]; c.clR = [-0.2, 0.1]; c.mouth = 'flat'; }),
+    T('pray', '合十祈福', 2.4, ['愿海面平静，愿壳壳健康', '（诚心诚意）'], 'pop', (t, k, c) => { c.prop = 'pray'; c.mouth = 'flat'; c.face = 'sleep'; c.emit = ['spark', 1.2]; }, { hold: '🙏' }),
+    T('claphands', '热烈鼓掌', 2.0, ['啪啪啪——掌声送给造梗的人', '钳掌声，很响的'], 'clack', (t, k, c) => { const o = Math.abs(Math.sin(t * 14)); c.clL = [-1.1, o]; c.clR = [-1.1, o]; c.face = 'happy'; }),
+    T('blowkiss', '飞吻', 1.8, ['么么——接住咔！', '飞吻发射！'], 'pop', (t, k, c) => { c.face = 'heart'; c.clR = [-1.5, 0.4]; c.emit = ['heart', 3]; c.r = 0.08; }),
+    T('headbang', '甩头', 2.0, ['甩！甩！甩！', '脖子……有吗？甩就完了'], 'clack', (t, k, c) => { c.r = Math.sin(t * 14) * 0.28; c.shake = 1.5; c.face = 'wide'; c.emit = ['note', 3]; }),
+    /* —— 科技系 —— */
+    T('phonecall', '打电话', 2.4, ['喂？是我，Clawd', '信号在海里不太好咔'], 'clicky', (t, k, c) => { c.prop = 'phone'; c.mouth = 'open'; c.look = [0.5, 0]; c.mouth = 'open'; }),
+    T('droneplay', '玩无人机', 2.4, ['无人机——起飞！', '比它飞得高的只有我扔的它'], 'clicky', (t, k, c) => { c.prop = 'drone'; c.look = [-0.2, -0.9]; c.clR = [-1.4, 0.3]; c.emit = ['bit', 1.5]; }),
+    T('robotdance', '机器人舞', 2.4, ['哔——咔——哔——咔', '机械蟹，出厂设置'], 'clicky', (t, k, c) => { const st = Math.floor(t * 5) % 2; c.clL = st ? [-1.5, 0.4] : [-0.4, 0.1]; c.clR = st ? [-0.4, 0.1] : [-1.5, 0.4]; c.r = st ? 0.12 : -0.12; c.dx = st ? 6 : -6; c.emit = ['bit', 2]; }),
+    T('vrplay', '玩VR', 2.4, ['虚拟世界……撞墙了', 'VR里我是八爪蟹'], 'clicky', (t, k, c) => { c.prop = 'vr'; c.face = 'wide'; c.r = Math.sin(t * 6) * 0.15; c.dx = Math.sin(t * 5) * 8; c.clL = [-1.2, 0.5]; c.clR = [-1.2, 0.5]; }),
+    T('selfie', '自拍', 2.0, ['3、2、1——茄子！', '（这张下巴太方，重拍）'], 'pop', (t, k, c) => { c.prop = 'selfie'; c.face = 'happy'; c.clR = [-1.6, 0.3]; c.emit = k > 0.5 ? ['flash', 2] : null; c.r = -0.08; }),
+    T('scanqr', '扫码舞', 2.2, ['扫我——是真蟹担保', '（这个码不能扫）'], 'clicky', (t, k, c) => { c.prop = 'qr'; c.emit = ['bit', 4]; c.r = Math.sin(k * Math.PI * 4) * 0.1; }),
+    T('airguitar', '空气吉他', 2.2, ['（弹的是空气，燃的是心）', 'Solo——!!'], 'clack', (t, k, c) => { c.clL = [-1.3, 0.2]; c.clR = [-0.8 + Math.sin(t * 15) * 0.5, 0.6]; c.r = Math.sin(k * Math.PI * 6) * 0.12; c.emit = ['note', 4]; c.face = 'happy'; }),
+    /* —— 自然季节 —— */
+    T('snowman', '堆雪人', 2.6, ['雪蟹……雪做蟹？', '给它也安上黑豆眼'], 'pop', (t, k, c) => { c.prop = 'snowman'; c.sq = -Math.abs(Math.sin(k * Math.PI * 2)) * 0.12; c.emit = ['dust', 3]; c.face = 'happy'; }),
+    T('fireworks', '放烟花', 2.6, ['砰——啪——开花！', '烟花是为蟹开的'], 'sparkle', (t, k, c) => { c.clR = [-1.5, 0.4]; c.look = [-0.2, -0.9]; c.emit = ['firework', 2]; c.face = 'wide'; }),
+    T('mooncake', '吃月饼', 2.4, ['五仁……是考验', '月饼配海风，绝了'], 'munch', (t, k, c) => { c.prop = 'mooncake'; c.mouth = 'eat'; c.clR = [-1.1, 0.4]; c.emit = ['crumb', 2]; }, { hold: '🥮' }),
+    T('zongzi', '包粽子', 2.4, ['粽叶一卷，糯米一塞', '咸粽党咔！'], 'munch', (t, k, c) => { c.prop = 'zongzi'; c.mouth = 'eat'; c.clL = [-1.0, 0.4]; c.clR = [-1.2, 0.4]; c.emit = ['leafbit', 2]; }),
+    T('lantern', '提灯笼', 2.4, ['灯笼一亮，夜路不怕', '照亮你回家的路咔'], 'pop', (t, k, c) => { c.prop = 'lantern'; c.emit = ['glow', 2]; c.mouth = 'smile'; }, { hold: '🏮' }),
+    T('umbrella', '撑伞听雨', 2.6, ['雨打伞面哒哒哒', '伞下是最安全的壳'], 'pop', (t, k, c) => { c.prop = 'umbrella'; c.emit = ['drop', 8]; c.mouth = 'flat'; }),
+    T('leafchase', '追落叶', 2.2, ['叶子别跑！', '秋天的第一片落叶'], 'pop', (t, k, c) => { c.leg = true; c.dx = Math.sin(k * Math.PI * 3) * 30; c.clR = [-1.2 + Math.sin(t * 8) * 0.4, 0.4]; c.emit = ['leaf', 1.5]; c.face = 'happy'; }),
+    T('flowerpin', '簪花', 2.2, ['簪一朵花，蟹生赢家', '泉州簪花，蟹也簪'], 'sparkle', (t, k, c) => { c.prop = 'flower'; c.face = 'happy'; c.clR = [-1.4, 0.3]; c.r = Math.sin(t * 4) * 0.05; }, { hold: '🌸' }),
+    T('snowcatch', '接雪花', 2.4, ['雪花落在钳子上……化了', '每片都不一样咔'], 'pop', (t, k, c) => { c.clL = [-1.5, 0.3]; c.clR = [-1.5, 0.3]; c.look = [0, -0.8]; c.emit = ['snow', 5]; c.mouth = 'smile'; }),
+    T('stargaze', '数星星', 2.6, ['一颗、两颗、三颗……一百颗！', '那颗最亮的是你'], 'pop', (t, k, c) => { c.prop = 'stargaze'; c.look = [0, -0.9]; c.emit = ['spark', 2.5]; c.mouth = 'smile'; }, { hold: '🌟' }),
+    T('sunrise', '迎日出', 2.6, ['太阳出来了！', '新的一天，钳力全开'], 'pop', (t, k, c) => { c.prop = 'sunrise'; c.face = 'happy'; c.mouth = 'smile'; c.emit = ['sun', 2]; }),
+    T('seawind', '吹海风', 2.4, ['海风咸咸的，舒服', '（胡须在飘）'], 'pop', (t, k, c) => { c.prop = 'wind'; c.mouth = 'smile'; c.r = Math.sin(t * 3) * 0.06; c.emit = ['wind', 2]; }),
+    T('climbhill', '爬山', 2.4, ['爬山虎……蟹爬行', '山顶的风景值得咔'], 'boing', (t, k, c) => { c.leg = true; c.dx = Math.sin(k * Math.PI) * 26; c.dy = -Math.sin(k * Math.PI) * 14; c.clL = [-1.2, 0.4]; c.clR = [-1.2, 0.4]; }),
+    /* —— Clawd 特色 —— */
+    T('bubblebath', '泡泡浴', 2.6, ['泡泡堆成山咔！', '（泡泡里冒出一串咕噜）'], 'pop', (t, k, c) => { c.prop = 'tub'; c.emit = ['bubble', 6]; c.face = 'happy'; c.mouth = 'smile'; c.dy = Math.sin(t * 2) * 3; }),
+    T('clawshine', '磨钳子', 2.2, ['磨刀不误砍柴工', '钳子要亮到反光咔'], 'snip', (t, k, c) => { const o = Math.abs(Math.sin(t * 10)); c.clL = [-0.8, o]; c.clR = [-0.8, 1 - o]; c.emit = ['spark', 3]; }),
+    T('seashell', '听海螺', 2.4, ['里面有海的声音！', '……也有我自己的回声咔'], 'pop', (t, k, c) => { c.prop = 'shell'; c.look = [0.3, 0.2]; c.mouth = 'o'; c.emit = ['wave', 1]; }),
+    T('seaweed', '跳海草舞', 2.2, ['海草海草海草～', '随波摇晃！'], 'chirp', (t, k, c) => { c.r = Math.sin(t * 9) * 0.3; c.dx = Math.sin(t * 4.5) * 16; c.clL = [-0.3, 0.3]; c.clR = [-0.3, 0.3]; c.face = 'happy'; }, { hold: '🌿' }),
+    T('starfish', '捡海星', 2.2, ['海星：你也是星吗？', '我们是五角亲戚咔'], 'sparkle', (t, k, c) => { c.prop = 'starfish'; c.mouth = 'smile'; c.emit = ['spark', 2]; }, { hold: '⭐' }),
+    T('pearl', '珍珠发光', 2.2, ['看！我的珍珠在发光', '孕育一颗珠要好久咔'], 'sparkle', (t, k, c) => { c.prop = 'pearl'; c.clR = [-1.3, 0.3]; c.look = [0.2, -0.2]; c.emit = ['glow', 2]; }, { hold: '💎' }),
+    T('surf', '冲浪', 2.4, ['浪来了——起乘！', '挂了…再来！'], 'boing', (t, k, c) => { c.prop = 'surf'; c.r = Math.sin(k * Math.PI * 3) * 0.15; c.dx = Math.sin(k * Math.PI) * 40; c.clL = [-1.3, 0.4]; c.clR = [-0.6, 0.3]; c.face = 'wide'; }),
+    T('snorkel', '浮潜', 2.6, ['水下世界……咕噜咕噜', '看到小丑鱼了咔！'], 'pop', (t, k, c) => { c.prop = 'snorkel'; c.emit = ['bubble', 4]; c.face = 'wide'; c.look = [0.4, 0.4]; }),
+    T('sandcastle', '堆沙堡', 2.6, ['沙堡要有护城河', '潮水来了……不！'], 'pop', (t, k, c) => { c.prop = 'castle'; c.sq = -Math.abs(Math.sin(k * Math.PI * 3)) * 0.12; c.emit = ['dust', 3]; c.face = 'happy'; }),
+    T('tideride', '乘潮汐', 2.4, ['潮起我起，潮落我落', '冲浪的祖先版'], 'pop', (t, k, c) => { c.dy = Math.sin(t * 3) * 6; c.r = Math.sin(t * 2.4) * 0.12; c.clL = [-1.2, 0.3]; c.clR = [-1.2, 0.3]; c.face = 'happy'; c.emit = ['wave', 2]; }),
+    T('sunsetview', '看晚霞', 2.6, ['晚霞是天空的壳', '今天的夕阳真美咔'], 'pop', (t, k, c) => { c.prop = 'sunset'; c.look = [0.7, -0.1]; c.mouth = 'smile'; c.emit = ['sun', 1.5]; }, { hold: '🌅' }),
+    T('meditate', '冥想', 2.8, ['心如止水……止水……', '（睡着了不算冥想失败）'], 'pop', (t, k, c) => { c.prop = 'zen'; c.face = 'sleep'; c.mouth = 'flat'; c.sq = Math.sin(t * 1.2) * 0.02; c.emit = ['zen', 1]; }, { hold: '🧘' }),
+    T('moonwalk', '太空步', 2.2, ['太空步——横着滑走', '月球都要学我咔'], 'chirp', (t, k, c) => { c.dx = -Math.sin(k * Math.PI) * 40; c.r = -0.06; c.leg = true; }, { hold: '🌙' }),
+    T('tea', '茶艺表演', 2.6, ['茶要慢慢倒，壳要慢慢品', '茶艺蟹，上茶！'], 'pop', (t, k, c) => { c.prop = 'teapot'; c.mouth = 'smile'; c.clR = [-1.2, 0.3]; c.emit = ['steam', 2.5]; }, { hold: '🍵' }),
+    T('poem', '念诗', 2.8, ['不敢高声语，恐惊天上人', '（Ech0 的座右铭，念给你听）'], 'chirp', (t, k, c) => { c.prop = 'scroll'; c.mouth = 'flat'; c.clR = [-1.1, 0.2]; c.emit = ['note', 1.2]; c.look = [0.3, -0.3]; }, { hold: '📜' })
+  ];
+
+
 /* ============ 音效（WebAudio 合成，无外部资源） ============ */
 const Sound = {
   ctx: null,
@@ -198,6 +315,38 @@ class Particles {
   dust(x, y, n) { for (let i = 0; i < n; i++) this.add({ t: 'dust', x: x + rand(-14, 14), y: y + rand(-3, 2), vx: rand(-46, 46), vy: rand(-34, -6), life: 0, max: rand(0.35, 0.6), size: rand(3, 6.5), ph: 0 }); }
   crumb(x, y) { this.add({ t: 'crumb', x, y, vx: rand(-70, 70), vy: rand(-160, -60), life: 0, max: rand(0.6, 0.9), size: rand(1.8, 3.2), ph: 0 }); }
   dot(x, y) { this.add({ t: 'dot', x, y, vx: rand(-3, 3), vy: -12, life: 0, max: 1.1, size: rand(2, 3.2), ph: 0, color: 'rgba(255,255,255,.95)' }); }
+  note(x, y) { this.add({ t: 'note', x, y, vx: rand(-14, 14), vy: rand(-52, -34), life: 0, max: rand(1.0, 1.5), size: rand(12, 17), ph: rand(0, 6), txt: pick(['\u266a', '\u266b', '\u266c']), color: pick(['#6e6eff', '#ff6f91', '#4aa3ff', '#ffb84a']) }); }
+  emoji(txt, x, y, size, vy, grav) { this.add({ t: 'emoji', x, y, vx: rand(-8, 8), vy: vy != null ? vy : rand(-40, -24), life: 0, max: rand(1.2, 2.0), size: size || 20, grav: !!grav, ph: 0, txt }); }
+  emojiRain(txt, W) { this.add({ t: 'emoji', x: rand(30, W - 30), y: -24, vx: rand(-10, 10), vy: rand(46, 76), life: 0, max: 3.4, size: rand(16, 24), grav: false, ph: 0, txt }); }
+  /* --- 动作发射器：类型 → 生成函数 --- */
+  static EMIT = {
+    note: (P, x, y) => P.note(x + rand(-30, 30), y - rand(60, 90)),
+    spark: (P, x, y) => P.spark(x + rand(-40, 40), y - rand(30, 90)),
+    heart: (P, x, y) => P.heart(x + rand(-30, 30), y - rand(50, 90)),
+    bit: (P, x, y) => P.bit(x + rand(-40, 40), y - rand(40, 70)),
+    dust: (P, x, y) => P.dust(x + rand(-24, 24), y, 2),
+    crumb: (P, x, y) => P.crumb(x + rand(-16, 16), y - 40),
+    drop: (P, x, y, W) => P.add({ t: 'dot', x: rand(Math.max(30, x - 60), Math.min(W - 30, x + 60)), y: y - 130, vx: rand(-6, 6), vy: 130, life: 0, max: 1.1, size: rand(1.6, 2.6), ph: 0, color: '#6fb7e0' }),
+    steam: (P, x, y) => P.add({ t: 'dot', x: x + rand(-14, 14), y: y - 60, vx: rand(-4, 4), vy: -30, life: 0, max: 1.4, size: rand(2.5, 4), ph: 0, color: 'rgba(255,255,255,.6)' }),
+    bubble: (P, x, y) => P.add({ t: 'ring', x: x + rand(-24, 24), y: y - rand(30, 70), vx: rand(-6, 6), vy: rand(-30, -16), life: 0, max: 1.6, size: rand(3, 6), ph: 0, color: 'rgba(160,210,240,.8)' }),
+    ripple: (P, x, y) => P.add({ t: 'ring', x: x + rand(-20, 20), y: y - 2, vx: 0, vy: 0, life: 0, max: 0.9, size: 8, ph: 0, color: 'rgba(140,190,230,.6)' }),
+    tear: (P, x, y) => P.add({ t: 'dot', x: x - 8, y: y - 66, vx: rand(-3, 3), vy: 40, life: 0, max: 0.8, size: 2.4, ph: 0, color: '#7fc3ec' }),
+    snow: (P, x, y, W) => P.add({ t: 'dot', x: rand(30, W - 30), y: y - 150, vx: rand(-12, 12), vy: rand(28, 44), life: 0, max: 4, size: rand(1.8, 3), ph: 0, color: 'rgba(255,255,255,.9)' }),
+    zen: (P, x, y) => P.add({ t: 'dot', x: x + rand(-20, 20), y: y - rand(50, 90), vx: 0, vy: -16, life: 0, max: 1.6, size: rand(2, 3), ph: 0, color: 'rgba(200,220,255,.7)' }),
+    sun: (P, x, y) => P.spark(x + rand(-50, 50), y - rand(80, 120)),
+    glow: (P, x, y) => P.add({ t: 'dot', x: x + rand(-20, 20), y: y - rand(60, 100), vx: 0, vy: -10, life: 0, max: 1.3, size: rand(3, 5), ph: 0, color: 'rgba(255,230,150,.8)' }),
+    paint: (P, x, y) => P.dot(x + rand(-40, 40), y - rand(40, 90)),
+    wind: (P, x, y, W) => P.add({ t: 'wind', x: rand(20, W - 20), y: y - rand(30, 100), vx: rand(40, 90), vy: 0, life: 0, max: 1.2, size: rand(8, 16), ph: 0, color: 'rgba(255,255,255,.45)' }),
+    fruit: (P, x, y) => P.emoji(pick(['🍎', '🍊', '🍋', '🍇']), x + rand(-36, 36), y - rand(70, 100), 20),
+    leaf: (P, x, y, W) => P.emojiRain(pick(['🍂', '🍁']), W),
+    butterfly: (P, x, y) => P.emoji('🦋', x + rand(-50, 50), y - rand(50, 100), 20),
+    ant: (P, x, y) => P.add({ t: 'dot', x: x + rand(-40, 40), y: y - 3, vx: rand(14, 30) * (Math.random() < 0.5 ? 1 : -1), vy: 0, life: 0, max: 2.2, size: 1.8, ph: 0, color: '#4a3226' }),
+    flash: (P, x, y) => P.spark(x + rand(-6, 6), y - rand(70, 84)),
+    firework: (P, x, y, W) => P.spark(rand(40, W - 40), y - rand(90, 160)),
+  };
+  note(x, y) { this.add({ t: 'note', x, y, vx: rand(-14, 14), vy: rand(-52, -34), life: 0, max: rand(1.0, 1.5), size: rand(12, 17), ph: rand(0, 6), txt: pick(['♪', '♫', '♬']), color: pick(['#6e6eff', '#ff6f91', '#4aa3ff', '#ffb84a']) }); }
+  emoji(txt, x, y, size, vy, grav) { this.add({ t: 'emoji', x, y, vx: rand(-8, 8), vy: vy != null ? vy : rand(-40, -24), life: 0, max: rand(1.2, 2.0), size: size || 20, grav: !!grav, ph: 0, txt }); }
+  emojiRain(txt, W) { this.add({ t: 'emoji', x: rand(30, W - 30), y: -24, vx: rand(-10, 10), vy: rand(46, 76), life: 0, max: 3.4, size: rand(16, 24), grav: false, ph: 0, txt }); }
   update(dt) {
     for (let i = this.list.length - 1; i >= 0; i--) {
       const p = this.list[i];
@@ -209,6 +358,12 @@ class Particles {
       else if (p.t === 'dust') { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.92; }
       else if (p.t === 'crumb') { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 900 * dt; }
       else if (p.t === 'bit' || p.t === 'dot') { p.x += p.vx * dt; p.y += p.vy * dt; }
+      else if (p.t === 'note') { p.x += p.vx * dt + Math.sin(p.life * 5 + p.ph) * 18 * dt; p.y += p.vy * dt; }
+      else if (p.t === 'emoji') { p.x += p.vx * dt; p.y += p.vy * dt; if (p.grav) p.vy += 500 * dt; }
+      else if (p.t === 'ring') { p.x += p.vx * dt; p.y += p.vy * dt; }
+      else if (p.t === 'wind') { p.x += p.vx * dt; }
+      else if (p.t === 'note') { p.x += p.vx * dt + Math.sin(p.life * 5 + p.ph) * 18 * dt; p.y += p.vy * dt; }
+      else if (p.t === 'emoji') { p.x += p.vx * dt; p.y += p.vy * dt; if (p.grav) p.vy += 500 * dt; }
     }
   }
   draw(g) {
@@ -251,11 +406,46 @@ class Particles {
         g.fillStyle = p.color;
         const s = p.size * (0.7 + k * 0.5);
         g.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+      } else if (p.t === 'note') {
+        g.fillStyle = p.color;
+        g.font = '700 ' + p.size + 'px system-ui,sans-serif';
+        g.textAlign = 'center';
+        g.fillText(p.txt || '\u266a', p.x, p.y);
+      } else if (p.t === 'emoji') {
+        g.font = Math.round(p.size) + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(p.txt, p.x, p.y);
+        g.textBaseline = 'alphabetic';
+      } else if (p.t === 'ring') {
+        g.strokeStyle = p.color;
+        g.lineWidth = 1.6;
+        g.beginPath();
+        g.arc(p.x, p.y, p.size * (1 + k * 1.6), 0, Math.PI * 2);
+        g.stroke();
+      } else if (p.t === 'wind') {
+        g.strokeStyle = p.color;
+        g.lineWidth = 1.4;
+        g.beginPath();
+        g.moveTo(p.x, p.y);
+        g.quadraticCurveTo(p.x + p.size / 2, p.y - 3, p.x + p.size, p.y);
+        g.stroke();
       } else if (p.t === 'dot') {
         g.fillStyle = p.color;
         g.beginPath();
         g.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         g.fill();
+      } else if (p.t === 'note') {
+        g.fillStyle = p.color;
+        g.font = '700 ' + p.size + 'px system-ui,sans-serif';
+        g.textAlign = 'center';
+        g.fillText(p.txt || '♪', p.x, p.y);
+      } else if (p.t === 'emoji') {
+        g.font = Math.round(p.size) + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(p.txt, p.x, p.y);
+        g.textBaseline = 'alphabetic';
       }
       g.restore();
     }
@@ -311,6 +501,8 @@ class Clawd {
     this.tapSide = 0; this.tapT = 0;
     this.hammerSide = 0; this.hammerT = 0; this.hammerHit = false;
     this.charge = 0; // 长按蓄力进度 0..1（画蓄力圆环用）
+    this.trick = null; this.trickRot = 0; this.trickDx = 0; this.trickDy = 0;
+    this.trickSq = 0; this.trickJit = 0; this.trickMouth = ''; this.trickProp = ''; this.lastTrickId = '';
     this.affection = (eng.tama && eng.tama.affection) || 0;
   }
 
@@ -382,7 +574,7 @@ class Clawd {
     }
     // 到睡觉时段（22:00–08:00）：强制入睡；时段结束自动醒来
     if (eng.tama && eng.tama.hatched) {
-      if (eng.tama.clockSleep && this.state !== 'sleep') {
+      if (eng.tama.clockSleep && this.state !== 'sleep' && this.state !== 'trick') {
         this.setState('sleep');
         eng.tama.forcedSleep = true;
         eng.say('到点啦…晚安咔…', 2600);
@@ -425,8 +617,10 @@ class Clawd {
     this.look.y = lerp(this.look.y, ty, lk);
 
     if (this.heartEyes > 0) this.heartEyes -= dt;
-    // Tamagotchi：生病时一脸病容
-    if (eng.tama && eng.tama.sick && this.face === 'normal') this.face = 'sick';
+    // Tamagotchi：生病时一脸病容（动作期间让位）
+    if (eng.tama && eng.tama.sick && this.face === 'normal' && this.state !== 'trick') this.face = 'sick';
+    // 动作库：应用编舞通道
+    if (this.state === 'trick' && this.trick) this.applyTrick(dt, t);
 
     /* --- 状态机 --- */
     const onGround = this.y >= eng.groundY - 0.5;
@@ -717,8 +911,73 @@ class Clawd {
     }
   }
 
+  /* ---------- 动作库：执行 ---------- */
+  startTrick(def) {
+    const eng = this.eng;
+    this.trick = { def, emitAcc: {} };
+    this.setState('trick', def.dur);
+    this.trickMouth = '';
+    if (def.snd) eng.play(def.snd);
+    eng.say(pick(def.lines), Math.min(3600, def.dur * 1400));
+    if (eng.tama && !eng.tama.retired) {
+      eng.tama.happiness = clamp(eng.tama.happiness + 3, 0, 100);
+      eng.tama.careExp += 1;
+    }
+  }
+  startRandomTrick() {
+    const eng = this.eng;
+    const tm = eng.tama;
+    if (tm && tm.retired) { eng.say('它退休去星海了…（📊 领养新蛋）', 2600); return; }
+    if (tm && !tm.hatched) { eng.say('还是颗蛋咔…孵出来才会一百种动作'); return; }
+    if (tm && tm.sick) { eng.say('病着呢…先💊再表演咔…'); return; }
+    if (eng.tama.clockSleep && this.state === 'sleep') { eng.say(pick(['Zzz…让我睡…', '（翻了个身）', '明天的表演，明天看…']), 2200); return; }
+    let def;
+    let guard = 0;
+    do { def = TRICKS[(Math.random() * TRICKS.length) | 0]; guard++; } while (def.id === this.lastTrickId && guard < 20);
+    this.lastTrickId = def.id;
+    this.startTrick(def);
+  }
+  applyTrick(dt, t) {
+    const eng = this.eng;
+    const tr = this.trick;
+    const def = tr.def;
+    tr.t += dt;
+    const k = clamp(tr.t / def.dur, 0, 1);
+    const c = {};
+    def.f(t, k, c);
+    this.trickRot = c.r || 0;
+    this.trickDx = c.dx || 0;
+    this.trickDy = c.dy || 0;
+    this.trickSq = c.sq || 0;
+    this.trickJit = c.shake || 0;
+    this.trickMouth = c.mouth || '';
+    this.trickProp = c.prop || (def.hold ? '_e' + def.hold : '');
+    if (c.spinV) this.spin += c.spinV * dt;
+    if (c.face) this.face = c.face;
+    if (c.look) this.lookOverride = { x: c.look[0], y: c.look[1] };
+    if (c.leg) this.legPhase += dt * 16;
+    if (c.hopV && this.y >= eng.groundY - 0.5 && Math.random() < dt * c.hopV * 3) { this.vy = -rand(160, 260); eng.play('boing', 0.25); }
+    if (c.clL) { this.clawL.a = lerp(this.clawL.a, c.clL[0], 1 - Math.exp(-10 * dt)); this.clawL.o = lerp(this.clawL.o, c.clL[1], 1 - Math.exp(-10 * dt)); }
+    if (c.clR) { this.clawR.a = lerp(this.clawR.a, c.clR[0], 1 - Math.exp(-10 * dt)); this.clawR.o = lerp(this.clawR.o, c.clR[1], 1 - Math.exp(-10 * dt)); }
+    if (c.emit) {
+      const type = c.emit[0], rate = c.emit[1], ox = c.emit[2] || 0, oy = c.emit[3] || 0;
+      tr.emitAcc[type] = (tr.emitAcc[type] || 0) + rate * dt;
+      const fn = this.constructor.EMIT && this.constructor.EMIT[type];
+      while (tr.emitAcc[type] >= 1) {
+        tr.emitAcc[type] -= 1;
+        if (fn) fn(eng.particles, this.x + ox, this.y + oy, eng.W);
+      }
+    }
+    if (k >= 1) {
+      this.trick = null;
+      this.trickRot = 0; this.trickDx = 0; this.trickDy = 0; this.trickSq = 0; this.trickJit = 0; this.trickMouth = ''; this.trickProp = '';
+      this.setState('idle', rand(0.9, 1.7));
+    }
+  }
+
   /* ---------- 钳子目标姿态（角度/开合，左右经镜像对称） ---------- */
   updateClaws(dt, t) {
+    if (this.state === 'trick') return; // 编舞直接控制钳子
     let La, Lo, Ra, Ro;
     const rest = () => [0.12 + Math.sin(t * 1.3) * 0.06, 0.12];
     switch (this.state) {
@@ -818,6 +1077,12 @@ class Clawd {
 
     g.scale(this.facing, 1);
     g.scale(sx, sy);
+    // 动作库：编舞位移/旋转/压扁/抖动
+    if (this.state === 'trick') {
+      g.translate(this.trickDx + rand(-this.trickJit, this.trickJit), this.trickDy + rand(-this.trickJit, this.trickJit));
+      g.rotate(this.trickRot);
+      g.scale(1 + this.trickSq * 0.7, 1 - this.trickSq);
+    }
     // Tamagotchi 成长阶段缩放
     if (eng.tama && eng.tama.hatched) {
       const stScale = ({ baby: 0.66, teen: 0.84, adult: 1 })[eng.tama.stage] || 1;
@@ -938,6 +1203,9 @@ class Clawd {
     /* --- 打字的数据粒子在身体坐标系外（世界粒子层） --- */
 
     g.restore();
+
+    /* --- 动作库：像素道具 --- */
+    if (this.state === 'trick' && this.trickProp) this.drawTrickProp(g, this.trickProp, t);
 
     /* --- 长按蓄力圆环 --- */
     this.drawChargeRing(g);
@@ -1070,6 +1338,20 @@ class Clawd {
       }
     }
 
+    // 动作库：编舞嘴型覆盖
+    const my = -4.1 * U;
+    if (this.trickMouth === 'open') {
+      g.fillStyle = EYE;
+      g.beginPath(); g.ellipse(0, my + 2, 4.6, 3 + Math.abs(Math.sin(t * 8)) * 1.6, 0, 0, Math.PI * 2); g.fill();
+    } else if (this.trickMouth === 'o') {
+      g.fillStyle = EYE;
+      g.beginPath(); g.arc(0, my + 1, 2.2, 0, Math.PI * 2); g.fill();
+    } else if (this.trickMouth === 'flat') {
+      g.beginPath(); g.moveTo(-4, my + 1); g.lineTo(4, my + 1); g.stroke();
+    } else if (this.trickMouth === 'smile') {
+      g.beginPath(); g.arc(0, my - 1, 5, Math.PI * 0.15, Math.PI * 0.85); g.stroke();
+    }
+
     // 吃东西/打哈欠：官方黑嘴块 3×2 @(6,10)
     if (this.face === 'eat') {
       const open = 0.5 + Math.abs(Math.sin(this.eatT * 11)) * 1.5;
@@ -1077,6 +1359,70 @@ class Clawd {
       g.fillRect(-1.5 * U, -5 * U + (2 - open) * U * 0.5, 3 * U, open * U);
       g.fillStyle = '#000';
     }
+  }
+
+  /* --- 动作库：像素道具库（扁平风） --- */
+  drawTrickProp(g, id, t) {
+    const bob = Math.sin(t * 3) * 2;
+    g.save();
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    const at = (x, y) => { g.translate(x, y); };
+    const pr = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x - w / 2, y - h / 2, w, h); };
+    switch (id) {
+      case 'guitar': at(44, -34); g.rotate(0.5 + Math.sin(t * 10) * 0.05); pr(0, 0, 10, 30, '#c9803f'); pr(0, -8, 22, 14, '#8a5a2b'); pr(-2, -8, 6, 6, '#33261e'); break;
+      case 'drum': at(40, -30); pr(0, 0, 26, 14, '#e8e0d0'); pr(0, -8, 26, 4, '#c9503f'); break;
+      case 'erhu': at(42, -36); pr(0, 0, 4, 30, '#7a5230'); pr(6, -12, 12, 12, '#c9c0a8'); break;
+      case 'hat': at(40, -66 - bob); pr(0, 0, 26, 4, '#2a2a34'); pr(0, -8, 16, 14, '#2a2a34'); break;
+      case 'yoyo': at(30, -30 + Math.sin(t * 5) * 14); pr(0, 0, 14, 14, '#e05a5a'); break;
+      case 'brush': at(34, -46 + bob * 0.5); g.rotate(Math.sin(t * 12) * 0.3); pr(0, 0, 4, 16, '#7a5230'); pr(0, 9, 6, 6, '#e8e0d0'); break;
+      case 'melon': at(38, -30 + bob * 0.4); g.beginPath(); g.arc(0, 0, 13, 0, Math.PI * 2); g.fillStyle = '#4a9e4a'; g.fill(); pr(0, -4, 20, 3, '#2e6e2e'); break;
+      case 'boba': at(36, -44 + bob * 0.5); pr(0, 0, 12, 22, '#d8b98a'); pr(0, 6, 12, 5, '#6e4a2a'); break;
+      case 'coffee': at(36, -44 + bob * 0.5); pr(0, 0, 14, 16, '#e8e0d0'); pr(0, -12, 14, 3, '#8a5a2b'); break;
+      case 'book': at(38, -50 + bob * 0.5); pr(0, 0, 26, 18, '#e8e0d0'); pr(0, 0, 2, 18, '#c9503f'); break;
+      case 'console': at(36, -46 + bob * 0.5); pr(0, 0, 24, 12, '#8a8a98'); pr(-6, -1, 4, 4, '#c9503f'); pr(6, -1, 4, 4, '#4a6ec9'); break;
+      case 'rod': g.rotate(-0.5); pr(0, -20, 3, 44, '#7a5230'); g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, -20); g.quadraticCurveTo(16, 4, 8, 22); g.stroke(); break;
+      case 'sprout': at(38, -34); pr(0, 0, 4, 14, '#4a9e4a'); pr(-5, -9, 7, 4, '#63c463'); pr(5, -9, 7, 4, '#63c463'); break;
+      case 'easel': at(48, -48); pr(-8, 0, 3, 34, '#7a5230'); pr(8, 0, 3, 34, '#7a5230'); pr(0, -6, 26, 20, '#f0ead8'); pr(0, -6, 10, 8, '#6e6eff'); break;
+      case 'camera': at(38, -52 + bob * 0.4); pr(0, 0, 22, 14, '#3a3a44'); pr(0, 0, 8, 8, '#1a1a24'); break;
+      case 'kite': at(-52, -80 + bob); g.rotate(Math.sin(t * 2) * 0.1); pr(0, 0, 20, 14, '#e05a5a'); break;
+      case 'tub': at(0, -18); pr(0, 0, 56, 20, '#e8e0d0'); pr(0, -8, 50, 10, '#a8d8ea'); break;
+      case 'scope': at(38, -50 + bob * 0.5); g.rotate(-0.4); pr(0, 0, 6, 30, '#3a3a44'); break;
+      case 'spa': at(0, -16); pr(0, 0, 60, 18, '#d8c9a8'); pr(0, -6, 54, 10, '#c9a26b'); break;
+      case 'shades': at(0, -6.4 * U); pr(-6.5, 0, 9, 5, '#1a1a24'); pr(6.5, 0, 9, 5, '#1a1a24'); break;
+      case 'blush': at(0, -7 * U); pr(-7, 0, 10, 10, '#ffb3c6'); pr(7, 0, 10, 10, '#ffb3c6'); break;
+      case 'flag': at(46, -60); pr(0, -8, 3, 30, '#7a5230'); pr(8, -16, 18, 12, '#e05a5a'); break;
+      case 'phone': at(34, -48 + bob * 0.5); pr(0, 0, 12, 20, '#2a2a34'); pr(0, -2, 8, 10, '#4aa3ff'); break;
+      case 'drone': at(36, -74 + bob); pr(0, 0, 20, 8, '#3a3a44'); pr(-14, -2, 10, 3, '#3a3a44'); pr(14, -2, 10, 3, '#3a3a44'); break;
+      case 'vr': at(0, -6.6 * U); pr(0, 0, 26, 12, '#2a2a3a'); pr(0, 0, 18, 8, '#4aa3ff'); break;
+      case 'selfie': at(-44, -58 + bob * 0.5); pr(0, 0, 16, 22, '#3a3a44'); pr(0, 4, 12, 12, '#8ad8c9'); break;
+      case 'qr': at(46, -64 + bob * 0.4); pr(0, 0, 22, 22, '#ffffff'); pr(-6, -6, 8, 8, '#1a1a24'); pr(6, 6, 6, 6, '#1a1a24'); break;
+      case 'snowman': at(50, -30); pr(0, -14, 20, 20, '#ffffff'); pr(0, -32, 14, 14, '#ffffff'); pr(-3, -34, 3, 3, '#1a1a24'); pr(3, -34, 3, 3, '#1a1a24'); break;
+      case 'mooncake': at(38, -34 + bob * 0.4); g.beginPath(); g.arc(0, 0, 12, 0, Math.PI * 2); g.fillStyle = '#d8a85a'; g.fill(); pr(0, 0, 18, 3, '#b8873e'); break;
+      case 'zongzi': at(38, -32 + bob * 0.4); pr(0, 0, 18, 18, '#4a9e4a'); pr(0, 0, 12, 12, '#e8f0d8'); break;
+      case 'lantern': at(42, -58 + bob * 0.6); pr(0, 0, 16, 20, '#e05a3a'); pr(0, -12, 10, 4, '#c9803f'); break;
+      case 'umbrella': at(0, -9.4 * U); pr(0, 0, 52, 6, '#e05a5a'); pr(0, 6, 3, 26, '#7a5230'); break;
+      case 'flower': at(-8 * U, -8.2 * U); g.font = '18px sans-serif'; g.fillText('🌸', 0, 0); break;
+      case 'stargaze': at(-50, -90 + bob); g.font = '16px sans-serif'; g.fillText('✦', 0, 0); g.fillText('✧', 24, -14); break;
+      case 'sunrise': at(-56, -40); pr(0, 0, 26, 10, '#ffb84a'); pr(0, -8, 18, 8, '#ff8f5a'); break;
+      case 'wind': at(-60, -50); g.font = '16px sans-serif'; g.fillText('🌬️', 0, 0); break;
+      case 'shell': at(36, -48 + bob * 0.5); pr(0, 0, 18, 20, '#e8c9a8'); pr(0, 0, 4, 16, '#c9a26b'); break;
+      case 'starfish': at(40, -36 + bob * 0.5); g.font = '22px sans-serif'; g.fillText('⭐', 0, 0); break;
+      case 'pearl': at(38, -48 + bob * 0.5); g.beginPath(); g.arc(0, 0, 9, 0, Math.PI * 2); g.fillStyle = '#e8e6f0'; g.fill(); g.beginPath(); g.arc(-3, -3, 3, 0, Math.PI * 2); g.fillStyle = '#ffffff'; g.fill(); break;
+      case 'surf': at(0, -12); pr(0, 0, 60, 6, '#e8c9a8'); break;
+      case 'snorkel': at(-30, -60); pr(0, 0, 4, 24, '#e0a63a'); break;
+      case 'castle': at(52, -26); pr(0, 0, 34, 22, '#e8c988'); pr(-12, -12, 10, 10, '#e8c988'); pr(12, -12, 10, 10, '#e8c988'); break;
+      case 'sunset': at(-60, -44); pr(0, 0, 30, 12, '#ff8f5a'); break;
+      case 'zen': at(-44, -46); pr(0, 0, 26, 4, '#8a8a98'); break;
+      case 'scroll': at(44, -52 + bob * 0.5); pr(0, 0, 24, 30, '#f0ead8'); pr(0, -8, 20, 2, '#8a7a5a'); pr(0, -2, 20, 2, '#8a7a5a'); break;
+      case 'hoop': at(0, -5.6 * U); g.strokeStyle = '#ff8f5a'; g.lineWidth = 4; g.beginPath(); g.ellipse(0, 0, 5 * U, 1.6 * U, Math.sin(t * 8) * 0.1, 0, Math.PI * 2); g.stroke(); break;
+      case 'teapot': at(38, -46 + bob * 0.5); pr(0, 0, 20, 14, '#4a9e8a'); pr(12, -2, 8, 4, '#4a9e8a'); pr(-6, -14, 6, 6, '#4a9e8a'); break;
+      case 'shower': at(0, -9.6 * U); pr(0, 0, 22, 5, '#b8c0c8'); pr(0, 6, 12, 6, '#b8c0c8'); break;
+      default:
+        if (id.startsWith('_e')) { g.font = '26px "Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.fillText(id.slice(2), 0, -6); }
+        break;
+    }
+    g.restore();
   }
 
   /* --- Tamagotchi：蛋（孵化进度 = 摇晃加剧 + 裂纹增多） --- */
@@ -1666,7 +2012,7 @@ function mount(opts) {
       } else {
         lastTap = performance.now();
         if (eng.onTap) eng.onTap(e);
-        else petClawd();
+        else clawd.startRandomTrick(); // 单击 = 随机播放一个动作
       }
     } else {
       clawd.setState('thrown');
