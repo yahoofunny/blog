@@ -153,16 +153,6 @@ const CSS = `
 .cw-bubble.below span{display:inline-block;transform:rotate(180deg)}
 .cw-bubble.below::after{bottom:auto;top:-5px}
 .cw-up{bottom:136px}
-.cw-menu{position:absolute;left:50%;top:-128px;transform:translateX(-50%) translateY(6px) scale(.9);display:flex;gap:5px;padding:6px;background:rgba(255,255,255,.94);border-radius:999px;box-shadow:0 6px 22px rgba(60,40,20,.2),0 0 0 1px rgba(0,0,0,.05);opacity:0;pointer-events:none;transition:opacity .16s,transform .16s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(6px)}
-.cw-menu.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0) scale(1)}
-.cw-menu.down{top:14px;transform:translateX(-50%) translateY(-6px) scale(.9)}
-.cw-menu.down.on{transform:translateX(-50%) translateY(0) scale(1)}
-.cw-menu button{width:32px;height:32px;border-radius:50%;border:0;background:transparent;font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:transform .12s,background .12s;padding:0;font-family:inherit}
-.cw-menu button:hover{background:rgba(0,0,0,.08);transform:scale(1.14)}
-.cw-menu button:active{transform:scale(.92)}
-/* 菜单打开时扩展热区：从小蟹到按钮行全程无死区，鼠标移动不会误触隐藏 */
-.cw-wrap.menu-open .cw-hit{top:-132px;height:140px}
-.cw-wrap.menu-open.menu-down .cw-hit{top:-76px;height:144px}
 /* 长按轮盘菜单：按钮环绕小蟹上半弧，逐个弹出 */
 .cw-radial{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:3}
 .cw-radial button{position:absolute;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.96);font-size:19px;line-height:1;cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 14px rgba(60,40,20,.28),0 0 0 1px rgba(0,0,0,.06);pointer-events:auto;transform:translate(-50%,-50%) scale(.2) rotate(-30deg);opacity:0;transition:transform .24s cubic-bezier(.34,1.56,.64,1),opacity .16s;padding:0;font-family:inherit}
@@ -1217,8 +1207,6 @@ function mount(opts) {
   const bubbleText = document.createElement('span');
   bubble.appendChild(bubbleText);
 
-  const menu = document.createElement('div');
-  menu.className = 'cw-menu';
 
   const card = document.createElement('div');
   card.className = 'cw-card';
@@ -1230,7 +1218,6 @@ function mount(opts) {
   wrap.appendChild(canvas);
   wrap.appendChild(hit);
   wrap.appendChild(bubble);
-  wrap.appendChild(menu);
   wrap.appendChild(card);
 
   const corner = document.createElement('div');
@@ -1259,7 +1246,7 @@ function mount(opts) {
     onTap: typeof opts.onTap === 'function' ? opts.onTap : null,
     onDoubleTap: typeof opts.onDoubleTap === 'function' ? opts.onDoubleTap : null,
     soundOn: opts.sound === false ? false : store.get(prefix + '_sound', true),
-    prefix, fixed, container, wrap, canvas, fxCanvas, corner, bubble, bubbleText, menu, card, cardD, hit,
+    prefix, fixed, container, wrap, canvas, fxCanvas, corner, bubble, bubbleText, card, cardD, hit,
     dpr: Math.min(window.devicePixelRatio || 1, 2)
   };
 
@@ -1297,7 +1284,7 @@ function mount(opts) {
     bubbleText.textContent = text;
     const nearTop = eng.clawd && eng.clawd.y < 190;
     bubble.classList.toggle('below', nearTop);
-    bubble.classList.toggle('cw-up', (menu.classList.contains('on') || card.classList.contains('on')) && !nearTop);
+    bubble.classList.toggle('cw-up', (eng.statsOpen || card.classList.contains('on')) && !nearTop);
     bubble.classList.remove('on');
     void bubble.offsetWidth;
     bubble.classList.add('on');
@@ -1344,6 +1331,12 @@ function mount(opts) {
     { id: 'sound', icon: '🔊', title: '音效开关' },
     { id: 'hide', icon: '✕', title: '先躲起来' }
   ];
+
+  /* --- 长按轮盘菜单 --- */
+  const radial = document.createElement('div');
+  radial.className = 'cw-radial';
+  radial.setAttribute('aria-label', 'Clawd 快捷菜单');
+  wrap.appendChild(radial);
   let soundBtn = null;
   for (const a of ACTIONS) {
     const b = document.createElement('button');
@@ -1352,25 +1345,6 @@ function mount(opts) {
     b.setAttribute('aria-label', a.title);
     b.setAttribute('data-tooltip', a.title);
     if (a.id === 'sound') soundBtn = b;
-    b.addEventListener('pointerdown', (e) => e.stopPropagation());
-    b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      doAction(a.id);
-    });
-    menu.appendChild(b);
-  }
-
-  /* --- 长按轮盘菜单 --- */
-  const radial = document.createElement('div');
-  radial.className = 'cw-radial';
-  radial.setAttribute('aria-label', 'Clawd 快捷菜单');
-  wrap.appendChild(radial);
-  for (const a of ACTIONS) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = a.icon;
-    b.setAttribute('aria-label', a.title);
-    b.setAttribute('data-tooltip', a.title);
     b.addEventListener('pointerdown', (e) => e.stopPropagation());
     b.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1396,7 +1370,7 @@ function mount(opts) {
     }
     radial.classList.add('on');
     eng.radialOpen = true;
-    eng.menuOpen = true; // 复用菜单静音/站定逻辑
+    eng.menuOpen = true; // 静止逻辑：轮盘/面板打开时蟹站定
     // 记录各选项中心（容器坐标），供「拖拽选择」命中判定
     eng.radialCenters = [];
     for (let i = 0; i < kids.length; i++) {
@@ -1432,7 +1406,7 @@ function mount(opts) {
     eng.radialSel = null;
     eng.radialCenters = null;
     for (const k of radial.children) { k.classList.remove('sel'); k.style.transitionDelay = '0ms'; }
-    if (!menu.classList.contains('on')) {
+    if (!eng.statsOpen) {
       eng.menuOpen = false;
       bubble.classList.remove('cw-up');
     }
@@ -1488,45 +1462,15 @@ function mount(opts) {
     }
   }
 
-  let menuTimer = null;
-  function showMenu() {
-    if (menuTimer) { clearTimeout(menuTimer); menuTimer = null; }
-    const clawd = eng.clawd;
-    const down = clawd.y < 200;
-    menu.classList.toggle('down', down);
-    wrap.classList.toggle('menu-down', down);
-    wrap.classList.add('menu-open');
-    eng.menuOpen = true;
-    bubble.classList.toggle('cw-up', !down);
-    menu.classList.add('on');
-    clawd.interact();
-  }
   function hideMenuNow() {
-    if (menuTimer) { clearTimeout(menuTimer); menuTimer = null; }
-    menu.classList.remove('on');
-    wrap.classList.remove('menu-open');
-    wrap.classList.remove('menu-down');
     closeRadial();
-    eng.menuOpen = menu.classList.contains('on') || eng.radialOpen;
-    bubble.classList.remove('cw-up');
   }
-  function hideMenu() {
-    if (menuTimer) clearTimeout(menuTimer);
-    menuTimer = setTimeout(() => {
-      if (eng.radialOpen) return; // 轮盘菜单开着时不归它管
-      hideMenuNow();
-    }, 650);
-  }
-  hit.addEventListener('pointerenter', showMenu);
-  hit.addEventListener('pointerleave', hideMenu);
-  menu.addEventListener('pointerenter', showMenu);
-  menu.addEventListener('pointerleave', hideMenu);
-  menu.addEventListener('pointerdown', (e) => e.stopPropagation());
-  // 点击小蟹/菜单以外的地方 → 收起菜单
+  // 点击小蟹/轮盘以外的地方 → 收起一切面板
   document.addEventListener('pointerdown', (e) => {
     if (!eng.menuOpen) return;
     if (wrap.contains(e.target)) return;
     hideMenuNow();
+    closeStats();
   }, true);
   hit.addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -1534,7 +1478,7 @@ function mount(opts) {
     else openRadial();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && eng.radialOpen) closeRadial();
+    if (e.key === 'Escape') { closeRadial(); closeStats(); }
   });
 
   /* --- 隐藏 / 恢复 --- */
@@ -1694,7 +1638,6 @@ function mount(opts) {
       clawd.grabDY = clamp(clawd.y - p.y, 14, 60);
       clawd.vx = 0; clawd.vy = 0;
       clawd.setState('drag');
-      hideMenu();
     }
   });
 
@@ -1723,10 +1666,7 @@ function mount(opts) {
       } else {
         lastTap = performance.now();
         if (eng.onTap) eng.onTap(e);
-        else {
-          petClawd();
-          showMenu(); // 点一下也固定弹出菜单，方便选择
-        }
+        else petClawd();
       }
     } else {
       clawd.setState('thrown');
@@ -2163,16 +2103,18 @@ function mount(opts) {
   }
   function openStats() {
     tamaSync(Date.now());
-    hideMenuNow();
+    closeRadial();
     stats.classList.toggle('down', eng.clawd.y < 260);
     stats.classList.add('on');
     eng.statsOpen = true;
+    eng.menuOpen = true;
     updateStats();
     if (!statsTimer) statsTimer = setInterval(updateStats, 800);
   }
   function closeStats() {
     stats.classList.remove('on');
     eng.statsOpen = false;
+    if (!eng.radialOpen) eng.menuOpen = false;
     clearInterval(statsTimer);
     statsTimer = 0;
   }
