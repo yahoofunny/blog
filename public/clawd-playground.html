@@ -87,7 +87,7 @@
   var stage = document.getElementById('stage');
   var nowEl = document.getElementById('now');
   var grid = document.getElementById('grid');
-  var pet = window.ClawdPet.mount({ container: stage, storageKey: 'clawdpg' });
+  var pet = window.ClawdPet.mount({ container: stage, storageKey: 'clawdpg', autoSleep: false, sleepWindow: false });
 
   // 生成 100 个动作按钮
   var tricks = window.ClawdPet.tricks || [];

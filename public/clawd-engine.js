@@ -477,7 +477,8 @@ function heartPath(g, x, y, s) {
 /* ============ Clawd 本体（官方 15×16 网格，1 单位 = U px，原点=脚底中心） ============ */
 const U = 7;
 const GRAVITY = 2200;
-const LONG_PRESS_MS = 500; // 长按蓄力时长：松早=摸头，拖动=拖拽，蓄满=轮盘菜单
+const LONG_PRESS_MS = 500;
+let SLEEP_WINDOW = true; // 睡觉时段开关（游乐场等演示场景可关） // 长按蓄力时长：松早=摸头，拖动=拖拽，蓄满=轮盘菜单
 
 class Clawd {
   constructor(eng) {
@@ -588,7 +589,7 @@ class Clawd {
     }
     // 到睡觉时段（22:00–08:00）：强制入睡；时段结束自动醒来
     if (eng.tama && eng.tama.hatched) {
-      if (eng.tama.clockSleep && this.state !== 'sleep' && this.state !== 'trick') {
+      if (eng.tama.clockSleep && SLEEP_WINDOW && this.state !== 'sleep' && this.state !== 'trick') {
         this.setState('sleep');
         eng.tama.forcedSleep = true;
         eng.say('到点啦…晚安咔…', 2600);
@@ -1624,6 +1625,7 @@ function mount(opts) {
     onTap: typeof opts.onTap === 'function' ? opts.onTap : null,
     onDoubleTap: typeof opts.onDoubleTap === 'function' ? opts.onDoubleTap : null,
     soundOn: opts.sound === false ? false : store.get(prefix + '_sound', true),
+    sleepWindow: opts.sleepWindow !== false,
     prefix, fixed, container, wrap, canvas, fxCanvas, corner, bubble, bubbleText, card, cardD, hit,
     dpr: Math.min(window.devicePixelRatio || 1, 2)
   };
@@ -2253,6 +2255,7 @@ function mount(opts) {
     return clamp(Math.round(tm.careIntegral / tm.careDur - Math.min(20, 5 * tm.mistakes)), 0, 100);
   }
   function isSleepHour(date) {
+    if (!SLEEP_WINDOW) return false;
     const h = date.getHours();
     return h >= CFG.sleepStart || h < CFG.sleepEnd;
   }
@@ -2528,6 +2531,7 @@ function mount(opts) {
   });
 
   /* --- Tamagotchi 初始化：读取存档 + 结算离线时间（须在小蟹构造前） --- */
+  SLEEP_WINDOW = opts.sleepWindow !== false;
   eng.tama = tamaLoad();
   eng.statsOpen = false;
   eng.poops = eng.tama.poops;
