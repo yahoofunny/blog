@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="utf-8"><title>Clawd 整合测试（模拟博客环境）</title>
+<style>
+  :root { --wm-primary: #3a63d0; --wm-accent: #ffcd42; }
+  html.dark { --wm-primary: #6e6eff; }
+  body { margin:0; min-height:100vh; font-family: system-ui,'PingFang SC','Microsoft YaHei',sans-serif;
+         background:#0e0e13; color:#f0f0f2; }
+  main { max-width: 720px; margin: 0 auto; padding: 60px 24px 140px; }
+  h1 { font-size: 28px; } p { color:#b9b9c2; line-height:1.8; }
+  code { background:#15151c; color:#6e6eff; padding:2px 6px; }
+  .btn { background:#15151c; color:#f0f0f2; border:1px solid rgba(240,240,242,.16); padding:8px 14px; cursor:pointer; margin-right:8px; }
+  .btn:hover { border-color:#6e6eff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Clawd 整合测试页（模拟 bt 的 Blog 暗色环境）</h1>
+  <p>这一页模拟博客的 Base.astro 环境：<code>html.dark</code> + <code>--wm-primary</code> 主题色变量，
+     然后按博客的接入方式加载 <code>clawd-engine.js</code> + <code>clawd-blog.js</code>。</p>
+  <p>预期：① 小蟹是<b>电光蓝壳</b>（跟随 --wm-primary）；② 单击 → 摸摸头（爱心+钉住菜单）；
+     ③ 双击 → 喂饼干；④ 悬停菜单可喂饼干；⑤ 台词是博客专属池。</p>
+  <p>
+    <button class="btn" onclick="document.documentElement.classList.toggle('dark')">切换明暗主题（看壳色联动）</button>
+    <button class="btn" onclick="ClawdPet.setStatus('typing','Claude Code')">模拟 agent 敲码</button>
+    <button class="btn" onclick="ClawdPet.clearStatus()">解除状态</button>
+  </p>
+</main>
+<script>document.write('<script src="./clawd-engine.js?v=' + Date.now() + '"><\/script>');</script>
+<script>document.write('<script src="./clawd-blog.js?v=' + Date.now() + '"><\/script>');</script>
+</body>
+</html>
