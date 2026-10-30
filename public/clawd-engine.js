@@ -1762,7 +1762,7 @@ function mount(opts) {
     eng.radialCenters = [];
     for (let i = 0; i < n; i++) {
       const frac = n > 1 ? i / (n - 1) : 0.5;
-      const a = Math.PI * 0.94 - frac * Math.PI * 0.88; // 左上 → 右上
+      const a = Math.PI * 1.06 + frac * Math.PI * 0.88; // 左上 → 顶 → 右上（canvas y 向下，sin 为负才是上方）
       const rr = (i % 2 === 0 ? R0 : R0 * 1.38);
       const bx = dx + Math.cos(a) * rr;
       const by = cy + Math.sin(a) * rr;
