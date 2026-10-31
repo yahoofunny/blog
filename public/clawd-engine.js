@@ -198,7 +198,7 @@ const LINES = {
     T('meditate', '冥想', 2.8, ['心如止水……止水……', '（睡着了不算冥想失败）'], 'pop', (t, k, c) => { c.prop = 'zen'; c.face = 'sleep'; c.mouth = 'flat'; c.sq = Math.sin(t * 1.2) * 0.02; c.emit = ['zen', 1];  }, { hold: '🧘' }),
     T('moonwalk', '太空步', 2.2, ['太空步——横着滑走', '月球都要学我咔'], 'chirp', (t, k, c) => { c.dx = -Math.sin(k * Math.PI) * 40; c.r = -0.06; c.leg = true; }, { hold: '🌙' }),
     T('tea', '茶艺表演', 2.6, ['茶要慢慢倒，壳要慢慢品', '茶艺蟹，上茶！'], 'pop', (t, k, c) => { c.prop = 'teapot'; c.mouth = 'smile'; c.clR = [-1.2, 0.3]; c.emit = ['steam', 2.5]; }, { hold: '🍵' }),
-    T('poem', '念诗', 2.8, ['不敢高声语，恐惊天上人', '（Ech0 的座右铭，念给你听）'], 'chirp', (t, k, c) => { c.prop = 'scroll'; c.mouth = 'flat'; c.clR = [-1.1, 0.2]; c.emit = ['note', 1.2]; c.look = [0.3, -0.3]; }, { hold: '📜' })
+    T('poem', '念诗', 2.8, ['不敢高声语，恐惊天上人', '（展开小卷轴，认真念给你听）'], 'chirp', (t, k, c) => { c.prop = 'scroll'; c.mouth = 'flat'; c.clR = [-1.1, 0.2]; c.emit = ['note', 1.2]; c.look = [0.3, -0.3]; }, { hold: '📜' })
   ];
 
 
@@ -592,7 +592,7 @@ class Clawd {
     }
     // 到睡觉时段（22:00–08:00）：强制入睡；时段结束自动醒来
     if (eng.tama && eng.tama.hatched) {
-      if (eng.tama.clockSleep && SLEEP_WINDOW && Date.now() >= (eng.tama.nightWakeUntil || 0) && this.state !== 'sleep' && this.state !== 'trick') {
+      if (eng.tama.clockSleep && eng.sleepWindow && Date.now() >= (eng.tama.nightWakeUntil || 0) && this.state !== 'sleep' && this.state !== 'trick') {
         this.setState('sleep');
         eng.tama.forcedSleep = true;
         eng.say('到点啦…晚安咔…', 2600);
@@ -1566,9 +1566,11 @@ function drawCookie(g, x, y, U) {
 /* ============ 引擎 ============ */
 function mount(opts) {
   opts = opts || {};
+  let destroyed = false;
   const container = opts.container || document.body;
   const fixed = !opts.container;
   const prefix = opts.storageKey || 'clawd';
+  const prizeMode = opts.prizeMode === true;
   const partMult = REDUCED ? 0.3 : 1;
 
   if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
@@ -1641,6 +1643,13 @@ function mount(opts) {
     dpr: Math.min(window.devicePixelRatio || 1, 2)
   };
 
+  if (prizeMode) {
+    hit.setAttribute('tabindex', '0'); hit.setAttribute('role', 'button');
+    hit.setAttribute('aria-label', '重播当前已收藏奖品的动作');
+    hit.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (eng.onTap) eng.onTap(e); }
+    });
+  }
   const ctx = canvas.getContext('2d');
   const fctx = fxCanvas.getContext('2d');
 
@@ -1870,6 +1879,7 @@ function mount(opts) {
   }, true);
   hit.addEventListener('contextmenu', (e) => {
     e.preventDefault();
+    if (prizeMode) { if (eng.onTap) eng.onTap(e); return; }
     if (eng.radialOpen) closeRadial();
     else openRadial();
   });
@@ -1878,7 +1888,7 @@ function mount(opts) {
   });
 
   /* --- 隐藏 / 恢复 --- */
-  let hidden = store.get(prefix + '_hidden', false);
+  let hidden = prizeMode ? false : store.get(prefix + '_hidden', false);
   function hidePet() {
     hidden = true;
     store.set(prefix + '_hidden', true);
@@ -1988,6 +1998,7 @@ function mount(opts) {
 
   hit.addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    if (prizeMode) { if (eng.onTap) eng.onTap(e); return; }
     const clawd = eng.clawd;
     const p = toLocal(e);
     eng.pointer.x = p.x; eng.pointer.y = p.y;
@@ -2064,6 +2075,7 @@ function mount(opts) {
     const p = toLocal(e);
     const dur = performance.now() - downT;
     if (!moved && dur < 350) {
+      if (eng.tama && !eng.tama.hatched) { petClawd(); return; }
       if (performance.now() - lastTap < 350) {
         lastTap = 0;
         if (eng.onDoubleTap) eng.onDoubleTap(e);
@@ -2091,6 +2103,8 @@ function mount(opts) {
     if (tm && tm.retired) { eng.say('它去星海旅行了…（📊 领养新蛋）', 3200); return; }
     if (tm && !tm.hatched) {
       tm.hatchP = clamp(tm.hatchP + 0.15, 0, 1); // 蛋期轻触加速孵化
+      if (tm.hatchP >= 1 - 1e-9) { tamaHatch(Date.now()); tamaSave(); return; }
+      tamaSave();
       eng.play('pop');
       eng.say(pick(['咔咔咔…壳在响！', '快了快了！', '（蛋蛋在颤抖）']), 1800);
       return;
@@ -2120,6 +2134,7 @@ function mount(opts) {
 
   if (!fixed) {
     container.addEventListener('pointerdown', (e) => {
+      if (prizeMode) return;
       if (e.target !== container && e.target !== fxCanvas) return;
       const p = toLocal(e);
       eng.pointer.x = p.x; eng.pointer.y = p.y;
@@ -2254,7 +2269,7 @@ function mount(opts) {
   }
   function tamaSave() {
     const tm = eng.tama;
-    if (!tm || viewerMode) return;
+    if (!tm || viewerMode || destroyed) return;
     try {
       const prev = store.get(prefix + '_tama', null);
       if (prev) store.set(prefix + '_tama_bak', prev);
@@ -2280,7 +2295,7 @@ function mount(opts) {
     return clamp(Math.round(tm.careIntegral / tm.careDur - Math.min(20, 5 * tm.mistakes)), 0, 100);
   }
   function isSleepHour(date) {
-    if (!SLEEP_WINDOW) return false;
+    if (!eng.sleepWindow) return false;
     const h = date.getHours();
     return h >= CFG.sleepStart || h < CFG.sleepEnd;
   }
@@ -2294,7 +2309,7 @@ function mount(opts) {
   /* --- 时间权威：唯一入口。墙钟同步 + ≤60s 固定步长 + 离线 12h 保护 --- */
   function tamaSync(nowMs) {
     const tm = eng.tama;
-    if (!tm) return;
+    if (!tm || destroyed) return;
     if (tm.retired) { tm.lastSim = Math.max(tm.lastSim, nowMs); return; }
     const wallDelta = nowMs - tm.lastSim;
     if (wallDelta <= 0) return; // 时间倒退：不推进不倒扣
@@ -2320,7 +2335,7 @@ function mount(opts) {
     const hr = sec / 3600;
     if (!tm.hatched) {
       tm.hatchP = clamp(tm.hatchP + sec / 60, 0, 1); // 蛋 60 秒（轻触可加速）
-      if (tm.hatchP >= 1) tamaHatch(tMs);
+      if (tm.hatchP >= 1 - 1e-9) { tm.hatchP = 1; tamaHatch(tMs); }
       return;
     }
     tm.activeAge += sec;
@@ -2406,6 +2421,7 @@ function mount(opts) {
   }
   function tamaHatch(tMs) {
     const tm = eng.tama;
+    if (tm.hatched) return;
     tm.hatched = true;
     tm.stage = 'baby';
     tm.stageElapsed = 0;
@@ -2443,9 +2459,10 @@ function mount(opts) {
   }
 
   /* --- 多标签页：心跳选主（主标签页负责存档，所有页面都照常演出） --- */
-  const tabId = Math.random().toString(36).slice(2);
+  const tabId = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
   let viewerMode = false; // 非主标签页：照常演出，但不写存档
   function heartbeat() {
+    if (destroyed) return;
     try {
       const now = Date.now();
       const raw = store.get(prefix + '_hb', {}) || {};
@@ -2455,11 +2472,18 @@ function mount(opts) {
       const ids = Object.keys(raw);
       const wasViewer = viewerMode;
       viewerMode = ids.length > 1 && tabId !== ids.sort()[0]; // tabId 最小者为主
-      if (wasViewer && !viewerMode) eng.say('这边接手照顾了咔', 2200);
+      if (wasViewer && !viewerMode) {
+        const latest = store.get(prefix + '_tama', null);
+        if (latest && eng.tama) {
+          eng.tama = tamaMigrate(latest); eng.poops = eng.tama.poops;
+          if (eng.clawd) eng.clawd.affection = eng.tama.bond;
+        }
+        eng.say('这边接手照顾了咔', 2200);
+      }
     } catch (e) { /* 忽略 */ }
   }
   heartbeat();
-  setInterval(heartbeat, 3000);
+  const heartbeatTimer = setInterval(heartbeat, 3000);
 
   /* --- Tamagotchi 状态面板 --- */
   const stats = document.createElement('div');
@@ -2556,7 +2580,6 @@ function mount(opts) {
   });
 
   /* --- Tamagotchi 初始化：读取存档 + 结算离线时间（须在小蟹构造前） --- */
-  SLEEP_WINDOW = opts.sleepWindow !== false;
   eng.tama = tamaLoad();
   eng.statsOpen = false;
   eng.poops = eng.tama.poops;
@@ -2574,10 +2597,11 @@ function mount(opts) {
   };
 
   let last = performance.now();
-  let pending = 0, pendingIsRaf = false, watchdog = 0, fallbackActive = false, destroyed = false;
+  let pending = 0, pendingIsRaf = false, watchdog = 0, fallbackActive = false;
   let greeted = false;
 
   function onFrame() {
+    if (destroyed) return;
     if (pendingIsRaf && watchdog) { clearTimeout(watchdog); watchdog = 0; }
     pending = 0;
     try {
@@ -2628,10 +2652,10 @@ function mount(opts) {
       setTimeout(() => { if (!hidden) eng.say(line, 2800); }, 900);
     }
 
+    // 隐藏角色也推进世界；重新显示时不会卡在蛋期。
+    if (eng.tama && Date.now() - eng.tama.lastSim >= 1000) tamaSync(Date.now());
     if (!hidden) {
       clawd.update(dt, t);
-      // Tamagotchi：墙钟时间权威（与页面帧率/节流无关）
-      if (eng.tama && Date.now() - eng.tama.lastSim >= 1000) tamaSync(Date.now());
       updateBall(dt);
       updateCookie(dt);
       eng.particles.update(dt);
@@ -2690,7 +2714,7 @@ function mount(opts) {
   scheduleNext();
 
   /* --- Tamagotchi：持久化触发器 --- */
-  setInterval(tamaSave, 20000);
+  const saveTimer = setInterval(tamaSave, 20000);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) tamaSave();
     else {
@@ -2718,6 +2742,12 @@ function mount(opts) {
   /* --- API --- */
   const api = {
     clawd, eng,
+    playTrick(id) {
+      const def = TRICKS.find((t) => t.id === id);
+      if (!def || destroyed) return false;
+      clawd.startTrick(def);
+      return true;
+    },
     say: (t, m) => eng.say(t, m),
     pet: () => petClawd(),
     hide: hidePet,
@@ -2738,7 +2768,12 @@ function mount(opts) {
     setSkin(k) { if (SKINS[k]) { clawd.skinKey = k; store.set(prefix + '_skin', k); } },
     setSound(v) { eng.soundOn = !!v; store.set(prefix + '_sound', eng.soundOn); refreshSoundIcon(); },
     destroy() {
+      tamaSave();
       destroyed = true;
+      clearInterval(heartbeatTimer); clearInterval(saveTimer);
+      if (statsTimer) clearInterval(statsTimer);
+      clearTimeout(bubbleTimer); clearTimeout(pressTimer);
+      try { const hb = store.get(prefix + '_hb', {}) || {}; delete hb[tabId]; store.set(prefix + '_hb', hb); } catch (e) {}
       if (pending) {
         if (pendingIsRaf) { try { cancelAnimationFrame(pending); } catch (e4) {} }
         else clearTimeout(pending);

@@ -61,6 +61,41 @@
   .plist li { padding:4px 0; border-bottom:1px dotted var(--dotted); }
   .hint { font-family:var(--mono); font-size:.72rem; color:var(--muted); margin-top:14px; line-height:1.8; }
   .kbd { border:1px solid var(--dotted); border-radius:4px; padding:0 5px; }
+
+  :root { --paper:#f2f0e8; --panel:#faf9f4; --ink:#203640; --soft:#51646b; --muted:#687c80; --primary:#226c75; --line:#cbd0c7; --dotted:#c4ccc6; }
+  body { background:radial-gradient(ellipse at 20% 30%,#e6e9df 0,transparent 55%),var(--paper); }
+  .wrap { max-width:1130px; } main { padding-top:30px; }
+  h1 { font-family:var(--body); font-size:clamp(30px,5vw,48px); letter-spacing:.08em; }
+  .sub { max-width:700px; font-family:var(--body); line-height:1.9; }
+  .row { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:18px 30px; }
+  .machine-stage { grid-column:1; grid-row:1; position:relative; border:1px solid var(--line); border-radius:24px; background:radial-gradient(ellipse at 50% 70%,#dce6df,transparent 65%),#e9eee7; overflow:hidden; }
+  .stage-tag { position:absolute; left:22px; top:19px; color:#536d70; font:11px var(--mono); letter-spacing:.13em; }
+  canvas { width:100%; max-width:580px; margin:auto; }
+  .machine-status { padding:0 20px 20px; text-align:center; font-size:13px; color:#35585f; min-height:38px; }
+  .pad { grid-column:1; grid-row:2; display:grid; width:auto; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .pbtn { border-radius:10px; background:var(--panel); min-height:46px; padding:10px 8px; text-align:center; font-family:var(--body); font-size:13px; touch-action:none; }
+  #b-coin,#b-drop { background:#203f49; color:#fff9e9; border-color:#203f49; font-weight:700; }
+  #b-take { background:#de886d; border-color:#c87a61; color:#253c42; }
+  #b-coin,#b-drop,#b-take,#b-refill { grid-column:span 2; }
+  #b-reset,#b-sound { grid-column:span 2; }
+  .side { grid-column:2; grid-row:1 / span 2; width:auto; }
+  .card { border-radius:16px; padding:19px; background:#faf9f4; }
+  .card h3 { color:#49676b; margin-bottom:15px; }
+  .pet-stage { height:225px; background:linear-gradient(#dce9e7,#f4ebd9); }
+  .reveal { margin-top:14px; font:13px/1.8 var(--body); }
+  .stat { font-size:12px; align-items:center; } .stat b { font-size:27px; color:#245c65; }
+  .plist { max-height:235px; overflow:auto; font:12px/1.7 var(--body); }
+  .pbtn:focus-visible,a:focus-visible { outline:3px solid #de886d; outline-offset:3px; }
+  @media(max-width:760px) { .wrap { padding:0 14px; } .row { grid-template-columns:minmax(0,1fr); gap:14px; } .side { grid-column:1; grid-row:3; display:grid; grid-template-columns:1fr; } main{padding-top:24px;} .sub{font-size:13px;} .pad{gap:8px;} }
+  @media(prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important; } }
+
+  .prize-item { display:block; width:100%; background:transparent; border:0; text-align:left; padding:9px 4px; color:#315d64; cursor:pointer; font:13px var(--body); }
+  .prize-item[aria-pressed="true"] { background:#e1ebe3; border-radius:6px; font-weight:700; }
+  #pet-empty { position:absolute; inset:0; display:grid; place-content:center; text-align:center; color:#66847f; font-size:14px; line-height:2; }
+  #pet-empty[hidden],#shy-choices[hidden] { display:none; }
+  #selected-prize { margin-top:10px; font-size:12px; color:#446d70; }
+  #shy-choices { display:grid; gap:6px; margin:12px 0; }
+  .machine-stage { background:radial-gradient(ellipse at 50% 70%,#dce6df,transparent 65%),#e9eee7; }
 </style>
 </head>
 <body>
@@ -70,9 +105,9 @@
     <a class="back" href="/games/">← 游戏中心</a>
   </header>
   <main>
-    <div class="kicker">Clawd Machine</div>
-    <h1>Clawd 抓娃娃机</h1>
-    <p class="sub">投币 → 移动爪子 → 下爪 → 抓中的球里藏着 Clawd 的一式动作，领取后它当场表演。抓完的球会自动补货。</p>
+    <div class="kicker">NO. 018 / TIDE SUPPLY / CLAWD ARCADE</div>
+    <h1>潮汐补给站</h1>
+    <p class="sub">深海来信已装进胶囊。对准坐标，放下机械爪，把一份小惊喜带回岸上。胶囊相撞、爪尖停顿、穿过落奖口——但要小心，里面的 Clawd 也有自己的主意。</p>
 
     <div class="row">
       <div class="pad">
@@ -83,353 +118,33 @@
         <button class="pbtn" id="b-down" disabled>↓ 前排</button>
         <button class="pbtn" id="b-drop" disabled>↓ 下爪 Drop</button>
         <button class="pbtn take" id="b-take" disabled>🎁 领取奖品</button>
-        <button class="pbtn" id="b-reset">↺ 重摆机台</button>
+        <button class="pbtn" id="b-reset">↺ 重摆胶囊</button><button class="pbtn" id="b-refill">领取每日补给 · +10</button><button class="pbtn" id="b-sound" aria-pressed="false">声音 · 关</button>
       </div>
-      <canvas id="machine" width="520" height="560"></canvas>
+      <div class="machine-stage"><span class="stage-tag">01 / 胶囊打捞舱</span><canvas id="machine" width="520" height="560" role="img" aria-label="潮汐补给站抓娃娃机，使用下方方向按钮调整机械爪"></canvas><div class="machine-status" id="machine-status" role="status" aria-live="polite">等待投币 · 每币一次打捞</div></div>
       <div class="side">
         <div class="card">
-          <h3>Stats</h3>
+          <h3>打捞记录 / LOGBOOK</h3>
           <div class="stat"><span>代币 TOKENS</span><b id="s-tokens">10</b></div>
           <div class="stat"><span>中奖 PRIZES</span><b id="s-won">0</b></div>
         </div>
         <div class="card">
-          <h3>Clawd 亲自表演</h3>
-          <div class="pet-stage" id="pet-stage"></div>
-          <div class="reveal" id="reveal">抓一个球，看它表演</div>
+          <h3>02 / 岸边的 Clawd</h3>
+          <div class="pet-stage" id="pet-stage"><div id="pet-empty">下一位住客<br>还藏在胶囊里</div></div><div id="selected-prize"></div>
+          <div id="shy-choices" hidden><button class="pbtn" id="b-bribe">请它吃东西 · 1 代币</button><button class="pbtn" id="b-knock">耐心敲敲 · 0/3</button><button class="pbtn" id="b-release">送它回海里</button></div><div class="reveal" id="reveal" role="status">抓到只是开始，它还得愿意跟你回家。</div>
         </div>
         <div class="card">
-          <h3>战利品架</h3>
+          <h3>03 / 胶囊收藏</h3>
           <ul class="plist" id="plist"><li>还没有战利品</li></ul>
         </div>
       </div>
     </div>
-    <p class="hint">键盘可玩：<span class="kbd">←</span> <span class="kbd">→</span> 移动 · <span class="kbd">↑</span> <span class="kbd">↓</span> 换排 · <span class="kbd">空格</span> 下爪 · <span class="kbd">回车</span> 领取。每局 30 秒，抓中 +2 代币。</p>
+    <p class="hint">键盘可玩：<span class="kbd">←</span> <span class="kbd">→</span> 移动 · <span class="kbd">↑</span> <span class="kbd">↓</span> 换排 · <span class="kbd">空格</span> 下爪 · <span class="kbd">回车</span> 领取。每币一次打捞，30 秒到自动下爪；成功收藏 +2 代币。Clawd 可能溜走、被麻雀叼走，或者赖着不出来。收藏架可切换已获得的专属动作。按住方向键或按钮可连续移动，每日可领取一次 10 代币补给。</p>
   </main>
 </div>
 
 <script>window.CLAWD_PET_NO_AUTO = true;</script>
 <script src="/clawd-engine.js"></script>
-<script>
-(function () {
-  'use strict';
-  var cv = document.getElementById('machine');
-  var g = cv.getContext('2d');
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  cv.width = 520 * DPR; cv.height = 560 * DPR;
-  g.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-  /* ---- Clawd 宠物（表演位） ---- */
-  var pet = window.ClawdPet && window.ClawdPet.mount({ container: document.getElementById('pet-stage'),
-    autoSleep: false, sleepWindow: false });
-
-  /* ---- 存档 ---- */
-  var save = { tokens: 10, won: 0, prizes: [] };
-  try { var raw = JSON.parse(localStorage.getItem('clawd_arcade') || 'null'); if (raw) save = Object.assign(save, raw); } catch (e) {}
-  function persist() { try { localStorage.setItem('clawd_arcade', JSON.stringify(save)); } catch (e) {} }
-
-  /* ---- 动作池 ---- */
-  var TRICKS = (window.ClawdPet && window.ClawdPet.tricks) || [];
-  var pool = [];
-
-  /* ---- 机器状态 ---- */
-  var S = {
-    phase: 'off',           // off | ready | drop | close | rise | carry | release | won
-    clawX: 255, targetX: 255,
-    clawY: 150, dropTo: 330,
-    row: 0,                 // 0 前排 1 后排
-    open: 1,                // 爪子开合 0..1
-    timer: 0,
-    grabbed: null,          // 被抓住的球
-    balls: [],              // {x,y,row,color,action}
-    t: 0, animT: 0,
-    msg: 'INSERT COIN'
-  };
-  var COLORS = ['#e05a5a', '#4a6ec9', '#4a9e4a', '#e8b84a', '#9a6ec9', '#f0f0f2', '#5ac0c9'];
-
-  function refill() {
-    while (S.balls.length < 10) {
-      var row = S.balls.filter(function (b) { return b.row === 0; }).length <= S.balls.filter(function (b) { return b.row === 1; }).length ? 0 : 1;
-      var col = S.balls.filter(function (b) { return b.row === row; }).length % 5;
-      var trick = TRICKS[(Math.random() * TRICKS.length) | 0];
-      S.balls.push({ row: row, col: col, color: COLORS[(Math.random() * COLORS.length) | 0],
-        x: 140 + col * 50 + (row ? 25 : 0) + (Math.random() * 10 - 5),
-        y: row ? 392 : 360, action: trick, star: Math.random() < 0.34 });
-    }
-  }
-
-  /* ---- LED 与按钮状态 ---- */
-  var els = { tokens: document.getElementById('s-tokens'), won: document.getElementById('s-won'),
-    take: document.getElementById('b-take'), reveal: document.getElementById('reveal'), plist: document.getElementById('plist') };
-  var btns = { coin: document.getElementById('b-coin'), left: document.getElementById('b-left'), right: document.getElementById('b-right'),
-    up: document.getElementById('b-up'), down: document.getElementById('b-down'), drop: document.getElementById('b-drop'), reset: document.getElementById('b-reset') };
-
-  function renderUI() {
-    els.tokens.textContent = save.tokens;
-    els.won.textContent = save.won;
-    var on = S.phase === 'ready';
-    btns.left.disabled = btns.right.disabled = btns.up.disabled = btns.down.disabled = btns.drop.disabled = !on;
-    btns.coin.disabled = S.phase !== 'off';
-    els.take.disabled = S.phase !== 'won';
-    els.take.classList.toggle('glow', S.phase === 'won');
-    btns.reset.disabled = S.phase !== 'off' && S.phase !== 'ready';
-    var plist = save.prizes.slice(0, 12).map(function (pz) { return '<li>' + pz + '</li>'; }).join('');
-    els.plist.innerHTML = plist || '<li>还没有战利品</li>';
-  }
-
-  /* ---- 音效（独立小合成器） ---- */
-  var AC = null;
-  function tone(f0, f1, dur, type, vol) {
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      var t0 = AC.currentTime, o = AC.createOscillator(), gn = AC.createGain();
-      o.type = type || 'square';
-      o.frequency.setValueAtTime(f0, t0);
-      o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t0 + dur);
-      gn.gain.setValueAtTime(0.0001, t0);
-      gn.gain.exponentialRampToValueAtTime(vol || 0.05, t0 + 0.012);
-      gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      o.connect(gn); gn.connect(AC.destination);
-      o.start(t0); o.stop(t0 + dur + 0.03);
-    } catch (e) {}
-  }
-  var SFX = { coin: function () { tone(990, 1480, 0.14, 'square', 0.05); }, move: function () { tone(420, 380, 0.04, 'square', 0.02); },
-    drop: function () { tone(300, 140, 0.2, 'triangle', 0.04); }, grab: function () { tone(700, 1050, 0.12, 'square', 0.04); },
-    win: function () { tone(660, 660, 0.16, 'square', 0.05); tone(990, 990, 0.22, 'square', 0.045, 0.14); },
-    miss: function () { tone(220, 130, 0.25, 'sawtooth', 0.035); } };
-
-  /* ---- 流程 ---- */
-  function insertCoin() {
-    if (S.phase !== 'off' && S.phase !== 'ready') return;
-    if (save.tokens <= 0) { S.msg = 'NO TOKENS'; renderUI(); return; }
-    save.tokens--; persist(); renderUI();
-    refill();
-    S.phase = 'ready'; S.timer = 30; S.msg = 'TIME 30';
-    S.clawX = 255; S.clawY = 150; S.open = 1; S.grabbed = null; S.row = 0;
-    SFX.coin();
-  }
-  function moveClaw(d) {
-    if (S.phase !== 'ready') return;
-    S.clawX = Math.max(120, Math.min(390, S.clawX + d));
-    SFX.move();
-  }
-  function switchRow(d) {
-    if (S.phase !== 'ready') return;
-    S.row = Math.max(0, Math.min(1, S.row + d));
-    SFX.move();
-  }
-  function dropClaw() {
-    if (S.phase !== 'ready') return;
-    S.phase = 'drop';
-    S.dropTo = S.row ? 386 : 356;
-    S.msg = 'LOCK'; SFX.drop();
-  }
-  function takePrize() {
-    if (S.phase !== 'won' || !S.grabbed) return;
-    save.won++; save.tokens += 2;
-    var act = S.grabbed.action;
-    save.prizes.unshift('⭐ ' + act.name);
-    if (save.prizes.length > 24) save.prizes.length = 24;
-    persist(); renderUI();
-    els.reveal.innerHTML = '🎁 抽中动作：<b>' + act.name + '</b> — Clawd 当场表演！';
-    window.ClawdPet.playTrick(act.id);
-    S.grabbed = null;
-    S.phase = 'ready'; S.timer = 30; S.msg = 'TIME 30';
-    refill();
-  }
-  function resetMachine() {
-    if (S.phase !== 'off' && S.phase !== 'ready') return;
-    S.balls.length = 0; refill();
-    S.clawX = 255; S.clawY = 150; S.row = 0; S.grabbed = null;
-    if (S.phase === 'off') S.msg = 'INSERT COIN';
-    else { S.timer = 30; S.msg = 'TIME 30'; }
-  }
-
-  btns.coin.addEventListener('click', insertCoin);
-  btns.left.addEventListener('click', function () { moveClaw(-14); });
-  btns.right.addEventListener('click', function () { moveClaw(14); });
-  btns.up.addEventListener('click', function () { switchRow(-1); });
-  btns.down.addEventListener('click', function () { switchRow(1); });
-  btns.drop.addEventListener('click', dropClaw);
-  btns.reset.addEventListener('click', resetMachine);
-  els.take.addEventListener('click', takePrize);
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowLeft') { moveClaw(-14); e.preventDefault(); }
-    else if (e.key === 'ArrowRight') { moveClaw(14); e.preventDefault(); }
-    else if (e.key === 'ArrowUp') { switchRow(-1); e.preventDefault(); }
-    else if (e.key === 'ArrowDown') { switchRow(1); e.preventDefault(); }
-    else if (e.key === ' ') { dropClaw(); e.preventDefault(); }
-    else if (e.key === 'Enter') { takePrize(); e.preventDefault(); }
-  });
-
-  /* ---- 逐帧逻辑 ---- */
-  function step() {
-    var now = Date.now();
-    if (now - (S.lastAt || 0) < 30) return; // rAF 与兜底定时器双驱动去重
-
-    var wallDt = Math.min(1.0, (now - (S.lastAt || now)) / 1000);
-    S.lastAt = now;
-    S.animT = now / 1000;
-    if (S.phase === 'ready') {
-      if (S.phaseAt == null) S.phaseAt = now;
-      S.timer = Math.max(0, S.timerTotal - (now - S.phaseAt) / 1000);
-      if (!isFinite(S.timer)) { S.timer = S.timerTotal || 30; S.phaseAt = now; }
-      S.msg = 'TIME ' + Math.ceil(S.timer);
-      if (keys.left) moveClaw(-170 * wallDt);
-      if (keys.right) moveClaw(170 * wallDt);
-      if (S.timer <= 0) { S.phase = 'off'; S.msg = 'INSERT COIN'; S.phaseAt = null; }
-    } else if (S.phase === 'drop') {
-      var p = Math.min(1, (now - S.phaseAt) / 1100);
-      S.clawY = S.fromY + (S.dropTo - S.fromY) * p;
-      if (p >= 1) { S.phase = 'close'; S.phaseAt = now; S.closeT = 0; }
-    } else if (S.phase === 'close') {
-      var cp = Math.min(1, (now - S.phaseAt) / 300);
-      S.open = 1 - cp;
-      if (cp >= 1) {
-        var target = null, best = 1e9;
-        for (var i = 0; i < S.balls.length; i++) {
-          var b = S.balls[i];
-          if (b.row !== S.row) continue;
-          var d = Math.abs(b.x - S.clawX);
-          if (d < best) { best = d; target = b; }
-        }
-        var p2 = best < 8 ? 0.92 : best < 16 ? 0.62 : best < 24 ? 0.3 : 0;
-        if (target && Math.random() < p2) {
-          S.grabbed = target;
-          S.balls.splice(S.balls.indexOf(target), 1);
-          SFX.grab();
-        } else SFX.miss();
-        S.phase = 'rise'; S.phaseAt = now; S.fromY = S.clawY;
-      }
-    } else if (S.phase === 'rise') {
-      var rp = Math.min(1, (now - S.phaseAt) / 1200);
-      S.clawY = S.fromY + (150 - S.fromY) * rp;
-      if (S.grabbed) { S.grabbed.x = S.clawX; S.grabbed.y = S.clawY + 26; }
-      if (rp >= 1) { S.phase = 'carry'; S.phaseAt = now; S.fromX = S.clawX; }
-    } else if (S.phase === 'carry') {
-      var cp2 = Math.min(1, (now - S.phaseAt) / 900);
-      S.clawX = S.fromX + (85 - S.fromX) * cp2;
-      if (S.grabbed) { S.grabbed.x = S.clawX; S.grabbed.y = S.clawY + 26; }
-      if (cp2 >= 1) {
-        S.phase = 'release'; S.phaseAt = now; S.open = 1; S.relT = 0;
-        if (S.grabbed) { S.grabbed.x = 92; S.grabbed.vy = 0; }
-        S.msg = S.grabbed ? 'YOU WIN TAKE IT' : 'BAD LUCK';
-        if (S.grabbed) SFX.win(); else SFX.miss();
-      }
-    } else if (S.phase === 'release') {
-      var rp2 = Math.min(1, (now - S.phaseAt) / 700);
-      if (S.grabbed) { S.grabbed.vy = (S.grabbed.vy || 0) + 900 * Math.min(1.0, wallDt); S.grabbed.y += S.grabbed.vy * Math.min(1.0, wallDt); }
-      if (rp2 >= 1) {
-        S.phase = S.grabbed ? 'won' : 'ready';
-        if (S.phase === 'ready') { S.timerTotal = 30; S.phaseAt = Date.now(); S.msg = 'TIME 30'; }
-        if (S.phase !== 'won') S.grabbed = null;
-      }
-    } else if (S.phase === 'won') {
-      if (S.grabbed) { S.grabbed.y = Math.min(470, S.grabbed.y + 60 * wallDt); }
-    }
-  }
-  var keys = { left: false, right: false };
-  window.__MACHINE = S; // 调试：机器内部状态
-
-  /* ---- 绘制 ---- */
-  function drawBall(b) {
-    g.beginPath(); g.arc(b.x, b.y, 15, 0, Math.PI * 2);
-    g.fillStyle = b.color; g.fill();
-    g.strokeStyle = 'rgba(60,20,40,.4)'; g.lineWidth = 1.6; g.stroke();
-    g.beginPath(); g.arc(b.x - 5, b.y - 6, 4, 0, Math.PI * 2);
-    g.fillStyle = 'rgba(255,255,255,.55)'; g.fill();
-    if (b.star) { g.font = '11px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#ffd76e'; g.fillText('★', b.x, b.y + 4); }
-  }
-  function drawClaw(x, y, open, holding) {
-    g.strokeStyle = '#8a8a98'; g.lineWidth = 3;
-    g.beginPath(); g.moveTo(x, y - 30); g.lineTo(x, y - 6); g.stroke();
-    var spread = 8 + open * 14;
-    g.strokeStyle = '#c9c9d4'; g.lineWidth = 4; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(x - 4, y - 6); g.lineTo(x - spread, y + 12); g.stroke();
-    g.beginPath(); g.moveTo(x + 4, y - 6); g.lineTo(x + spread, y + 12); g.stroke();
-    g.strokeStyle = '#8a8a98'; g.lineWidth = 2.4;
-    g.beginPath(); g.moveTo(x - spread, y + 12); g.lineTo(x - spread - 2, y + 20); g.stroke();
-    g.beginPath(); g.moveTo(x + spread, y + 12); g.lineTo(x + spread + 2, y + 20); g.stroke();
-    if (holding) { g.strokeStyle = '#c9c9d4'; g.beginPath(); g.arc(x, y + 2, 9, 0, Math.PI * 2); g.stroke(); }
-  }
-
-  function render() {
-    g.clearRect(0, 0, 520, 560);
-    // 影子
-    g.beginPath(); g.ellipse(262, 536, 205, 26, 0, 0, Math.PI * 2);
-    g.fillStyle = '#4a5ac9'; g.fill();
-    // 机身
-    g.fillStyle = '#f2a0b5'; g.strokeStyle = '#4a2a3a'; g.lineWidth = 3;
-    roundRect(70, 80, 380, 420, 12); g.fill(); g.stroke();
-    g.fillStyle = '#d98298'; roundRect(70, 80, 26, 420, 10); g.fill();
-    // 顶部灯箱
-    g.fillStyle = '#f2a0b5'; roundRect(148, 46, 224, 62, 10); g.fill(); g.stroke();
-    g.fillStyle = '#5a3a4a'; g.font = '700 21px monospace'; g.textAlign = 'center';
-    g.fillText('LUCKY CLAW', 260, 86);
-    var on = S.phase !== 'off';
-    for (var i = 0; i < 7; i++) {
-      g.beginPath(); g.arc(178 + i * 28, 56, 3.4, 0, Math.PI * 2);
-      g.fillStyle = on && Math.floor(S.animT * 3) % 2 === 0 ? '#ffe08a' : '#c98098'; g.fill();
-    }
-    // 玻璃
-    g.fillStyle = 'rgba(252,232,242,.5)'; roundRect(95, 128, 330, 282, 6); g.fill();
-    g.strokeStyle = 'rgba(90,58,74,.5)'; g.lineWidth = 2; g.stroke();
-    g.beginPath(); g.moveTo(130, 132); g.lineTo(180, 260); g.lineTo(150, 260);
-    g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 8; g.stroke();
-    // 导轨 + 爪
-    g.fillStyle = '#8a8a98'; g.fillRect(100, 136, 320, 8);
-    var cx = S.clawX, cy = S.clawY;
-    g.fillStyle = '#5a5a68'; g.fillRect(cx - 15, cy - 24, 30, 16);
-    drawClaw(cx, cy, S.open, S.grabbed);
-    // 球
-    for (var j = 0; j < S.balls.length; j++) drawBall(S.balls[j]);
-    if (S.grabbed && (S.phase === 'rise' || S.phase === 'carry')) drawBall(S.grabbed);
-    if (S.grabbed && S.phase === 'won') drawBall(S.grabbed);
-    // 出奖口
-    g.fillStyle = '#2a1a24'; g.fillRect(95, 366, 26, 40);
-    g.fillStyle = '#c98098'; g.fillRect(93, 362, 30, 6);
-    // 基座
-    g.fillStyle = '#c96a86'; roundRect(78, 408, 364, 92, 8); g.fill(); g.stroke();
-    g.fillStyle = '#5a3a4a'; g.font = '600 26px Oswald,monospace'; g.fillText('PRIZES', 132, 468);
-    // LED 屏
-    g.fillStyle = '#0e2a1e'; roundRect(296, 448, 130, 34, 4); g.fill();
-    g.fillStyle = '#35e08a'; g.font = '700 13px monospace';
-    g.fillText(S.msg.slice(0, 16), 302, 470);
-    // 投币口 + 红按钮
-    g.fillStyle = '#3a2a34'; g.fillRect(300, 492, 46, 16);
-    g.beginPath(); g.arc(240, 470, 13, 0, Math.PI * 2); g.fillStyle = S.phase === 'ready' ? '#e05a5a' : '#8a4a4a'; g.fill();
-    g.strokeStyle = '#4a2a3a'; g.lineWidth = 2; g.stroke();
-    g.fillStyle = '#3a2a34'; g.fillRect(234, 452, 12, 8);
-  }
-  function roundRect(x, y, w, h, r) {
-    g.beginPath();
-    g.moveTo(x + r, y);
-    g.arcTo(x + w, y, x + w, y + h, r);
-    g.arcTo(x + w, y + h, x, y + h, r);
-    g.arcTo(x, y + h, x, y, r);
-    g.arcTo(x, y, x + w, y, r);
-    g.closePath();
-  }
-
-  /* ---- 主循环 ---- */
-  var keys = { left: false, right: false };
-  var lastT = performance.now();
-  function loop(now) {
-    var dt = Math.min(0.05, (now - lastT) / 1000);
-    lastT = now;
-    step(dt);
-    render();
-    requestAnimationFrame(loop);
-  // 兜底：rAF 被浏览器暂停/强节流时，用定时器继续推进（真实浏览器中此路不触发）
-  setInterval(function () { step(); }, 120);
-  }
-  requestAnimationFrame(loop);
-
-  window.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') keys.left = true; if (e.key === 'ArrowRight') keys.right = true; });
-  window.addEventListener('keyup', function (e) { if (e.key === 'ArrowLeft') keys.left = false; if (e.key === 'ArrowRight') keys.right = false; });
-
-  refill();
-  renderUI();
-})();
-</script>
+<script src="./physics.js"></script>
+<script src="./machine.js"></script>
 </body>
 </html>

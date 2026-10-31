@@ -19,10 +19,10 @@
   <h1>Clawd 整合测试页（模拟 bt 的 Blog 暗色环境）</h1>
   <p>这一页模拟博客的 Base.astro 环境：<code>html.dark</code> + <code>--wm-primary</code> 主题色变量，
      然后按博客的接入方式加载 <code>clawd-engine.js</code> + <code>clawd-blog.js</code>。</p>
-  <p>预期：① 小蟹是<b>电光蓝壳</b>（跟随 --wm-primary）；② 单击 → 摸摸头（爱心+钉住菜单）；
-     ③ 双击 → 喂饼干；④ 悬停菜单可喂饼干；⑤ 台词是博客专属池。</p>
+  <p>预期：① 小蟹保持<b>珊瑚色 #DE886D</b>；② 蛋期单击加速孵化，成年单击随机动作；
+     ③ 双击 → 喂饼干；④ 长按或右键打开轮盘；⑤ 台词是博客专属池。</p>
   <p>
-    <button class="btn" onclick="document.documentElement.classList.toggle('dark')">切换明暗主题（看壳色联动）</button>
+    <button class="btn" onclick="document.documentElement.classList.toggle('dark')">切换明暗主题（壳色保持珊瑚色）</button>
     <button class="btn" onclick="ClawdPet.setStatus('typing','Claude Code')">模拟 agent 敲码</button>
     <button class="btn" onclick="ClawdPet.clearStatus()">解除状态</button>
   </p>
