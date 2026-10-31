@@ -96,6 +96,16 @@
   #selected-prize { margin-top:10px; font-size:12px; color:#446d70; }
   #shy-choices { display:grid; gap:6px; margin:12px 0; }
   .machine-stage { background:radial-gradient(ellipse at 50% 70%,#dce6df,transparent 65%),#e9eee7; }
+  .performance-dialog { width:min(600px,calc(100vw - 28px)); max-height:calc(100dvh - 28px); overflow:auto; margin:auto; border:1px solid #9aaea7; border-radius:22px; padding:22px; background:#faf9f4; color:#203640; box-shadow:0 24px 90px #16343f44; }
+  .performance-dialog::backdrop { background:rgba(19,40,46,.65); }
+  .performance-dialog h2 { font:700 clamp(23px,5vw,32px)/1.4 var(--body); margin:6px 0 14px; }
+  .performance-dialog .pet-stage { height:310px; width:100%; }
+  .performance-dialog .cw-canvas { transform:scale(1.65); transform-origin:130px 360px; max-width:none; }
+  .performance-dialog .dialog-label { color:#52746f; font:12px var(--mono); letter-spacing:.1em; }
+  .performance-dialog .dialog-controls { display:flex; gap:10px; margin-top:16px; }
+  .performance-dialog .dialog-controls button { flex:1; }
+  #performance-status { margin-top:12px; min-height:24px; font-size:14px; line-height:1.8; }
+  @media(max-height:620px) { .performance-dialog { padding:14px; } .performance-dialog .pet-stage { height:210px; } }
 </style>
 </head>
 <body>
@@ -142,9 +152,20 @@
   </main>
 </div>
 
+<dialog id="performance-dialog" class="performance-dialog" aria-labelledby="performance-title">
+  <div class="dialog-label">你的胶囊奖品 / CLAWD SHOW</div>
+  <h2 id="performance-title">Clawd 专属表演</h2>
+  <div id="performance-host"></div>
+  <div id="performance-status" role="status" aria-live="polite"></div>
+  <div class="dialog-controls">
+    <button type="button" class="pbtn" id="b-replay" autofocus>再表演一次</button>
+    <button type="button" class="pbtn" id="b-close-show">收进收藏架</button>
+  </div>
+</dialog>
+
 <script>window.CLAWD_PET_NO_AUTO = true;</script>
 <script src="/clawd-engine.js"></script>
 <script src="./physics.js"></script>
-<script src="./machine.js"></script>
+<script src="./machine.js?v=20261031-performance"></script>
 </body>
 </html>

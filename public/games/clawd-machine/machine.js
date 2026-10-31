@@ -32,13 +32,34 @@
   }catch(_){}
   function persist(){try{localStorage.setItem('clawd_arcade',JSON.stringify(save));}catch(_){}}
   let pet=null,actorReady=false;
+  const homeStageParent=el('pet-stage').parentNode,homeStageNext=el('pet-stage').nextSibling;
+  let showOpen=false,showId=null,showStarted=false,showWidth=0;
   function selected(){return save.prizes.find(p=>p.id&&p.id===save.selectedId);}
   function replaySelected(){
     const p=selected();
     if(!p){el('reveal').textContent='先把一个 Clawd 带回家，才能解锁它的专属动作。';return;}
-    if(pet)pet.playTrick(p.id);
-    el('reveal').textContent='「'+p.name+'」已收藏 · 点击 Clawd 只会重播这个动作。';
+    const dialog=el('performance-dialog');
+    el('performance-title').textContent=p.name+' · Clawd 专属表演';
+    el('performance-host').appendChild(el('pet-stage'));
+    if(!dialog.open){if(typeof dialog.showModal==='function')dialog.showModal();else dialog.open=true;}
+    showOpen=true;showId=p.id;showStarted=false;showWidth=0;
+    // The same actor is moved into a visible stage. ResizeObserver adjusts its canvas.
+    let played=false;
+    if(pet){
+      played=typeof pet.playTrick==='function'?pet.playTrick(p.id):window.ClawdPet?.playTrick?.(p.id);
+    }
+    el('performance-status').textContent=played?'正在表演「'+p.name+'」…':'表演引擎未加载成功，请刷新重试；奖品已经保存。';
+    el('reveal').textContent='「'+p.name+'」已收藏 · 点击 Clawd 重播专属动作。';
   }
+  function restoreStage(){
+    showOpen=false;showId=null;
+    if(homeStageParent)homeStageParent.insertBefore(el('pet-stage'),homeStageNext);
+  }
+  function closeShow(){
+    const dialog=el('performance-dialog');
+    if(typeof dialog.close==='function')dialog.close();else{dialog.open=false;restoreStage();}
+  }
+
   try{
     if(window.ClawdPet){
       pet=window.ClawdPet.mount({container:el('pet-stage'),storageKey:'clawd_arcade_performer',
@@ -120,7 +141,7 @@
     }
     save.pendingPrize=null;persist();S.event=null;S.grabbed=null;S.msg=lost?'GONE FISHING':'WELCOME HOME';
     phase('off');refill();el('reveal').textContent=save.lastEvent;
-    if(!lost){showSelected();if(p.outcome!=='sleepy')replaySelected();else pet?.clawd.setState?.('sleep');}
+    if(!lost){showSelected();replaySelected();}
     el('reveal').textContent=save.lastEvent;
   }
   function coax(pay){
@@ -150,6 +171,8 @@
     if(selected())el('selected-prize').textContent='当前奖品 · '+selected().name;
   }
   function renderUI(){
+    cv.style.cursor=['won','shy'].includes(S.phase)?'pointer':'default';
+    cv.title=S.phase==='won'?'点击出口里的胶囊打开惊喜':S.phase==='shy'?'点击胶囊，耐心敲敲它':'';
     el('s-tokens').textContent=save.tokens;el('s-won').textContent=save.won;
     for(const id of ['b-left','b-right','b-up','b-down','b-drop'])el(id).disabled=S.phase!=='ready';
     el('b-coin').disabled=S.phase!=='off'||save.tokens<=0;el('b-reset').disabled=S.phase!=='off';
@@ -161,7 +184,7 @@
       ready:'移动机械爪 · '+(S.row?'后层':'前层')+' · '+Math.ceil(S.timer)+' 秒',
       drop:'吊索下降 · 爪尖碰到胶囊就会停顿',contact:'碰到胶囊了 · 周围胶囊被挤开',close:'机械爪合拢…',
       rise:'吊索提升 · 抓偏了可能会滑落',carry:'移向左侧落奖口…',release:'顺着透明通道滚入领取舱…',
-      won:'胶囊已到出口 · 点击领取，看它愿不愿意留下',scene:'胶囊正在打开…',shy:'它不肯出来 · 可请客，也可以免费耐心敲敲'};
+      won:'点出口里的胶囊或「领取奖品」，打开这份惊喜',scene:'胶囊正在打开…',shy:'它不肯出来 · 可请客，也可以免费耐心敲敲'};
     const msg=labels[S.phase]||'';if(el('machine-status').textContent!==msg)el('machine-status').textContent=msg;
     const key=JSON.stringify([save.prizes,save.selectedId]);
     if(key!==activeListKey){
@@ -185,6 +208,12 @@
     while(remainder>=1/120){
       const fingers=['drop','contact','close'].includes(S.phase)?{x:S.clawX,y:S.clawY,open:S.open,row:S.row,contacts:0}:null;
       window.ClawPhysics.step(S.balls,1/120,fingers);S.contacts+=fingers?.contacts||0;remainder-=1/120;
+    }
+    if(showOpen&&pet?.eng&&pet?.clawd){
+      const c=pet.clawd;
+      if(showWidth!==pet.eng.W){c.x=pet.eng.W/2;c.y=pet.eng.groundY;c.vx=0;c.vy=0;c.targetX=null;showWidth=pet.eng.W;}
+      if(c.state==='trick'&&c.trick?.def.id===showId)showStarted=true;
+      else if(showStarted)el('performance-status').textContent='表演结束 · 可以重播，也可以收进收藏架。';
     }
     const elapsed=(now-S.phaseAt)/1000;
     if(S.phase==='ready'){
@@ -401,11 +430,20 @@
     'b-reset':resetMachine,'b-bribe':()=>coax(true),'b-knock':()=>coax(false),'b-release':releaseShy})){
     el(id).addEventListener('click',fn);
   }
+  el('b-replay').addEventListener('click',replaySelected);
+  el('b-close-show').addEventListener('click',closeShow);
+  el('performance-dialog').addEventListener('close',restoreStage);
+  cv.addEventListener('click',e=>{
+    if(!['won','shy'].includes(S.phase))return;
+    const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*520/r.width,y=(e.clientY-r.top)*560/r.height;
+    if(x<105||x>198||y<410||y>486)return;
+    if(S.phase==='won')beginPrizeScene();else coax(false);
+  });
   el('b-refill').addEventListener('click',()=>{if(Date.now()-save.supplyAt<86400000)return;save.tokens+=10;save.supplyAt=Date.now();persist();renderUI();});
   el('b-sound').addEventListener('click',()=>{soundOn=!soundOn;el('b-sound').textContent='声音 · '+(soundOn?'开':'关');el('b-sound').setAttribute('aria-pressed',String(soundOn));tone(500);});
   function editable(e){return /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;}
   document.addEventListener('keydown',e=>{
-    if(editable(e)||e.target.closest?.('#pet-stage,#plist,#shy-choices'))return;
+    if(showOpen||editable(e)||e.target.closest?.('#pet-stage,#plist,#shy-choices'))return;
     if(e.key==='ArrowLeft')keys.left=true;else if(e.key==='ArrowRight')keys.right=true;
     else if(e.key==='ArrowUp')switchRow(1);else if(e.key==='ArrowDown')switchRow(-1);
     else if(e.key===' ')dropClaw();else if(e.key==='Enter'&&e.target.tagName!=='BUTTON')beginPrizeScene();else return;

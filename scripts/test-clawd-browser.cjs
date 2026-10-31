@@ -132,6 +132,38 @@ async function mount(page,key,opts={}){
    assert.equal(await p.evaluate(()=>__CLAWD_LAST__.clawd.trick.def.id),'sprint');
    await c.close();
  });
+ for(const mode of [{name:'desktop',width:1280,height:1000,dpr:1},{name:'mobile',width:390,height:844,dpr:2},{name:'paused RAF',width:390,height:844,dpr:2,noRaf:true}]){
+   await test('visible performance '+mode.name+' has changing canvas pixels after capsule click',async()=>{
+     const c=await browser.newContext({viewport:{width:mode.width,height:mode.height},deviceScaleFactor:mode.dpr});
+     const p=await c.newPage();p.on('pageerror',e=>errors.push(String(e)));await p.clock.install({time:at});
+     await p.addInitScript(noRaf=>{
+       if(noRaf)window.requestAnimationFrame=()=>123;
+       localStorage.setItem('clawd_arcade',JSON.stringify({tokens:9,won:0,prizes:[],pendingPrize:{uid:'click-show',id:'poem',name:'念诗',outcome:'kept',resolving:false}}));
+     },mode.noRaf);
+     await p.goto(base+'/games/clawd-machine/');
+     const box=await p.locator('#machine').boundingBox();
+     await p.locator('#machine').click({position:{x:box.width*145/520,y:box.height*455/560}});
+     await p.clock.runFor(4100);
+     assert.equal(await p.locator('#performance-dialog').isVisible(),true);
+     const bounds=await p.locator('#performance-dialog').boundingBox();
+     assert.ok(bounds.y>=0&&bounds.y+bounds.height<=mode.height+1,'performance must be inside viewport');
+     const pixels=()=>p.evaluate(()=>{
+       const c=document.querySelector('#pet-stage .cw-canvas'),data=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+       let hash=2166136261;for(let i=0;i<data.length;i++)hash=Math.imul(hash^data[i],16777619);return hash>>>0;
+     });
+     const a=await pixels();await p.clock.runFor(450);const b=await pixels();
+     assert.notEqual(a,b,'animation must change rendered pixels, not only trick id');
+     assert.equal(await p.evaluate(()=>__CLAWD_LAST__.clawd.trick.def.id),'poem');
+     assert.deepEqual(await p.evaluate(()=>window.__clawdErrors||[]),[]);
+     if(artifacts)await p.screenshot({path:path.join(artifacts,'performance-'+mode.name.replace(/ /g,'-')+'.png'),fullPage:true});
+     await p.click('#b-replay');await p.clock.runFor(200);
+     assert.equal(await p.evaluate(()=>__CLAWD_LAST__.clawd.trick.def.id),'poem');
+     const saved=await p.evaluate(()=>JSON.parse(localStorage.clawd_arcade));assert.equal(saved.tokens,11);assert.equal(saved.won,1);
+     await p.click('#b-close-show');assert.equal(await p.locator('#performance-dialog').isVisible(),false);
+     assert.equal(await p.locator('.side #pet-stage').count(),1);
+     await c.close();
+   });
+ }
  assert.deepEqual(errors,[]);console.log('\n'+passed+' browser scenarios passed. Zero page errors.');
  await browser.close();server.close();
 })().catch(async e=>{console.error(e);if(browser)await browser.close();server.close();process.exitCode=1;});
